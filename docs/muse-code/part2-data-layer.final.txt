@@ -1,0 +1,17 @@
+Done. `npm run check` passes (typecheck, lint, format, 39/39 tests across 4 files, secret scan clean). No runtime code changed — the diff on `src/` is comments only (verified: added lines are all `/**`/`*`/`//`, removed lines are only the 3 old one-line JSDocs).
+
+Files changed (comments/JSDoc only):
+- [findTwins.ts](/agent/workspace/orionmatter-path-engine/src/lib/tools/findTwins.ts), [pathStats.ts](/agent/workspace/orionmatter-path-engine/src/lib/tools/pathStats.ts), [levelMap.ts](/agent/workspace/orionmatter-path-engine/src/lib/tools/levelMap.ts), [compBands.ts](/agent/workspace/orionmatter-path-engine/src/lib/tools/compBands.ts), [kAnonymity.ts](/agent/workspace/orionmatter-path-engine/src/lib/tools/kAnonymity.ts), [data.ts](/agent/workspace/orionmatter-path-engine/src/lib/tools/data.ts) — header comment plus full JSDoc (purpose, params, return, edge behaviour) on every exported function/type.
+- [schemas.ts](/agent/workspace/orionmatter-path-engine/src/lib/schemas.ts) — header, one-line comment on each of the 12 schemas, JSDoc on each exported type.
+
+Files created:
+- [tests/tools.edge.test.ts](/agent/workspace/orionmatter-path-engine/tests/tools.edge.test.ts) — 16 tests covering every required edge (plus unknown/duplicate twin ids in `pathStats`).
+- [docs/parts/part-2-data-layer.md](/agent/workspace/orionmatter-path-engine/docs/parts/part-2-data-layer.md) — data-layer overview, five-tool table (inputs/outputs/guarantee), edge-behaviour list.
+
+Suspected bug (left as-is, no failing test written):
+- [findTwins.ts:26](/agent/workspace/orionmatter-path-engine/src/lib/tools/findTwins.ts:26) — `lv` parses levels by stripping non-digits, so EM1→1 and EM2→2. Compared against IC start levels (3–5), an EM-profile matches nothing: EM1 is 2+ away from every start level, and EM2 only matches L3 starts, of which the cohort has none. So EM users always get zero twins. Suggested fix: handle the EM track explicitly (e.g. compare EM levels on their own track) instead of digit-parsing.
+
+Doubts (also untouched):
+- `pathStats` returns `NaN` (not null) for months percentiles when there are matches but zero `reached` outcomes; `NaN` in typed number fields becomes null under JSON serialization. Documented in JSDoc; consider null if callers prefer it.
+- `data.ts` types `MARKERS` as `{id, name}[]`, hiding the `monthsPerLevel`/`onCall`/`interview` fields present in `company-markers.json`.
+- `schemas.ts` exports no `Step` type alias, unlike every other object schema.

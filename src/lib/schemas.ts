@@ -1,9 +1,19 @@
+/**
+ * schemas.ts: Zod contracts for every domain object.
+ *
+ * Model output, tool arguments, and plan shapes are all untrusted until parsed
+ * here, so agents and tools share one validated vocabulary.
+ */
 import { z } from "zod";
 
+// Job-family enum shared by Profile and CohortRecord.
 export const RoleFamily = z.enum(["backend", "platform", "ml", "frontend", "embedded", "sre"]);
+// Plan shape (climb/jump/pivot); selects which twins pathStats aggregates and labels each Route.
 export const Archetype = z.enum(["climb", "jump", "pivot"]);
+// How a cohort career ended; pathStats counts "reached" for rates and names risks from the rest.
 export const Outcome = z.enum(["reached", "stalled", "left-field"]);
 
+// One synthetic career history; the row type of COHORT in tools/data.ts.
 export const CohortRecord = z.object({
   id: z.string(),
   synthetic: z.literal(true),
@@ -20,8 +30,10 @@ export const CohortRecord = z.object({
   outcome: Outcome,
   region: z.string(),
 });
+/** Inferred `CohortRecord` row type; the element type of COHORT and kAnonymity's cohort. */
 export type CohortRecord = z.infer<typeof CohortRecord>;
 
+// The user's verified-ish current position; findTwins matches twins against it.
 export const Profile = z.object({
   roleFamily: RoleFamily,
   level: z.string(),
@@ -41,8 +53,10 @@ export const Profile = z.object({
     .max(20)
     .default([]),
 });
+/** Inferred `Profile` type; milestones stay unverified (`verified: false`) by construction. */
 export type Profile = z.infer<typeof Profile>;
 
+// What-if knobs (remote, relocation, risk); findTwins reads remote/noRelocation.
 export const Constraints = z.object({
   remote: z.boolean().optional(),
   noRelocation: z.boolean().optional(),
@@ -51,19 +65,25 @@ export const Constraints = z.object({
   riskTolerance: z.enum(["low", "medium", "high"]).default("medium"),
   addSkills: z.array(z.string()).default([]),
 });
+/** Inferred `Constraints` type; riskTolerance defaults to "medium", addSkills to []. */
 export type Constraints = z.infer<typeof Constraints>;
 
+// Target level plus a human-readable label; findTwins requires twins to have reached it.
 export const Goal = z.object({ targetLevel: z.string(), label: z.string() });
+/** Inferred `Goal` type; targetLevel is a free string so unknown ladders still parse. */
 export type Goal = z.infer<typeof Goal>;
 
+// One evidence-backed statement citing ledger ids; steps use it in whyItWorks.
 export const Claim = z.object({
   text: z.string().max(240),
   evidenceIds: z.array(z.string()).min(1),
   n: z.number().int().nonnegative(),
   range: z.tuple([z.number(), z.number()]).optional(),
 });
+/** Inferred `Claim` type; every claim needs at least one evidence id and a sample size. */
 export type Claim = z.infer<typeof Claim>;
 
+// One dated plan step (what, window, proof); a Route holds 2-6 of them.
 export const Step = z.object({
   what: z.string(),
   monthWindow: z.tuple([z.number(), z.number()]),
@@ -73,6 +93,7 @@ export const Step = z.object({
   companyMarkerIds: z.array(z.string()),
 });
 
+// One proposed path: archetype, steps, metric ranges, and the evidence-thin flag.
 export const Route = z.object({
   archetype: Archetype,
   summary: z.string().max(400),
@@ -93,14 +114,18 @@ export const Route = z.object({
   }),
   evidenceThin: z.boolean(),
 });
+/** Inferred `Route` type; metrics are ranges plus a sample size, never point estimates. */
 export type Route = z.infer<typeof Route>;
 
+// The planner's output contract (consumed by later agent parts): exactly three routes plus caveats.
 export const PlanResult = z.object({
   routes: z.array(Route).length(3),
   caveats: z.array(z.string()).min(1),
 });
+/** Inferred `PlanResult` type; always three routes and at least one caveat. */
 export type PlanResult = z.infer<typeof PlanResult>;
 
+// The skeptic reviewer's verdict contract (used by later agent parts): approval plus rejections.
 export const SkepticVerdict = z.object({
   approved: z.boolean(),
   rejections: z.array(
@@ -112,4 +137,5 @@ export const SkepticVerdict = z.object({
   ),
   notes: z.array(z.string()),
 });
+/** Inferred `SkepticVerdict` type; rejections point at a route index and a claim. */
 export type SkepticVerdict = z.infer<typeof SkepticVerdict>;

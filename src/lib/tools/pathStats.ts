@@ -1,9 +1,32 @@
+/**
+ * pathStats.ts: aggregates twin outcomes for one archetype into ranges.
+ *
+ * This is where "ranges, never single numbers" is enforced: the success rate
+ * is a confidence interval and time-to-goal is a P25-P75 band, always reported
+ * with the sample size so callers can tell thin evidence from strong evidence.
+ */
 import type { z } from "zod";
 import type { Archetype as ArchetypeSchema } from "../schemas";
 type Archetype = z.infer<typeof ArchetypeSchema>;
 import { COHORT, THIN_N } from "./data";
 import { bandAt, bandIdx, percentile } from "./stats";
 
+/**
+ * Summarizes what happened to twins who followed one archetype.
+ *
+ * Time-to-goal percentiles and the comp-band range are computed over twins
+ * who reached the goal; risks count the stalled and left-field shares.
+ *
+ * @param twinIds ids from findTwins; unknown ids are ignored, duplicates count once.
+ * @param archetype one of climb, jump, or pivot; only matching twins are aggregated.
+ * @returns sample size `n`, the `evidenceThin` flag (n < 15), the reached-rate
+ * Wilson interval clamped to [0, 1], months-to-goal percentiles, the comp-band
+ * P25-P75 range, and the most common risks and skill gates.
+ * Edge: with no matching twins returns n = 0, evidenceThin = true,
+ * reachedRate [0, 0], NaN months, compBandRange ["-", "-"], and empty lists.
+ * With matches but no reached outcomes, months percentiles are NaN and the
+ * comp-band range is ["-", "-"].
+ */
 export function pathStats(twinIds: string[], archetype: Archetype) {
   const ids = new Set(twinIds);
   const rows = COHORT.filter((r) => ids.has(r.id) && r.archetype === archetype);

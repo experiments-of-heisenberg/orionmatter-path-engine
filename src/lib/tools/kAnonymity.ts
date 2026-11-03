@@ -1,11 +1,33 @@
+/**
+ * kAnonymity.ts: guards against over-specific claims about small groups.
+ *
+ * Before the planner cites a slice of the cohort it checks that at least k
+ * records share the slice's attributes; otherwise the claim could single out
+ * individuals instead of describing a real pattern.
+ */
 import type { CohortRecord } from "../schemas";
 import { COHORT } from "./data";
 
+/**
+ * Cohort attributes defining an anonymity group. All optional: an empty object
+ * matches the whole cohort. `companyType` matches when it appears anywhere in
+ * a record's company-type history.
+ */
 export type AnonAttrs = Partial<Pick<CohortRecord, "roleFamily" | "startLevel" | "endLevel" | "region">> & {
   companyType?: string;
 };
 
-/** Size of the group of cohort records sharing all given attributes. Drop attributes one by one to find which make the person unique. */
+/**
+ * Checks whether an attribute combination covers at least k cohort records.
+ *
+ * @param attrs attributes defining the group; undefined fields are wildcards.
+ * @param cohort records to search; defaults to the full synthetic cohort.
+ * @param k minimum group size; defaults to 10.
+ * @returns whether the group passes, its size, and — only when it fails — the
+ * attributes to drop (greedily, most-covering first) until k would be reached.
+ * Edge: an empty `attrs` matches the whole cohort; `offendingAttrs` is empty
+ * whenever the check passes.
+ */
 export function kAnonymity(attrs: AnonAttrs, cohort: CohortRecord[] = COHORT, k = 10) {
   const match = (a: AnonAttrs) =>
     cohort.filter(

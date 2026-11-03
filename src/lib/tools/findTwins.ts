@@ -1,7 +1,27 @@
+/**
+ * findTwins.ts: matches the user with comparable synthetic engineers ("twins").
+ *
+ * Twins are the evidence base for every plan: later tools only aggregate over
+ * twin ids, so the planner never reasons about the user in isolation.
+ */
 import type { Constraints, Goal, Profile } from "../schemas";
 import { COHORT } from "./data";
 
-/** Nearest synthetic engineers: same role family, start level within 1, goal level match; optional remote filter. */
+/**
+ * Finds synthetic engineers comparable to the user.
+ *
+ * A cohort record is a twin when it shares the user's role family, ended at
+ * the goal's target level, and started within one level of the user's level
+ * (compared numerically, e.g. L4 is one away from L5). When
+ * `constraints.remote` is set only remote twins are kept; when
+ * `constraints.noRelocation` is set only twins in the user's region (or remote
+ * twins) are kept.
+ *
+ * @param profile user's current position (role family, level, region).
+ * @param goal target level the twins must have reached.
+ * @param constraints optional what-if knobs; only `remote` and `noRelocation` affect matching.
+ * @returns twin ids with `n` always equal to `twinIds.length`; both empty when nothing matches.
+ */
 export function findTwins(profile: Profile, goal: Goal, constraints: Partial<Constraints> = {}) {
   const lv = (s: string) => Number(s.replace(/\D/g, "")) || 0;
   const twins = COHORT.filter(
