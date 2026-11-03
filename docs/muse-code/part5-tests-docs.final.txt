@@ -1,0 +1,18 @@
+Done. `npm run check` passes (typecheck, lint, format, 28 test files / 372 tests, secret scan clean). No file under `src/` was touched; nothing committed.
+
+Files created (all new, none modified):
+
+- [tests/textChecks.test.ts](/agent/workspace/orionmatter-path-engine/tests/textChecks.test.ts) — 38 tests for `findOverclaim`, `numbersIn`, `numericLeaves`, `supportedNumbers`, `ungroundedNumbers`, `mentionsLimitedEvidence`
+- [tests/findings.test.ts](/agent/workspace/orionmatter-path-engine/tests/findings.test.ts) — 5 tests for `toRejections`, including stepIndex-key-absent and Rejection-schema validation
+- [tests/revisionPrompt.test.ts](/agent/workspace/orionmatter-path-engine/tests/revisionPrompt.test.ts) — 9 tests for `revisionUserMessage`
+- [tests/skepticSchemas.test.ts](/agent/workspace/orionmatter-path-engine/tests/skepticSchemas.test.ts) — 14 tests for `SkepticVerdict`, `Rejection`, `RejectionSource`, `CriticOutput`
+- [docs/parts/part-5-skeptic.md](/agent/workspace/orionmatter-path-engine/docs/parts/part-5-skeptic.md) — plain-language Part 5 guide: pipeline diagram, all thirteen verifier codes, number checking, critic + quote guard, revision loop, ledger-vs-metrics windows, exact "Live results" placeholder sentence, known limits, verification
+
+Bugs / doubts found in `src/` (not fixed, no failing tests written; all verified by running the actual functions):
+
+1. `numbersIn` counts digits glued to letters on the right ([textChecks.ts](/agent/workspace/orionmatter-path-engine/src/lib/skeptic/textChecks.ts:31)). `"the 1st step"` gives `[1]`, `"6pm"` gives `[6]`, though the docstring says digits glued to letters are not numbers. The lookbehind guards only the left side, so ordinals in ordinary prose ("1st", "2nd", "3rd") need to be in the evidence or they trigger `ungrounded_number`. Suggested fix: add a negative lookahead such as `(?![A-Za-z])` after the number group.
+2. `numbersIn` splits thousands separators: `"1,000 engineers"` gives `[1, 0]` (same line). Suggested fix: allow commas inside digit groups.
+3. `findOverclaim` matches inside hyphenated compounds ([textChecks.ts](/agent/workspace/orionmatter-path-engine/src/lib/skeptic/textChecks.ts:16)) because `\b` treats `-` as a boundary: `"will-power"` returns `"will"`, so "never-ending" / "always-on" would also flag. Suggested fix if this is unwanted: custom boundaries like `(?<![A-Za-z-])…(?![A-Za-z-])` instead of `\b`.
+4. Minor: `numbersIn(".5 chance")` gives `[]` — leading-dot decimals are never recognised (same line as 1). Probably fine for prose, noting for completeness.
+
+Doubt (not a bug): `docs/parts/part-5-skeptic.md` documents the live run as `bash with_keys.sh npx tsx scripts/live-audit-check.ts`, matching that script's own header comment — but `with_keys.sh` does not exist in the repo (presumably a personal, git-ignored wrapper), so a newcomer cannot run it as written.
