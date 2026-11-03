@@ -29,6 +29,20 @@ describe("pathStats edges", () => {
     expect(s.n).toBe(0);
     expect(s.evidenceThin).toBe(true);
     expect(s.reachedRate).toEqual([0, 0]);
+    expect(s.monthsP25).toBeNull();
+    expect(s.monthsP50).toBeNull();
+    expect(s.monthsP75).toBeNull();
+  });
+
+  it("returns null months (never NaN) when twins exist but none reached the goal", () => {
+    const stalled = COHORT.find((r) => r.outcome !== "reached");
+    if (!stalled) throw new Error("expected a non-reached record in the cohort");
+    const s = pathStats([stalled.id], stalled.archetype);
+    expect(s.n).toBe(1);
+    expect(s.monthsP25).toBeNull();
+    expect(s.monthsP75).toBeNull();
+    expect(s.compBandRange).toEqual(["-", "-"]);
+    expect(s.reachedRate).toEqual([0, expect.any(Number)]);
   });
 
   it("unknown ids are ignored and duplicates count once", () => {
@@ -55,8 +69,9 @@ describe("pathStats edges", () => {
       const s = pathStats(allIds, archetype);
       expect(s.n).toBeGreaterThanOrEqual(15);
       expect(s.evidenceThin).toBe(false);
-      expect(s.monthsP25).toBeLessThanOrEqual(s.monthsP50);
-      expect(s.monthsP50).toBeLessThanOrEqual(s.monthsP75);
+      expect(s.monthsP25).not.toBeNull();
+      expect(s.monthsP25 as number).toBeLessThanOrEqual(s.monthsP50 as number);
+      expect(s.monthsP50 as number).toBeLessThanOrEqual(s.monthsP75 as number);
     }
   });
 });

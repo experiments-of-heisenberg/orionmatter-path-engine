@@ -62,9 +62,17 @@ Other models on the Meta API (from `GET /v1/models`): `muse-spark-1.2`, `muse-sp
 --trust-workspace` only because the container is disposable, and withhold every key
   except `META_API_KEY` from the process.
 - `muse export --last --redacted --out <file>` produces a self-contained JSON session
-  log (about 0.4 to 0.6 MB per run). We scanned raw and redacted exports and the JSONL
+  log. We scanned raw and redacted exports and the JSONL
   stream for both key values: no leaks.
 - `scripts/muse-run.sh` wraps all of this: fixed safe flags, prompt saved as evidence,
   redacted export, automatic leak scan that deletes evidence on a match.
+- **Contributor mode (data sharing).** Muse Code can run on `muse-spark-1.3-contributor`,
+  which lets Meta use the run's prompts, code and responses to train future models, in
+  exchange for cheaper tokens. On our account a headless run used the contributor model by
+  default, and `--contributor-mode off` alone did NOT change that. Pinning
+  `--model muse-spark-1.3` does (verified in the session log). `scripts/muse-run.sh` pins it.
+  Standard pricing is $1.25 / $4.25 per 1M input / output tokens versus $0.10 / $0.20
+  in Contributor mode, so Standard runs spend our API credit faster.
+- Session exports are about 3 MB raw for one task, so the runner gzips them (about 0.4 MB).
 - Exit code 0 means the turn completed, not that the work is correct. Always run the
   project's own tests afterwards.

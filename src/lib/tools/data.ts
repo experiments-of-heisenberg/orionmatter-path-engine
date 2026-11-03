@@ -16,7 +16,16 @@ export const LEVEL_MAP = levelMapFile as {
   levels: string[];
   systems: Record<string, Record<string, string>>;
 };
+/** A fictional, tiered company marker (illustrative data, not a real employer). */
+export interface CompanyMarker {
+  id: string;
+  name: string;
+  /** Typical months spent at each level before promotion. */
+  monthsPerLevel: Record<string, number>;
+  onCall: "low" | "medium" | "high";
+  interview: string;
+}
 /** Fictional company markers referenced by plan steps via Step.companyMarkerIds. */
-export const MARKERS = (markersFile as { markers: { id: string; name: string }[] }).markers;
+export const MARKERS = (markersFile as { markers: CompanyMarker[] }).markers;
 /** Sample sizes below this count are flagged `evidenceThin`. */
 export const THIN_N = 15;

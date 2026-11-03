@@ -10,6 +10,8 @@ import { z } from "zod";
 export const RoleFamily = z.enum(["backend", "platform", "ml", "frontend", "embedded", "sre"]);
 // Plan shape (climb/jump/pivot); selects which twins pathStats aggregates and labels each Route.
 export const Archetype = z.enum(["climb", "jump", "pivot"]);
+/** The three route archetypes the Planner produces. */
+export type Archetype = z.infer<typeof Archetype>;
 // How a cohort career ended; pathStats counts "reached" for rates and names risks from the rest.
 export const Outcome = z.enum(["reached", "stalled", "left-field"]);
 
@@ -116,6 +118,8 @@ export const Route = z.object({
 });
 /** Inferred `Route` type; metrics are ranges plus a sample size, never point estimates. */
 export type Route = z.infer<typeof Route>;
+/** One move on a route (what, when, why it works with evidence, proof needed, gap closers). */
+export type Step = z.infer<typeof Step>;
 
 // The planner's output contract (consumed by later agent parts): exactly three routes plus caveats.
 export const PlanResult = z.object({

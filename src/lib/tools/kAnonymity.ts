@@ -1,9 +1,11 @@
 /**
- * kAnonymity.ts: guards against over-specific claims about small groups.
+ * kAnonymity.ts: measures re-identification risk for a career profile.
  *
- * Before the planner cites a slice of the cohort it checks that at least k
- * records share the slice's attributes; otherwise the claim could single out
- * individuals instead of describing a real pattern.
+ * The Privacy Guard asks how many cohort records share a person's coarsened
+ * attributes (role family, level, region, company type). A small group means the
+ * attribute combination could single someone out, so the story must be generalised
+ * before it is shared. This is the deterministic half of the Privacy Guard; the
+ * free-text half runs on the open-weights model.
  */
 import type { CohortRecord } from "../schemas";
 import { COHORT } from "./data";

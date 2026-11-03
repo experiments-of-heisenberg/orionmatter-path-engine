@@ -30,7 +30,8 @@ describe("tools", () => {
     const t = findTwins(profile, goal);
     const s = pathStats(t.twinIds, "jump");
     expect(s.reachedRate[0]).toBeLessThanOrEqual(s.reachedRate[1]);
-    expect(s.monthsP25).toBeLessThanOrEqual(s.monthsP75);
+    expect(s.monthsP25).not.toBeNull();
+    expect(s.monthsP25 as number).toBeLessThanOrEqual(s.monthsP75 as number);
   });
   it("flags thin segments (n<15) as evidenceThin", () => {
     const ml = Profile.parse({ ...profile, roleFamily: "ml" });

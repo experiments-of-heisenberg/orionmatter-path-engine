@@ -5,11 +5,34 @@
  * is a confidence interval and time-to-goal is a P25-P75 band, always reported
  * with the sample size so callers can tell thin evidence from strong evidence.
  */
-import type { z } from "zod";
-import type { Archetype as ArchetypeSchema } from "../schemas";
-type Archetype = z.infer<typeof ArchetypeSchema>;
+import type { Archetype } from "../schemas";
 import { COHORT, THIN_N } from "./data";
 import { bandAt, bandIdx, percentile } from "./stats";
+
+/** Aggregated outcomes for one archetype. Timing fields are null when no twin reached the goal. */
+export interface PathStatsResult {
+  /** Number of twins on this archetype (the sample size). */
+  n: number;
+  /** True when n is below the thin-evidence threshold, so callers must say "limited evidence". */
+  evidenceThin: boolean;
+  /** 95% Wilson interval for the share of twins who reached the goal, within [0, 1]. */
+  reachedRate: [number, number];
+  /** Months to goal among twins who reached it (25th percentile), or null if none did. */
+  monthsP25: number | null;
+  /** Median months to goal, or null if none reached it. */
+  monthsP50: number | null;
+  /** 75th percentile months to goal, or null if none reached it. */
+  monthsP75: number | null;
+  /** P25 to P75 comp band range among twins who reached the goal, or ["-", "-"]. */
+  compBandRange: [string, string];
+  topRisks: string[];
+  topGates: string[];
+}
+
+/** Rounded percentile of ascending-sorted values, or null when there is nothing to measure. */
+function roundedPercentile(sorted: number[], p: number): number | null {
+  return sorted.length === 0 ? null : Math.round(percentile(sorted, p));
+}
 
 /**
  * Summarizes what happened to twins who followed one archetype.
@@ -23,11 +46,12 @@ import { bandAt, bandIdx, percentile } from "./stats";
  * Wilson interval clamped to [0, 1], months-to-goal percentiles, the comp-band
  * P25-P75 range, and the most common risks and skill gates.
  * Edge: with no matching twins returns n = 0, evidenceThin = true,
- * reachedRate [0, 0], NaN months, compBandRange ["-", "-"], and empty lists.
- * With matches but no reached outcomes, months percentiles are NaN and the
+ * reachedRate [0, 0], null months, compBandRange ["-", "-"], and empty lists.
+ * With matches but no reached outcomes, months percentiles are null (never NaN,
+ * which would silently become null in JSON and fail number validation) and the
  * comp-band range is ["-", "-"].
  */
-export function pathStats(twinIds: string[], archetype: Archetype) {
+export function pathStats(twinIds: string[], archetype: Archetype): PathStatsResult {
   const ids = new Set(twinIds);
   const rows = COHORT.filter((r) => ids.has(r.id) && r.archetype === archetype);
   const n = rows.length;
@@ -35,13 +59,13 @@ export function pathStats(twinIds: string[], archetype: Archetype) {
     return {
       n: 0,
       evidenceThin: true,
-      reachedRate: [0, 0] as [number, number],
-      monthsP25: NaN,
-      monthsP50: NaN,
-      monthsP75: NaN,
-      compBandRange: ["-", "-"] as [string, string],
-      topRisks: [] as string[],
-      topGates: [] as string[],
+      reachedRate: [0, 0],
+      monthsP25: null,
+      monthsP50: null,
+      monthsP75: null,
+      compBandRange: ["-", "-"],
+      topRisks: [],
+      topGates: [],
     };
   const reached = rows.filter((r) => r.outcome === "reached");
   const months = reached.map((r) => r.months).sort((a, b) => a - b);
@@ -71,9 +95,9 @@ export function pathStats(twinIds: string[], archetype: Archetype) {
     n,
     evidenceThin: n < THIN_N,
     reachedRate,
-    monthsP25: Math.round(percentile(months, 0.25)),
-    monthsP50: Math.round(percentile(months, 0.5)),
-    monthsP75: Math.round(percentile(months, 0.75)),
+    monthsP25: roundedPercentile(months, 0.25),
+    monthsP50: roundedPercentile(months, 0.5),
+    monthsP75: roundedPercentile(months, 0.75),
     compBandRange,
     topRisks: risks,
     topGates: count(reached.flatMap((r) => r.skillsProven)).slice(0, 3),
