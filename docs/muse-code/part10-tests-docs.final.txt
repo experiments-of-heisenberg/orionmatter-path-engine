@@ -1,0 +1,30 @@
+Done. `npm run check` passes: typecheck, lint, format check, 61 test files / 947 passed + 1 skipped, secret scan clean. Nothing under `src/`, `evals/` or `scripts/` was touched; nothing committed.
+
+## Files created
+
+- [tests/privacyDetectorEdges.test.ts](/agent/workspace/orionmatter-path-engine/tests/privacyDetectorEdges.test.ts) — 33 tests for `detectIdentifiers`/`findPii`
+- [tests/privacyPreviewEdges.test.ts](/agent/workspace/orionmatter-path-engine/tests/privacyPreviewEdges.test.ts) — 28 tests for `generalise`/`phraseRegex`/`PLACEHOLDERS`
+- [tests/privacyLadderEdges.test.ts](/agent/workspace/orionmatter-path-engine/tests/privacyLadderEdges.test.ts) — 14 tests for `disclosureLadder` (incl. a 240-combination sweep)
+- [tests/privacyAssessEdges.test.ts](/agent/workspace/orionmatter-path-engine/tests/privacyAssessEdges.test.ts) — 21 tests for `assessPrivacy` with the mock model
+- [docs/parts/part-10-privacy-guard.md](/agent/workspace/orionmatter-path-engine/docs/parts/part-10-privacy-guard.md) — plain-language Part 10 guide
+
+96 new tests total, all passing. Ladder numbers in the docs were computed by running the code and match the brief exactly: 197, 93, 68, 11, and 4 with "robotics".
+
+## Bugs found (not fixed, no failing tests written)
+
+1. **Placeholder corruption in `generalise`** — [preview.ts](/agent/workspace/orionmatter-path-engine/src/lib/privacy/preview.ts) lines 38-45. Replacements run sequentially, so a shorter quote processed later can match inside an earlier-inserted placeholder. Concrete input: `generalise("I joined Acme Corporation today", [{quote: "Acme Corporation", category: "employer"}, {quote: "company", category: "other"}])` returns `"I joined [a [a detail]] today"`. A single-letter quote is worse: `"Acme"` + `"a"` gives `"I joined [[a detail] company] today"`. Suggested fix: collect non-overlapping match ranges over the original text in one pass (longest first), then splice placeholders in a single pass — or substitute sentinel tokens first and map them to placeholders afterwards. (The task's `"Acme"` + `"company"` example happens to be safe because ordering saves it; that safe case is what the test pins.)
+2. **`k = NaN` gives a contradictory ladder** — [ladder.ts](/agent/workspace/orionmatter-path-engine/src/lib/privacy/ladder.ts) lines 38-81 with [kAnonymity.ts](/agent/workspace/orionmatter-path-engine/src/lib/tools/kAnonymity.ts) lines 46-64. `disclosureLadder({profile, goal, k: NaN})` returns all rungs failing, `fullPasses: false`, `shareableUpTo: null`, but `dropToReachK: []` (empty normally means "already reaches k"); through `assessPrivacy` the reason reads "a crowd of NaN or more". Suggested fix: validate `k` (finite positive integer) in `disclosureLadder`/`assessPrivacy`, or fall back to `DEFAULT_K`.
+3. **Grammar nit** — [detectors.ts](/agent/workspace/orionmatter-path-engine/src/lib/privacy/detectors.ts) line 35: `"A email address points straight at you."` should be "An email address".
+4. **Detector false negatives** (documented in the docs page): numeric dates `15/03/2023`, `03-15-2023`, `2023/03/15` are not flagged; bare `180k` and lower-case `120000 usd` are not flagged. Also stated: no calendar validation, so `1999-13-45` *is* flagged.
+
+## Checked and clear
+
+- `$&`/`$1` in `String.replace`: safe — the replacement is always a fixed placeholder containing no `$`, quotes are pattern-side and escaped; verified `$&` and `$1` quotes replace literally.
+- Ladder casts: the level cast is guarded by `START_LEVELS`; the goal cast is unguarded but harmless (unknown goal yields size 0, no throw).
+- Risk monotonicity: verified by a subset-loop test — adding findings never lowers risk.
+
+## Doubts (maintainer calls)
+
+- Negative `k` passes everything and fractional `k` (11.5) works as a real threshold; consistent, but you may want `k` validated as a positive integer.
+- Same quote under two categories: first-listed placeholder wins (order-dependent). The Guard never produces this shape (it dedupes), so cosmetic.
+- One bad model item (21st finding, 1-char or 81-char quote, `contact_detail`) voids the *whole* output and degrades to code-only — 20 good findings are discarded with it. Schema validation working as designed, but worth knowing.
