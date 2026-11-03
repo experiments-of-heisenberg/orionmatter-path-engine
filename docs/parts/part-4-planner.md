@@ -56,17 +56,17 @@ code.
 
 Each field of a final `Route` (and the plan's caveats) has exactly one author:
 
-| Field          | Produced by | Notes                                                                             |
-| -------------- | ----------- | --------------------------------------------------------------------------------- |
-| `summary`      | Model       | One paragraph per route; must say "limited evidence" when the flag is set.        |
-| `steps`        | Model       | 2–4 moves with proof needed, gap closers and company markers.                     |
-| claims         | Model       | Each step's `whyItWorks`; must cite the route's evidence ids with the exact `n`.  |
-| `monthWindow`  | Model       | Must lie within the route's `monthsToGoal` upper bound; `[0, 0]` when it is null. |
-| `metrics`      | Code        | Months, comp band, success rate and sample size, copied from the fact sheet.      |
-| `radar`        | Code        | Six 0–100 axes from `computeRadar`; the draft schema has no field for it.         |
-| `evidenceThin` | Code        | From the tool result (`n < 15`); a draft claiming otherwise is overruled.         |
-| `evidenceIds`  | Code        | The route's `pathStats` id plus the shared `compBands` id.                        |
-| `caveats`      | Both        | Code writes the survivorship caveat first; the model's 0–4 extras follow.         |
+| Field          | Produced by | Notes                                                                                           |
+| -------------- | ----------- | ----------------------------------------------------------------------------------------------- |
+| `summary`      | Model       | One paragraph per route; must say "limited evidence" when the flag is set.                      |
+| `steps`        | Model       | 2–4 moves with proof needed, gap closers and company markers.                                   |
+| claims         | Model       | Each step's `whyItWorks`; must cite the route's evidence ids with the exact `n`.                |
+| `monthWindow`  | Model       | Must lie within the route's `monthsToGoal` upper bound; `[0, 0]` when it is null.               |
+| `metrics`      | Code        | Months, comp band, success rate and sample size, copied from the fact sheet.                    |
+| `radar`        | Code        | Six 0–100 axes from `computeRadar`; the draft schema has no field for it.                       |
+| `evidenceThin` | Code        | From the tool result (`n < 15`); a draft claiming otherwise is overruled.                       |
+| `evidenceIds`  | Code        | The route's `pathStats` id plus the shared `compBands` id.                                      |
+| `caveats`      | Both        | Code writes the survivorship caveat first; the model adds 0–2 extras (the schema caps it at 4). |
 
 "Model" rows are still constrained: the compose prompt states the rules, draft
 validation enforces the shape, and (from Part 5) the Skeptic verifies the claims.
