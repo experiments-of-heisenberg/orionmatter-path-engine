@@ -281,7 +281,7 @@ export function diffSheets(before: FactSheet, after: FactSheet): SheetDiff {
       add({
         kind: "comp",
         archetype: a,
-        text: `On ${route(a)}, the pay band reached changed from ${bandText(beforeRoute.compBandRange)} to ${bandText(afterRoute.compBandRange)}.`,
+        text: `On ${route(a)}, the pay band reached changed from ${bandText(beforeRoute.compBandRange)} to ${bandText(afterRoute.compBandRange)}${thinText(thin)}.`,
         numbers: [],
         evidenceIds: ids,
         thin,

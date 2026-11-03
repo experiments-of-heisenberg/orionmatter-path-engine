@@ -62,8 +62,13 @@ export type Profile = z.infer<typeof Profile>;
 export const Constraints = z.object({
   remote: z.boolean().optional(),
   noRelocation: z.boolean().optional(),
-  minCompBand: z.string().optional(),
-  maxMonths: z.number().optional(),
+  /** A pay band B1 (lowest) to B5 (highest). */
+  minCompBand: z
+    .string()
+    .regex(/^B[1-5]$/, "minCompBand must be B1 to B5")
+    .optional(),
+  /** A time limit in whole months, 1 to 240. */
+  maxMonths: z.number().int().min(1).max(240).optional(),
   riskTolerance: z.enum(["low", "medium", "high"]).default("medium"),
   addSkills: z.array(z.string()).default([]),
 });

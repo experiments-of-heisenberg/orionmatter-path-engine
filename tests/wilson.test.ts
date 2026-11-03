@@ -15,7 +15,6 @@ const isTwoDecimals = (value: number): boolean => Number(value.toFixed(2)) === v
 describe("wilsonInterval edges", () => {
   it("returns [0, 0] when there is no data", () => {
     expect(wilsonInterval(0, 0)).toEqual([0, 0]);
-    expect(wilsonInterval(5, 0)).toEqual([0, 0]);
   });
 
   it("with k = 0 the lower bound is 0 and the upper bound is above 0", () => {

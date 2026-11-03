@@ -66,17 +66,14 @@ describe("rankRoutes edges", () => {
     expect(rankRoutes(routes, "medium").recommended).toBe("climb");
   });
 
-  it("documents how a null timeline behaves in a tie", () => {
-    // rank.ts says monthsMid returns Infinity "so no timeline loses a tie", but the
-    // `Number.isFinite(byMonths)` guard means the months comparison is skipped whenever
-    // either side is null, so the tie falls through to input order instead. Both orders
-    // below are therefore input order, not timeline order; reported as a bug (null plus
-    // eligible cannot happen through gatherEvidence, which always pairs reachedN > 0 with
-    // a timeline, so this only affects hand-built route lists).
+  it("a route with no timeline loses a tie to one with a timeline, whatever the input order", () => {
     const withTime = route("climb", [0.5, 0.7], [20, 30]);
     const noTime = route("jump", [0.5, 0.7], null);
     expect(rankRoutes([withTime, noTime], "medium").order).toEqual(["climb", "jump"]);
-    expect(rankRoutes([noTime, withTime], "medium").order).toEqual(["jump", "climb"]);
+    expect(rankRoutes([noTime, withTime], "medium").order).toEqual(["climb", "jump"]);
+    // and two routes with no timeline keep the fixed order
+    const alsoNone = route("pivot", [0.5, 0.7], null);
+    expect(rankRoutes([alsoNone, noTime], "medium").order).toEqual(["pivot", "jump"]);
   });
 
   it("always returns a permutation of the three archetypes", () => {

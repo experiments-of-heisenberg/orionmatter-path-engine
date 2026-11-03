@@ -45,8 +45,13 @@ export function percentile(sorted: readonly number[], p: number): number {
  * 95% Wilson score interval for a proportion k/n, each end rounded to two decimals and
  * clamped to [0, 1]. Returns [0, 0] when n is 0 (no data is not "0% to 100%": callers must
  * check n and say so).
+ *
+ * @throws RangeError unless k and n are integers with 0 <= k <= n (a proportion outside that has no meaning).
  */
 export function wilsonInterval(k: number, n: number): [number, number] {
+  if (!Number.isInteger(k) || !Number.isInteger(n) || k < 0 || n < 0 || k > n) {
+    throw new RangeError(`wilsonInterval needs integers with 0 <= k <= n (got k=${k}, n=${n}).`);
+  }
   if (n === 0) return [0, 0];
   const p = k / n;
   const z = 1.96;

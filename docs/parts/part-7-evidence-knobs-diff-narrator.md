@@ -210,7 +210,34 @@ and `tests/whatifNarrate.test.ts`. This page ships with five edge-test files:
 
 ## Live evaluation
 
-Results of the live evaluation are added by the maintainer after measurement.
+Measured on 3 Nov 2026 against the real model (`npm run live:whatif-run`): seven complete
+What-if turns (time limit, pay floor, skills, remote, a time limit plus risk tolerance, a limit
+nobody can meet, and removing a limit), each run three times (21 turns).
+
+| Measure                                                             | Result                  |
+| ------------------------------------------------------------------- | ----------------------- |
+| Final narration passed every check (`source: "model"`)              | 21 of 21                |
+| Fell back to the template                                           | 0 of 21                 |
+| First attempt rejected, then fixed by the single retry              | 5 of 21                 |
+| Full turn (interpret, recompute, diff, narrate): median / p90 / max | 9.6 s / 15.4 s / 18.9 s |
+
+The 5 rejections are the point of the design: before the verifier learned to catch "you reached"
+(a cohort outcome credited to the person), the first live run showed exactly that wording in
+accepted narrations. The map does not wait for the narrator, so the slow part is not on the
+redraw path.
+
+What review and testing found along the way, all fixed:
+
+- **A wording slip found in live output:** "you reached B5 before" attributed a cohort outcome to the
+  person. It is now a code check, with a prompt rule and a mutation-checked test.
+- **Three bugs from Muse Code's bug hunt:** a thin pay-band fact that did not say "limited
+  evidence"; a route with no timeline that did not lose a tie; `wilsonInterval` returning NaN or a
+  negative interval for invalid input.
+- **A semantic bug from its doubts:** under a time limit the survivorship caveat counted people who
+  reached the goal late as "stalled or left the field". It now counts only people who never reached
+  it.
+- **Boundary validation:** `Constraints` now rejects a time limit that is not a whole number of
+  months from 1 to 240, and a pay band that is not B1 to B5.
 
 ## Known limits
 

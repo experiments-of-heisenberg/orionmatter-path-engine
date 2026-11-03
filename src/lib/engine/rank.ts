@@ -56,8 +56,11 @@ export function rankRoutes(routes: readonly RouteFacts[], risk: Constraints["ris
       if (ea) {
         const byKey = key(b.route, risk) - key(a.route, risk);
         if (byKey !== 0) return byKey;
-        const byMonths = monthsMid(a.route) - monthsMid(b.route);
-        if (byMonths !== 0 && Number.isFinite(byMonths)) return byMonths;
+        const monthsA = monthsMid(a.route);
+        const monthsB = monthsMid(b.route);
+        // Compare explicitly: Infinity - Infinity is NaN and Infinity - 20 is Infinity, neither a usable order.
+        if (monthsA !== monthsB)
+          return monthsA === Infinity ? 1 : monthsB === Infinity ? -1 : monthsA - monthsB;
       }
       return a.index - b.index;
     });

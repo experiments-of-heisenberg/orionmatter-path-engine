@@ -68,10 +68,8 @@ describe("diffSheets edges", () => {
     expect(after.twins.n).toBeLessThan(15);
     const d = diffSheets(before, after);
     expect(d.facts.length).toBeGreaterThan(0);
-    // BUG (src/lib/whatif/diff.ts, comp facts): a thin "comp" fact sets thin: true but its
-    // text never appends "(limited evidence)" (unlike success_rate, timeline and skill).
-    // Thin comp facts are therefore excluded here; every other thin kind must say it.
-    const thinNonComp = d.facts.filter((f) => f.thin && f.kind !== "comp");
+    // Every thin fact, including pay-band facts, must say "limited evidence" in its own text.
+    const thinNonComp = d.facts.filter((f) => f.thin);
     expect(thinNonComp.length).toBeGreaterThan(0);
     for (const fact of thinNonComp) {
       expect(fact.text, `${fact.id} (${fact.kind})`).toContain("limited evidence");

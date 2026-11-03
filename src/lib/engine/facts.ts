@@ -214,7 +214,12 @@ export function gatherEvidence(ledger: EvidenceLedger, input: EngineInput): Fact
   });
 
   const totalTwins = routes.reduce((sum, route) => sum + route.n, 0);
-  const reachedTotal = routes.reduce((sum, route) => sum + route.n * route.stats.outcomeShares.reached, 0);
+  // Survivorship counts who NEVER reached the goal (stalled or left the field). Under the person's limits,
+  // "reached" excludes people who reached it late, so use the cohort's own outcome, not the limited one.
+  const reachedTotal = routes.reduce(
+    (sum, route) => sum + route.n * route.stats.ignoringLimits.reachedShare,
+    0,
+  );
   return {
     input,
     twins: { evidenceId: twins.evidenceId, n: twins.result.n },
