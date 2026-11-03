@@ -40,6 +40,8 @@ function sampleSize(evidence: AnyEvidence): number | undefined {
     case "pathStats":
     case "compBands":
       return evidence.result.n;
+    case "skillStats":
+      return evidence.result.withSkill.n + evidence.result.withoutSkill.n;
     case "levelMap":
       return undefined;
   }

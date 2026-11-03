@@ -8,10 +8,13 @@
  *
  * Pure and deterministic: no model, instant, so sliders can call it on every change.
  */
-import type { FactSheet } from "../engine";
+import { limitsOf, type FactSheet } from "../engine";
 import { BANDS, bandIdx } from "../tools/stats";
 import type { Constraints } from "../schemas";
-import type { Conflict } from "./schemas";
+import type { ChangeField, Conflict } from "./schemas";
+
+/** Fields a conflict can name. */
+type ConflictField = ChangeField;
 import { THIN_N } from "../tools/data";
 
 /** Constraint fields that narrow who counts as a twin, for naming in messages. */
@@ -47,8 +50,9 @@ export function evidenceConflicts(sheet: FactSheet, constraints: Constraints): C
     });
   }
 
-  // 1b. Comparable engineers exist, but none of them reached the goal: no route has a timeline.
-  if (sheet.twins.n > 0 && sheet.routes.every((route) => route.monthsToGoal === null)) {
+  // 2. Comparable engineers exist, but none of them reached the goal at all.
+  const nobodyReached = sheet.routes.every((route) => route.stats.ignoringLimits.reachedShare === 0);
+  if (sheet.twins.n > 0 && nobodyReached) {
     conflicts.push({
       kind: "infeasible",
       fields: narrowingFields(constraints),
@@ -56,40 +60,37 @@ export function evidenceConflicts(sheet: FactSheet, constraints: Constraints): C
     });
   }
 
-  // 2. A time limit shorter than anyone's typical timeline.
-  if (constraints.maxMonths !== undefined) {
-    const timed = sheet.routes.flatMap((route) =>
-      route.monthsToGoal ? [{ route, months: route.monthsToGoal }] : [],
+  // 3. Some reached the goal, but nobody did it WITHIN the person's own limits.
+  const limits = limitsOf(constraints);
+  const limited = Object.keys(limits).length > 0;
+  const noneWithinLimits = sheet.routes.every((route) => route.stats.reachedN === 0);
+  if (sheet.twins.n > 0 && limited && !nobodyReached && noneWithinLimits) {
+    const reachedShares = sheet.routes.map((route) => route.stats.ignoringLimits.reachedShare);
+    const fastest = Math.min(
+      ...sheet.routes.flatMap((route) =>
+        route.stats.ignoringLimits.fastestMonths === null ? [] : [route.stats.ignoringLimits.fastestMonths],
+      ),
     );
-    const fastest = timed.reduce<(typeof timed)[number] | undefined>(
-      (best, item) => (best === undefined || item.months[0] < best.months[0] ? item : best),
-      undefined,
-    );
-    if (fastest && constraints.maxMonths < fastest.months[0]) {
-      conflicts.push({
-        kind: "infeasible",
-        fields: ["maxMonths"],
-        message:
-          `No route's typical timeline fits within ${constraints.maxMonths} months. The fastest comparable engineers ` +
-          `(the ${fastest.route.archetype} route) took ${fastest.months[0]} to ${fastest.months[1]} months.`,
-      });
-    }
-  }
-
-  // 3. A pay floor above every route's comp range.
-  if (constraints.minCompBand !== undefined) {
-    const wanted = bandIdx(constraints.minCompBand);
-    const reachable = sheet.routes
-      .map((route) => bandIdx(route.compBandRange[1]))
-      .filter((index) => index >= 0);
-    const highest = reachable.length > 0 ? Math.max(...reachable) : -1;
-    if (highest >= 0 && wanted > highest) {
-      conflicts.push({
-        kind: "infeasible",
-        fields: ["minCompBand"],
-        message: `No route's comp range reaches ${constraints.minCompBand}. The highest any comparable route reached is ${BANDS[highest]}.`,
-      });
-    }
+    const bands = sheet.routes.flatMap((route) => {
+      const index = bandIdx(route.stats.ignoringLimits.highestBand ?? "");
+      return index >= 0 ? [index] : [];
+    });
+    const asked = [
+      limits.maxMonths !== undefined ? `within ${limits.maxMonths} months` : undefined,
+      limits.minCompBand !== undefined ? `at pay band ${limits.minCompBand} or above` : undefined,
+    ].filter((part): part is string => part !== undefined);
+    const fields: ConflictField[] = [];
+    if (limits.maxMonths !== undefined) fields.push("maxMonths");
+    if (limits.minCompBand !== undefined) fields.push("minCompBand");
+    conflicts.push({
+      kind: "infeasible",
+      fields,
+      message:
+        `None of the comparable engineers reached this goal ${asked.join(" and ")}. ` +
+        `Without those limits up to ${Math.round(Math.max(...reachedShares) * 100)}% on a route reached it; ` +
+        `the fastest took ${fastest} months` +
+        (bands.length > 0 ? ` and the highest pay band any reached was ${BANDS[Math.max(...bands)]}.` : "."),
+    });
   }
 
   return conflicts;

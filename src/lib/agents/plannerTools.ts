@@ -10,7 +10,7 @@
  * through the EvidenceLedger so its result gets a citable evidence id.
  */
 import { z } from "zod";
-import { summarizeEvidence, type EngineInput } from "../engine";
+import { limitsOf, summarizeEvidence, type EngineInput } from "../engine";
 import { toolDefinition, type ToolDefinition, type ToolExecutor } from "../model";
 import { Archetype } from "../schemas";
 import type { AnyEvidence, EvidenceLedger } from "../tools/ledger";
@@ -93,9 +93,12 @@ export function createPlannerExecutor(ledger: EvidenceLedger, input: EngineInput
       if (twins?.tool !== "findTwins") {
         return fail(id, name, `"${parsed.data.twinsEvidenceId}" is not the evidenceId of a findTwins call.`);
       }
+      // The person's own limits are injected, so the model's numbers match the plan's numbers.
+      const limits = limitsOf(input.constraints);
       outcome = ledger.callUntrusted("pathStats", {
         twinIds: twins.result.twinIds,
         archetype: parsed.data.archetype,
+        ...(Object.keys(limits).length > 0 ? { limits } : {}),
       });
     } else if (name === "compBands") {
       outcome = ledger.callUntrusted("compBands", args);

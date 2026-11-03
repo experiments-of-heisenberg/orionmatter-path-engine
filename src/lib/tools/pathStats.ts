@@ -7,12 +7,27 @@
  */
 import type { Archetype } from "../schemas";
 import { COHORT, THIN_N } from "./data";
-import { bandAt, bandIdx, percentile } from "./stats";
+import { bandAt, bandIdx, percentile, wilsonInterval, type Band } from "./stats";
+
+/**
+ * Personal limits that redefine "reached the goal": reaching it within `maxMonths` and at or
+ * above `minCompBand`. Without limits, "reached" is simply the cohort's own outcome.
+ */
+export interface PathLimits {
+  maxMonths?: number;
+  minCompBand?: Band;
+}
 
 /** Aggregated outcomes for one archetype. Timing fields are null when no twin reached the goal. */
 export interface PathStatsResult {
   /** Number of twins on this archetype (the sample size). */
   n: number;
+  /** The limits these numbers were computed under (empty object when none). */
+  limits: PathLimits;
+  /** Twins who reached the goal WITHIN the limits. All "reached" figures below count only these. */
+  reachedN: number;
+  /** What the cohort says when the limits are ignored: context for "within your limits" figures. */
+  ignoringLimits: { reachedShare: number; fastestMonths: number | null; highestBand: string | null };
   /** True when n is below the thin-evidence threshold, so callers must say "limited evidence". */
   evidenceThin: boolean;
   /** 95% Wilson interval for the share of twins who reached the goal, within [0, 1]. */
@@ -34,7 +49,7 @@ export interface PathStatsResult {
   /** Share of twins who reached the goal and work remotely, 0 to 1; null if none reached it. */
   remoteShare: number | null;
   /** Share of ALL twins on this archetype by outcome, each 0 to 1. Zeros when n = 0. */
-  outcomeShares: { reached: number; stalled: number; leftField: number };
+  outcomeShares: { reached: number; stalled: number; leftField: number; outsideLimits: number };
 }
 
 /** Arithmetic mean of a non-empty list. */
@@ -65,13 +80,17 @@ function roundedPercentile(sorted: number[], p: number): number | null {
  * which would silently become null in JSON and fail number validation) and the
  * comp-band range is ["-", "-"].
  */
-export function pathStats(twinIds: string[], archetype: Archetype): PathStatsResult {
+export function pathStats(twinIds: string[], archetype: Archetype, limits: PathLimits = {}): PathStatsResult {
   const ids = new Set(twinIds);
+  const floor = limits.minCompBand === undefined ? -1 : bandIdx(limits.minCompBand);
   const rows = COHORT.filter((r) => ids.has(r.id) && r.archetype === archetype);
   const n = rows.length;
   if (n === 0)
     return {
       n: 0,
+      limits,
+      reachedN: 0,
+      ignoringLimits: { reachedShare: 0, fastestMonths: null, highestBand: null },
       evidenceThin: true,
       reachedRate: [0, 0],
       monthsP25: null,
@@ -83,20 +102,18 @@ export function pathStats(twinIds: string[], archetype: Archetype): PathStatsRes
       topCompanyTypes: [],
       avgTransitions: null,
       remoteShare: null,
-      outcomeShares: { reached: 0, stalled: 0, leftField: 0 },
+      outcomeShares: { reached: 0, stalled: 0, leftField: 0, outsideLimits: 0 },
     };
-  const reached = rows.filter((r) => r.outcome === "reached");
+  const everReached = rows.filter((r) => r.outcome === "reached");
+  // "Reached" now means: reached the goal AND within the person's own limits.
+  const reached = everReached.filter(
+    (r) =>
+      (limits.maxMonths === undefined || r.months <= limits.maxMonths) &&
+      (floor < 0 || bandIdx(r.compBandEnd) >= floor),
+  );
   const months = reached.map((r) => r.months).sort((a, b) => a - b);
-  // Wilson interval for reached rate
-  const p = reached.length / n,
-    z = 1.96;
-  const denom = 1 + (z * z) / n;
-  const centre = (p + (z * z) / (2 * n)) / denom;
-  const half = (z * Math.sqrt((p * (1 - p) + (z * z) / (4 * n)) / n)) / denom;
-  const reachedRate: [number, number] = [
-    Math.max(0, +(centre - half).toFixed(2)),
-    Math.min(1, +(centre + half).toFixed(2)),
-  ];
+  const reachedRate = wilsonInterval(reached.length, n);
+  const outside = everReached.length - reached.length;
   const ends = reached.map((r) => bandIdx(r.compBandEnd)).sort((a, b) => a - b);
   const compBandRange: [string, string] = ends.length
     ? [bandAt(percentile(ends, 0.25)), bandAt(percentile(ends, 0.75))]
@@ -108,9 +125,18 @@ export function pathStats(twinIds: string[], archetype: Archetype): PathStatsRes
   const risks = [
     ...(rows.filter((r) => r.outcome === "stalled").length / n > 0.1 ? ["promotion stall"] : []),
     ...(rows.filter((r) => r.outcome === "left-field").length / n > 0.1 ? ["left the field / role"] : []),
+    ...(outside / n > 0.1 ? ["reached the goal, but outside your limits"] : []),
   ];
+  const everBands = everReached.map((r) => bandIdx(r.compBandEnd)).filter((index) => index >= 0);
   return {
     n,
+    limits,
+    reachedN: reached.length,
+    ignoringLimits: {
+      reachedShare: round(everReached.length / n, 2),
+      fastestMonths: everReached.length ? Math.min(...everReached.map((r) => r.months)) : null,
+      highestBand: everBands.length ? bandAt(Math.max(...everBands)) : null,
+    },
     evidenceThin: n < THIN_N,
     reachedRate,
     monthsP25: roundedPercentile(months, 0.25),
@@ -126,6 +152,7 @@ export function pathStats(twinIds: string[], archetype: Archetype): PathStatsRes
       reached: round(reached.length / n, 2),
       stalled: round(rows.filter((r) => r.outcome === "stalled").length / n, 2),
       leftField: round(rows.filter((r) => r.outcome === "left-field").length / n, 2),
+      outsideLimits: round(outside / n, 2),
     },
   };
 }

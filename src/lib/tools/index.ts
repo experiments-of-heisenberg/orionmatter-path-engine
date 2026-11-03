@@ -6,6 +6,9 @@
  */
 export { findTwins } from "./findTwins";
 export { pathStats } from "./pathStats";
+export type { PathLimits, PathStatsResult } from "./pathStats";
+export { skillStats, matchCohortSkill, COHORT_SKILLS } from "./skillStats";
+export type { SkillGroup, SkillStatsResult } from "./skillStats";
 export { levelMap } from "./levelMap";
 export { compBands } from "./compBands";
 export { kAnonymity } from "./kAnonymity";

@@ -13,12 +13,14 @@ import { compBands } from "./compBands";
 import { findTwins } from "./findTwins";
 import { levelMap } from "./levelMap";
 import { pathStats } from "./pathStats";
+import { skillStats } from "./skillStats";
 import { isToolName, ToolArgSchemas, type ToolArgs, type ToolName } from "./toolSchemas";
 
 /** Result type of each tool, derived from the tool functions themselves. */
 export interface ToolResults {
   findTwins: ReturnType<typeof findTwins>;
   pathStats: ReturnType<typeof pathStats>;
+  skillStats: ReturnType<typeof skillStats>;
   levelMap: ReturnType<typeof levelMap>;
   compBands: ReturnType<typeof compBands>;
 }
@@ -40,7 +42,8 @@ export type UntrustedCallResult = { ok: true; evidence: AnyEvidence } | { ok: fa
 /** Maps each tool name to its implementation, checked against the schema-derived types. */
 const HANDLERS: { [N in ToolName]: (args: ToolArgs<N>) => ToolResults[N] } = {
   findTwins: (a) => findTwins(a.profile, a.goal, a.constraints),
-  pathStats: (a) => pathStats(a.twinIds, a.archetype),
+  pathStats: (a) => pathStats(a.twinIds, a.archetype, a.limits),
+  skillStats: (a) => skillStats(a.twinIds, a.archetype, a.skill, a.limits),
   levelMap: (a) => levelMap(a.company, a.title),
   compBands: (a) => compBands(a.level, a.region),
 };

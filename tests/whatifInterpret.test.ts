@@ -278,7 +278,8 @@ describe("interpretWhatIf: the evidence", () => {
     expect(out.status).toBe("applied"); // the person decides
     expect(out.next.maxMonths).toBe(6);
     const conflict = out.conflicts.find((c) => c.kind === "infeasible");
-    expect(conflict?.message).toContain("No route's typical timeline fits within 6 months");
+    expect(conflict?.message).toContain("reached this goal within 6 months");
+    expect(conflict?.fields).toEqual(["maxMonths"]);
   });
 
   it("reports no conflicts when the new constraints leave good routes", async () => {

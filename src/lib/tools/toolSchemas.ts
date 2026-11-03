@@ -7,6 +7,13 @@
  */
 import { z } from "zod";
 import { Archetype, Constraints, Goal, Profile } from "../schemas";
+import { BANDS } from "./stats";
+
+/** Personal limits accepted by pathStats and skillStats; validated, so a bad band can never be silently ignored. */
+export const LimitsSchema = z.object({
+  maxMonths: z.number().int().min(1).max(240).optional(),
+  minCompBand: z.enum(BANDS).optional(),
+});
 
 /** Runtime argument schema for each tool, keyed by tool name. */
 export const ToolArgSchemas = {
@@ -19,6 +26,13 @@ export const ToolArgSchemas = {
     // Cap the list so a misbehaving model cannot send an enormous payload.
     twinIds: z.array(z.string().max(32)).max(2000),
     archetype: Archetype,
+    limits: LimitsSchema.optional(),
+  }),
+  skillStats: z.object({
+    twinIds: z.array(z.string().max(32)).max(2000),
+    archetype: Archetype,
+    skill: z.string().min(1).max(40),
+    limits: LimitsSchema.optional(),
   }),
   levelMap: z.object({
     company: z.string().max(80),

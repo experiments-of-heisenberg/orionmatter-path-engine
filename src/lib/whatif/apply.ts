@@ -18,6 +18,26 @@ export const MONTHS_RANGE = { min: 6, max: 120 } as const;
 /** Most extra skills a person can ask about at once. */
 export const MAX_SKILLS = 5;
 
+/**
+ * Words that are never part of a real skill name but are typical of prompt-injection strings.
+ * Skills are only ever data inside a labelled block, so this is a second wall, not the first.
+ */
+const INSTRUCTION_WORDS: ReadonlySet<string> = new Set([
+  "ignore",
+  "disregard",
+  "forget",
+  "override",
+  "previous",
+  "instructions",
+  "instruction",
+  "system",
+  "prompt",
+  "assistant",
+  "developer",
+  "jailbreak",
+  "pretend",
+]);
+
 /** Human-readable name of each field, for display. */
 const LABELS: Record<ChangeField, string> = {
   remote: "Remote only",
@@ -51,7 +71,11 @@ export function phraseInText(phrase: string, userText: string): boolean {
  */
 export function normalizeSkill(raw: string): string | undefined {
   const skill = raw.trim().toLowerCase().replace(/\s+/g, " ");
-  return skill.length <= 24 && /^[a-z0-9][a-z0-9+#.-]*(?: [a-z0-9+#.-]+)?$/.test(skill) ? skill : undefined;
+  if (skill.length > 24 || !/^[a-z0-9][a-z0-9+#.-]*(?: [a-z0-9+#.-]+)?$/.test(skill)) return undefined;
+  // Defence in depth: a two-word instruction ("ignore previous") fits the shape above, so words
+  // that only make sense as an instruction to a model are refused outright.
+  if (skill.split(" ").some((word) => INSTRUCTION_WORDS.has(word))) return undefined;
+  return skill;
 }
 
 /** Show a constraint value for people: booleans as on/off, bands as-is, months with a unit. */

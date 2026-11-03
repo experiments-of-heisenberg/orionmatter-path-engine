@@ -31,7 +31,10 @@ function stats(overrides: Partial<PathStatsResult> = {}): PathStatsResult {
     topCompanyTypes: [],
     avgTransitions: 1.5,
     remoteShare: 0.5,
-    outcomeShares: { reached: 0.7, stalled: 0.2, leftField: 0.1 },
+    outcomeShares: { reached: 0.7, stalled: 0.2, leftField: 0.1, outsideLimits: 0 },
+    limits: {},
+    reachedN: 7,
+    ignoringLimits: { reachedShare: 0.7, fastestMonths: 12, highestBand: "B5" },
     ...overrides,
   };
 }
@@ -79,10 +82,10 @@ describe("computeRadar", () => {
 
   it("stability falls as more twins leave the field", () => {
     const calm = computeRadar(
-      stats({ outcomeShares: { reached: 0.9, stalled: 0.1, leftField: 0 } }),
+      stats({ outcomeShares: { reached: 0.9, stalled: 0.1, leftField: 0, outsideLimits: 0 } }),
     ).stability;
     const churn = computeRadar(
-      stats({ outcomeShares: { reached: 0.5, stalled: 0.1, leftField: 0.4 } }),
+      stats({ outcomeShares: { reached: 0.5, stalled: 0.1, leftField: 0.4, outsideLimits: 0 } }),
     ).stability;
     expect(calm).toBe(100);
     expect(churn).toBe(60);

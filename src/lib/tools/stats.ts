@@ -8,6 +8,9 @@
 /** Ordered compensation bands used across the synthetic cohort and tools. */
 export const BANDS = ["B1", "B2", "B3", "B4", "B5"] as const;
 
+/** A compensation band label. */
+export type Band = (typeof BANDS)[number];
+
 /** Index of a band label in BANDS, or -1 when the label is unknown. */
 export const bandIdx = (band: string): number => BANDS.indexOf(band as (typeof BANDS)[number]);
 
@@ -36,4 +39,19 @@ export function percentile(sorted: readonly number[], p: number): number {
   const low = sorted[lowIndex] ?? NaN;
   const high = sorted[highIndex] ?? low;
   return low + (high - low) * (position - lowIndex);
+}
+
+/**
+ * 95% Wilson score interval for a proportion k/n, each end rounded to two decimals and
+ * clamped to [0, 1]. Returns [0, 0] when n is 0 (no data is not "0% to 100%": callers must
+ * check n and say so).
+ */
+export function wilsonInterval(k: number, n: number): [number, number] {
+  if (n === 0) return [0, 0];
+  const p = k / n;
+  const z = 1.96;
+  const denom = 1 + (z * z) / n;
+  const centre = (p + (z * z) / (2 * n)) / denom;
+  const half = (z * Math.sqrt((p * (1 - p) + (z * z) / (4 * n)) / n)) / denom;
+  return [Math.max(0, +(centre - half).toFixed(2)), Math.min(1, +(centre + half).toFixed(2))];
 }

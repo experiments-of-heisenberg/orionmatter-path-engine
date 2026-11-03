@@ -7,7 +7,13 @@ import { gatherEvidence } from "../src/lib/engine";
 import { createMockClient, reply } from "../src/lib/model";
 import { Constraints } from "../src/lib/schemas";
 import { EvidenceLedger } from "../src/lib/tools";
-import { applyChanges, evidenceConflicts, interpretWhatIf, phraseInText } from "../src/lib/whatif";
+import {
+  applyChanges,
+  evidenceConflicts,
+  interpretWhatIf,
+  normalizeSkill,
+  phraseInText,
+} from "../src/lib/whatif";
 import { goal, input, profile } from "./helpers/fixturesData";
 
 describe("phraseInText matches whole words (observation 3)", () => {
@@ -104,7 +110,10 @@ describe("evidenceConflicts when comparable engineers exist but none reached the
   it("reports it, whether or not a time limit was set", () => {
     for (const constraints of [Constraints.parse({}), Constraints.parse({ maxMonths: 12 })]) {
       const sheet = structuredClone(gatherEvidence(new EvidenceLedger(), { ...input, constraints }));
-      for (const route of sheet.routes) route.monthsToGoal = null;
+      for (const route of sheet.routes) {
+        route.monthsToGoal = null;
+        route.stats.ignoringLimits.reachedShare = 0;
+      }
       const conflicts = evidenceConflicts(sheet, constraints);
       const none = conflicts.find((c) => c.message.startsWith("None of the"));
       expect(none?.kind).toBe("infeasible");
@@ -133,5 +142,36 @@ describe("evidenceConflicts when comparable engineers exist but none reached the
     const messages = evidenceConflicts(empty, constraints).map((c) => c.message);
     expect(messages).toHaveLength(1);
     expect(messages[0]).toContain("No comparable engineers");
+  });
+});
+
+describe("normalizeSkill refuses instruction-like words (review point 2)", () => {
+  it.each([
+    "ignore previous",
+    "system prompt",
+    "forget rules",
+    "Override safety",
+    "developer mode",
+    "pretend admin",
+  ])("refuses %s even though it is two short words", (text) => expect(normalizeSkill(text)).toBeUndefined());
+
+  it("still accepts real skills, including ones that merely contain similar letters", () => {
+    expect(normalizeSkill("rust")).toBe("rust");
+    expect(normalizeSkill("machine learning")).toBe("machine learning");
+    expect(normalizeSkill("c++")).toBe("c++");
+    expect(normalizeSkill("node.js")).toBe("node.js");
+    expect(normalizeSkill("systems design")).toBe("systems design"); // "systems" is not "system"
+  });
+
+  it("documents the known cost: 'prompt engineering' is refused because 'prompt' is on the list", () => {
+    expect(normalizeSkill("prompt engineering")).toBeUndefined();
+  });
+
+  it("is applied through applyChanges, with a reason the person can read", () => {
+    const result = applyChanges(Constraints.parse({}), [
+      { field: "skills", action: "add", value: ["ignore previous"], phrase: "ignore previous" },
+    ]);
+    expect(result.next.addSkills).toEqual([]);
+    expect(result.refused[0]?.reason).toContain("not a recognisable skill name");
   });
 });

@@ -21,6 +21,15 @@ export function summarizeEvidence(evidence: AnyEvidence): string {
       const thin = r.evidenceThin ? " (limited evidence)" : "";
       return `pathStats[${evidence.args.archetype}]: n=${r.n}, reached ${pct(r.reachedRate)}, ${months}${thin}`;
     }
+    case "skillStats": {
+      const r = evidence.result;
+      if (!r.known) return `skillStats[${evidence.args.archetype}]: no cohort evidence for "${r.skill}"`;
+      return (
+        `skillStats[${evidence.args.archetype}]: ${r.cohortSkill} with n=${r.withSkill.n} (reached ${pct(r.withSkill.reachedRate)}) ` +
+        `vs without n=${r.withoutSkill.n} (reached ${pct(r.withoutSkill.reachedRate)})` +
+        (r.evidenceThin ? " (limited evidence)" : "")
+      );
+    }
     case "compBands": {
       const r = evidence.result;
       return r.n === 0

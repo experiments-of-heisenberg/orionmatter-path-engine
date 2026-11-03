@@ -21,6 +21,10 @@ import type { AnyEvidence, EvidenceLedger } from "../tools/ledger";
 import type { ToolName } from "../tools/toolSchemas";
 import type { PathStatsResult } from "../tools/pathStats";
 import { computeRadar } from "./radar";
+import { rankRoutes, type Ranking } from "./rank";
+import { BANDS } from "../tools/stats";
+import type { PathLimits } from "../tools/pathStats";
+import type { SkillStatsResult } from "../tools/skillStats";
 
 export const ARCHETYPES: readonly Archetype[] = ["climb", "jump", "pivot"];
 
@@ -29,6 +33,25 @@ export interface EngineInput {
   profile: Profile;
   goal: Goal;
   constraints: Constraints;
+}
+
+/** What the cohort says about one skill the person asked about, on one route. */
+export interface SkillFacts {
+  skill: string;
+  evidenceId: string;
+  stats: SkillStatsResult;
+}
+
+/**
+ * The person's own limits as tool arguments. A pay floor that is not a real band is left out
+ * rather than guessed at (the interpreter only ever produces real bands).
+ */
+export function limitsOf(constraints: Partial<Constraints>): PathLimits {
+  const limits: PathLimits = {};
+  if (constraints.maxMonths !== undefined) limits.maxMonths = constraints.maxMonths;
+  const band = BANDS.find((b) => b === constraints.minCompBand);
+  if (band !== undefined) limits.minCompBand = band;
+  return limits;
 }
 
 /** The facts for one route. Every field traces to a ledger evidence record. */
@@ -51,6 +74,8 @@ export interface RouteFacts {
   radar: Radar;
   /** The full pathStats result, kept for diffing and explanations. */
   stats: PathStatsResult;
+  /** One entry per skill the person asked about (constraints.addSkills), in the order asked. */
+  skills: SkillFacts[];
 }
 
 /** All facts for a plan, plus the bookkeeping the trace and verifier need. */
@@ -59,11 +84,16 @@ export interface FactSheet {
   twins: { evidenceId: string; n: number };
   compEvidenceId: string;
   routes: RouteFacts[];
+  /** Which route to look at first, given the person's risk tolerance. */
+  ranking: Ranking;
   /** Twins across all archetypes who did not reach the goal: the survivorship-bias caveat. */
   survivorship: { totalTwins: number; notReachedShare: number };
   /** Tools this call had to run itself because the agent had not (empty on the fast path only if reused). */
   filledIn: string[];
 }
+
+/** True when at least one limit is set. */
+const hasLimits = (limits: PathLimits): boolean => Object.keys(limits).length > 0;
 
 /** Only these constraint knobs change who counts as a twin. Others do not affect findTwins. */
 function twinKnobs(constraints: Partial<Constraints>): { remote: boolean; noRelocation: boolean } {
@@ -114,6 +144,8 @@ export function gatherEvidence(ledger: EvidenceLedger, input: EngineInput): Fact
     filledIn.push("findTwins");
   }
   const twinIds = twins.result.twinIds;
+  const limits = limitsOf(constraints);
+  const limitsKey = stableStringify(limits);
 
   // 2. Comp bands for the goal level in the user's region.
   let comp = findEvidence(
@@ -131,13 +163,37 @@ export function gatherEvidence(ledger: EvidenceLedger, input: EngineInput): Fact
     let stats = findEvidence(
       ledger,
       "pathStats",
-      (e) => e.args.archetype === archetype && stableStringify(e.args.twinIds) === stableStringify(twinIds),
+      (e) =>
+        e.args.archetype === archetype &&
+        stableStringify(e.args.twinIds) === stableStringify(twinIds) &&
+        stableStringify(e.args.limits ?? {}) === limitsKey,
     );
     if (!stats) {
-      stats = ledger.call("pathStats", { twinIds, archetype });
+      stats = ledger.call("pathStats", { twinIds, archetype, ...(hasLimits(limits) ? { limits } : {}) });
       filledIn.push(`pathStats:${archetype}`);
     }
     const result = stats.result;
+    const skills = constraints.addSkills.map((skill): SkillFacts => {
+      let found = findEvidence(
+        ledger,
+        "skillStats",
+        (e) =>
+          e.args.archetype === archetype &&
+          e.args.skill === skill &&
+          stableStringify(e.args.twinIds) === stableStringify(twinIds) &&
+          stableStringify(e.args.limits ?? {}) === limitsKey,
+      );
+      if (!found) {
+        found = ledger.call("skillStats", {
+          twinIds,
+          archetype,
+          skill,
+          ...(hasLimits(limits) ? { limits } : {}),
+        });
+        filledIn.push(`skillStats:${archetype}:${skill}`);
+      }
+      return { skill, evidenceId: found.evidenceId, stats: found.result };
+    });
     return {
       archetype,
       statsEvidenceId: stats.evidenceId,
@@ -153,6 +209,7 @@ export function gatherEvidence(ledger: EvidenceLedger, input: EngineInput): Fact
       topCompanyTypes: result.topCompanyTypes,
       radar: computeRadar(result),
       stats: result,
+      skills,
     };
   });
 
@@ -163,6 +220,7 @@ export function gatherEvidence(ledger: EvidenceLedger, input: EngineInput): Fact
     twins: { evidenceId: twins.evidenceId, n: twins.result.n },
     compEvidenceId: comp.evidenceId,
     routes,
+    ranking: rankRoutes(routes, constraints.riskTolerance),
     survivorship: {
       totalTwins,
       notReachedShare: totalTwins === 0 ? 0 : Math.round((1 - reachedTotal / totalTwins) * 100) / 100,
