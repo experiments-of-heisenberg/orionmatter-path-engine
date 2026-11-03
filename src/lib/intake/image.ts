@@ -51,7 +51,8 @@ export function validateImage(dataUrl: string): string {
   if (real === undefined || real !== match[1]) {
     throw new IntakeImageError("The file is not a valid PNG, JPEG or WebP image.");
   }
-  if (real === "image/png" && bytes.length >= 24) {
+  if (real === "image/png") {
+    if (bytes.length < 24) throw new IntakeImageError("The PNG file is truncated.");
     const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
     const width = view.getUint32(16);
     const height = view.getUint32(20);

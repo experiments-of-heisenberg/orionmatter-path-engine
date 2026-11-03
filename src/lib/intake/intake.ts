@@ -83,7 +83,9 @@ function merge(
   const draft: Draft = {
     ...previous.draft,
     stack: [...previous.draft.stack],
-    milestones: [...previous.draft.milestones],
+    // Copy the objects too, not only the arrays, so nothing aliases the caller's state.
+    milestones: previous.draft.milestones.map((m) => ({ ...m })),
+    ...(previous.draft.goal ? { goal: { ...previous.draft.goal } } : {}),
   };
   const provenance: Record<string, Provenance> = {};
   for (const [field, value] of Object.entries(previous.provenance))

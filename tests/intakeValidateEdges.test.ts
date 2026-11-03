@@ -179,12 +179,16 @@ describe("validateReading years of experience", () => {
     ).toBe(20);
   });
 
-  it("documents that 'twenty-one' cannot state 21: NUMBER_WORDS has no compounds", () => {
-    // The quote is grounded and does say twenty-one, but quoteStatesNumber only knows single
-    // words, so neither "twenty" (20) nor "one" (1) equals 21 and the value is refused.
-    const v = validateReading(reading({ yearsExperience: q(21, "twenty-one") }), "I have twenty-one years");
-    expect(v.draft.yearsExperience).toBeUndefined();
-    expect(v.discarded[0]).toContain("the quote does not state 21 years");
+  it("reads compound number words: twenty-one, thirty five (review finding)", () => {
+    const t = (value: number, quote: string) =>
+      validateReading(reading({ yearsExperience: q(value, quote) }), `I have ${quote} years`).draft
+        .yearsExperience;
+    expect(t(21, "twenty-one")).toBe(21);
+    expect(t(35, "thirty five")).toBe(35);
+    expect(t(29, "Twenty-Nine")).toBe(29);
+    expect(t(22, "twenty-one")).toBeUndefined(); // the value must be what the words say
+    expect(t(1, "twenty-one")).toBeUndefined();
+    expect(t(20, "twenty")).toBe(20);
   });
 });
 
@@ -220,9 +224,10 @@ describe("validateReading stack", () => {
     expect(v.draft.stack).toEqual(["c++", "c#", "node.js"]);
   });
 
-  it("documents that a numeric-only item is kept: normalizeSkill allows leading digits", () => {
+  it("refuses a numeric-only item: a skill has at least one letter (review finding)", () => {
     const v = validateReading(reading({ stack: ["123"] }), "my code is 123");
-    expect(v.draft.stack).toEqual(["123"]);
+    expect(v.draft.stack).toEqual([]);
+    expect(v.discarded[0]).toContain("not a recognisable skill name");
   });
 
   it("keeps exactly 15 when 16 are given", () => {

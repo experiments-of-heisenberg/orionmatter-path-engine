@@ -267,3 +267,38 @@ describe("runIntake questions, bands and failures", () => {
     expect(client.requests).toHaveLength(2);
   });
 });
+
+describe("merge isolation (review finding)", () => {
+  it("does not alias the goal or milestone objects of the previous state", async () => {
+    const previous = {
+      draft: {
+        roleFamily: "backend" as const,
+        stack: [],
+        milestones: [{ type: "promotion", quarter: "2024-Q3", note: "n", verified: false as const }],
+        goal: { targetLevel: "L6", label: "Staff" },
+      },
+      provenance: {},
+    };
+    const snapshot = structuredClone(previous);
+    const client = createMockClient([
+      reply(
+        JSON.stringify({
+          roleFamily: null,
+          level: null,
+          company: null,
+          title: null,
+          yearsExperience: null,
+          region: null,
+          compBand: null,
+          stack: [],
+          milestones: [],
+          goal: null,
+        }),
+      ),
+    ]);
+    const result = await runIntake({ client }, { text: "hmm", previous });
+    result.draft.goal!.label = "CHANGED";
+    result.draft.milestones[0]!.note = "CHANGED";
+    expect(previous).toEqual(snapshot);
+  });
+});

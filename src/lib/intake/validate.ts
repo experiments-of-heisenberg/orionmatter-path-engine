@@ -67,12 +67,20 @@ function canonicalKey(table: Record<string, unknown>, raw: string): string | und
   return Object.keys(table).find((key) => key.toLowerCase() === wanted);
 }
 
+/** Compound number words such as "twenty-one" or "thirty five" (21 to 39: the only compounds a career can use). */
+const COMPOUND = /(twenty|thirty)[\s-]+(one|two|three|four|five|six|seven|eight|nine)(?![a-z])/g;
+
 /** True when `years` is the number the quote actually states (digits or a number word). */
 function quoteStatesNumber(quote: string, value: number): boolean {
   const digits = numbersIn(quote);
   if (digits.length > 0) return digits.includes(value);
-  return quote
-    .toLowerCase()
+  const lower = quote.toLowerCase();
+  for (const match of lower.matchAll(COMPOUND)) {
+    if ((NUMBER_WORDS[match[1] ?? ""] ?? NaN) + (NUMBER_WORDS[match[2] ?? ""] ?? NaN) === value) return true;
+  }
+  // Words already read as part of a compound ("one" in "twenty-one") are not read again on their own.
+  return lower
+    .replace(COMPOUND, " ")
     .split(/[^a-z]+/)
     .some((word) => NUMBER_WORDS[word] === value);
 }

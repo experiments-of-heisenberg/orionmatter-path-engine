@@ -45,10 +45,10 @@ own merits and marked as from an image.
 | ----------------- | --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | `roleFamily`      | A label (`backend`, `platform`, `ml`, `frontend`, `embedded`, `sre`) with a quote | The quote must be in the text                                                                                                                                                                                  | `roleFamily: the quoted words are not in what you wrote.`                                            |
 | `level`           | A ladder label with a quote, or a company plus a title                            | A literal label is upper-cased, must be on the ladder, and must appear in its own quote; otherwise the company and title are looked up in the level table (ignoring case and spaces) with both quotes grounded | `level: "L9" is not on the level ladder (L3, L4, L5, L6, L7, EM1, EM2).`                             |
-| `yearsExperience` | A number with a quote                                                             | Finite, 0 to 40; the quote must state that number, as digits or a single number word (`one` to `twenty`, `thirty`, `forty`); never worked out from dates                                                       | `yearsExperience: the quote does not state 8 years; a number worked out from dates is not used.`     |
+| `yearsExperience` | A number with a quote                                                             | Finite, 0 to 40; the quote must state that number, as digits or a number word (`one` to `twenty`, `thirty`, `forty`, and compounds such as `twenty-one` or `thirty five`); never worked out from dates         | `yearsExperience: the quote does not state 8 years; a number worked out from dates is not used.`     |
 | `region`          | A region with a quote naming the place                                            | The value, trimmed, must match a covered region case-insensitively (`EU-west`, `IN-south`, `SEA`, `US-east`, `US-west`)                                                                                        | `region: "Johannesburg" is not a region the data covers (EU-west, IN-south, SEA, US-east, US-west).` |
 | `compBand`        | A band label with a quote                                                         | Upper-cased, must be `B1` to `B5`, and the quote itself must contain that band                                                                                                                                 | `compBand: the text does not state that band.`                                                       |
-| `stack`           | Up to 30 skill names as written                                                   | Each is normalised (lower-case, at most 24 characters, letters/digits plus `+#.-`, at most two words, no instruction words), must appear in the text, kept once, at most 15                                    | `stack: "rust" is not in what you wrote.`                                                            |
+| `stack`           | Up to 30 skill names as written                                                   | Each is normalised (lower-case, at most 24 characters, letters/digits plus `+#.-`, at least one letter, at most two words, no instruction words), must appear in the text, kept once, at most 15               | `stack: "rust" is not in what you wrote.`                                                            |
 | `milestones`      | `{type, quarter, note, quote}` items                                              | The quarter must be `YYYY-Q1` to `YYYY-Q4`, the quote grounded and containing the year; at most 20; `verified` is always false                                                                                 | `milestones: the quote does not mention 2021.`                                                       |
 | `goal`            | `{targetLevel, label, quote}` or null                                             | The target, upper-cased, must be on the ladder; the label is trimmed to 60 characters, falling back to the level when empty                                                                                    | `goal: "L99" is not on the level ladder.`                                                            |
 
@@ -168,7 +168,40 @@ merged draft is complete.
 
 ## Live evaluation
 
-Results of the live evaluation are added by the maintainer after measurement.
+Measured on 3 Nov 2026 against the real model (`npm run live:intake`): 18 labeled cases in five
+categories, each run three times (54 runs), plus one rendered resume screenshot.
+
+| Category                                                                                                                     | Passed       |
+| ---------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| Complete readings (6 cases)                                                                                                  | 18 of 18     |
+| Restraint: a title is not a level, an unknown company, years from dates, a salary is not a band, an unknown region (5 cases) | 14 of 15     |
+| Partial or nothing to read (2 cases)                                                                                         | 6 of 6       |
+| Safety: instructions hidden in the text, an instruction-like skill, personal identifiers (3 cases)                           | 9 of 9       |
+| Follow-up turns that fill gaps or correct an earlier answer (2 cases)                                                        | 6 of 6       |
+| **Overall**                                                                                                                  | **53 of 54** |
+
+Latency per call had a median of about 4.4 s and a p90 of 7.7 s. The one miss left the role family
+empty for "writing firmware for robots", which is the safe direction: the person is asked instead.
+No run filled in a level from a bare title, a number of years from a date, or a pay band from a
+salary, and none let an instruction-like string reach the stack.
+
+The screenshot, a rendered resume with an email and phone number printed on it, was read correctly:
+backend, level L5 (mapped from "Senior SDE" at "BigTech A" through the level table), 8 years,
+IN-south, four skills and a Q2 2022 promotion. Every field was marked as read from an image or
+mapped. The model did see the printed email and phone number, since a screenshot cannot be redacted;
+that is why the interface must tell people to crop them out.
+
+After the review fixes below, the evaluation was run again (2 repeats, 36 runs): 36 of 36 passed.
+
+What review found along the way, all fixed with mutation-checked regression tests:
+
+- **Redaction bugs (Muse Code's bug hunt):** an email inside a link left stray text and wrong counts;
+  an IPv4 address was removed as a phone number; a link swallowed a closing bracket; a phone number
+  in brackets left its opening bracket behind.
+- **A size check that could be skipped:** a PNG shorter than 24 bytes bypassed the 64-pixel check.
+- **State aliasing:** merging turns shared the goal and milestone objects with the caller's state.
+- **A false refusal:** "twenty-one years" was refused because only single number words were read.
+- **A weak skill rule:** "123" was accepted as a skill; a skill now needs a letter.
 
 ## Known limits
 

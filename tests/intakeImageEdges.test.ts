@@ -96,11 +96,9 @@ describe("validateImage PNG dimensions", () => {
     expect(() => validateImage(png(64, 63))).toThrow("too small to read (64x63");
   });
 
-  it("documents that a PNG shorter than 24 bytes skips the dimension check", () => {
-    // The check only runs when `bytes.length >= 24`, so an 8-byte PNG magic prefix is accepted
-    // without any dimension check.
+  it("refuses a PNG shorter than 24 bytes, so a bare magic number cannot skip the size check (review finding)", () => {
     const url = dataUrl("image/png", Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]));
-    expect(validateImage(url)).toBe(url);
+    expect(() => validateImage(url)).toThrow("The PNG file is truncated.");
   });
 });
 

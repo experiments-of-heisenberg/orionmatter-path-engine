@@ -63,11 +63,23 @@ describe("redactPii phones", () => {
     expect(out.redactions.phones).toBe(1);
   });
 
-  it("removes a parenthesised area code but leaves the opening bracket behind", () => {
-    // The phone pattern starts at the first digit, so the "(" is not part of the match.
+  it("removes a parenthesised area code including its opening bracket (review finding)", () => {
     const out = redactPii("call (415) 555-0134 now");
     expect(out.redactions.phones).toBe(1);
-    expect(out.text).toBe("call ([phone removed] now");
+    expect(out.text).toBe("call [phone removed] now");
+  });
+
+  it("does not treat an IPv4 address as a phone number (review finding)", () => {
+    expect(redactPii("server 192.168.1.100 is up")).toEqual({
+      text: "server 192.168.1.100 is up",
+      redactions: { emails: 0, phones: 0, links: 0 },
+    });
+  });
+
+  it("keeps a closing or opening square bracket outside a link (review finding)", () => {
+    expect(redactPii("[https://x.com/a] and (www.me.dev/cv)").text).toBe(
+      "[[link removed]] and ([link removed])",
+    );
   });
 
   it.each([
@@ -84,13 +96,10 @@ describe("redactPii phones", () => {
 });
 
 describe("redactPii order and shape", () => {
-  it("documents what happens today to an email inside a link", () => {
-    // Emails are replaced first, so "a@b.com" becomes "[email removed]" and the link pass then
-    // eats the "[email" half of that placeholder, leaving a stray " removed]" in the text.
-    // Both counters still increment, so the counts do not match the placeholders here.
+  it("counts an email inside a link once, as part of the link, with no stray text (review finding)", () => {
     const out = redactPii("see https://x.com/a@b.com end");
-    expect(out.text).toBe("see [link removed] removed] end");
-    expect(out.redactions).toEqual({ emails: 1, phones: 0, links: 1 });
+    expect(out.text).toBe("see [link removed] end");
+    expect(out.redactions).toEqual({ emails: 0, phones: 0, links: 1 });
   });
 
   it("counts match the placeholders for ordinary mixed input", () => {

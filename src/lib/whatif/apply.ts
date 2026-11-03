@@ -72,6 +72,8 @@ export function phraseInText(phrase: string, userText: string): boolean {
 export function normalizeSkill(raw: string): string | undefined {
   const skill = raw.trim().toLowerCase().replace(/\s+/g, " ");
   if (skill.length > 24 || !/^[a-z0-9][a-z0-9+#.-]*(?: [a-z0-9+#.-]+)?$/.test(skill)) return undefined;
+  // A skill has at least one letter: "123" is a number, not a skill.
+  if (!/[a-z]/.test(skill)) return undefined;
   // Defence in depth: a two-word instruction ("ignore previous") fits the shape above, so words
   // that only make sense as an instruction to a model are refused outright.
   if (skill.split(" ").some((word) => INSTRUCTION_WORDS.has(word))) return undefined;

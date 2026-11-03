@@ -18,13 +18,15 @@ export interface Redactions {
 const EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+/g;
 // A link ends at a character that can end a URL: trailing sentence punctuation is left in the text.
 const LINK =
-  /\b(?:https?:\/\/|www\.)[^\s<>"')]*[^\s<>"').,;:!?]|\b(?:linkedin|github|gitlab|twitter|x)\.com\/[^\s<>"')]*[^\s<>"').,;:!?]/gi;
+  /\b(?:https?:\/\/|www\.)[^\s<>"'()[\]]*[^\s<>"'()[\].,;:!?]|\b(?:linkedin|github|gitlab|twitter|x)\.com\/[^\s<>"'()[\]]*[^\s<>"'()[\].,;:!?]/gi;
 // A phone number: optional +country, then 7 to 14 digits with common separators. Years ("2019-2023") are
 // excluded because they contain only two short digit groups and no more than 8 digits in total.
-const PHONE = /(?<![\w.])\+?\d[\d\s().-]{6,17}\d(?![\w])/g;
+const PHONE = /(?<![\w.])\(?\+?\d[\d\s().-]{6,17}\d(?![\w])/g;
 
 /** True when a digit run looks like a phone number rather than a date range or a year pair. */
 function looksLikePhone(candidate: string): boolean {
+  // An IPv4 address ("192.168.1.100") has the digits of a phone number but is not one.
+  if (/^\d{1,3}(?:\.\d{1,3}){3}$/.test(candidate.trim())) return false;
   const digits = candidate.replace(/\D/g, "");
   if (digits.length < 9 || digits.length > 15) return false;
   // "2019-2023" style: two groups of exactly four digits is a date range, not a phone number.
@@ -38,13 +40,14 @@ function looksLikePhone(candidate: string): boolean {
  */
 export function redactPii(text: string): { text: string; redactions: Redactions } {
   const redactions: Redactions = { emails: 0, phones: 0, links: 0 };
-  let out = text.replace(EMAIL, () => {
-    redactions.emails++;
-    return "[email removed]";
-  });
-  out = out.replace(LINK, () => {
+  // Links first: an email-like piece inside a link ("https://x.com/a@b.com") belongs to the link.
+  let out = text.replace(LINK, () => {
     redactions.links++;
     return "[link removed]";
+  });
+  out = out.replace(EMAIL, () => {
+    redactions.emails++;
+    return "[email removed]";
   });
   out = out.replace(PHONE, (match) => {
     if (!looksLikePhone(match)) return match;
