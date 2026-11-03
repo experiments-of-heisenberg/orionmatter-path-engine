@@ -38,7 +38,7 @@ It covers four knobs, trying these values for each:
 | Remote only      | off, on                                                                  |
 | No relocation    | off, on                                                                  |
 | Time limit       | 12, 18, 24, 36, 48, 60 months, plus the person's own limit, and no limit |
-| Minimum pay band | no floor, B3, B4, B5                                                     |
+| Minimum pay band | no floor, B3, B4, B5 (plus your own floor if it is B1 or B2)             |
 
 Each bar's swing is the distance between its best and worst option, in whole percentage points
 of the middle of the success range (best minus worst, rounded). The worst option is the one
@@ -135,3 +135,9 @@ This part is deterministic and uses no model, so there is no live evaluation; it
 ```bash
 npm run check
 ```
+
+## What review found
+
+Muse Code's bug hunt found one real bug, now fixed with a regression test: a pay floor of B1 or B2 is a
+valid constraint, but the pay-floor bar only tried B3 to B5, so none of its options was marked as the
+current one. The bar now always includes the person's own floor.

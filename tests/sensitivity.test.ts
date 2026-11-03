@@ -280,3 +280,23 @@ describe("whatWouldItTake", () => {
     expect(meetsTarget(m({ rate: [0.3, 0.7] }), target)).toBe(true); // middle exactly 0.5
   });
 });
+
+describe("the pay-floor bar always shows where the person is now (review finding)", () => {
+  it.each(["B1", "B2", "B3", "B4", "B5"])("marks exactly one option current for a floor of %s", (band) => {
+    const bar = sensitivityTornado(withC({ minCompBand: band })).bars.find((b) => b.knob === "minCompBand")!;
+    const current = bar.options.filter((o) => o.current);
+    expect(current.map((o) => o.label)).toEqual([band]);
+    expect(current[0]?.metric).toEqual(metricFor({ minCompBand: band }));
+  });
+
+  it("lists a low floor in its place on the scale, with no duplicates", () => {
+    const labels = (c: object) =>
+      sensitivityTornado(withC(c))
+        .bars.find((b) => b.knob === "minCompBand")!
+        .options.map((o) => o.label);
+    expect(labels({ minCompBand: "B2" })).toEqual(["no floor", "B2", "B3", "B4", "B5"]);
+    expect(labels({ minCompBand: "B1" })).toEqual(["no floor", "B1", "B3", "B4", "B5"]);
+    expect(labels({})).toEqual(["no floor", "B3", "B4", "B5"]);
+    expect(labels({ minCompBand: "B4" })).toEqual(["no floor", "B3", "B4", "B5"]);
+  });
+});

@@ -23,7 +23,7 @@ import { headlineMetric, rateMid, type HeadlineMetric } from "./metric";
 /** The knobs the tornado measures. */
 export type TornadoKnob = "remote" | "noRelocation" | "maxMonths" | "minCompBand";
 
-/** Time limits tried, in months. The person's own limit is always added. */
+/** Time limits tried, in months. The person's own limit is always added (as is their own pay floor). */
 export const MONTH_OPTIONS = [12, 18, 24, 36, 48, 60] as const;
 
 /** One alternative value of one knob, and what it does to the headline metric. */
@@ -133,7 +133,9 @@ export function sensitivityTornado(input: EngineInput): Tornado {
       current: current.minCompBand === undefined,
       metric: current.minCompBand === undefined ? baseline : measure(ledger, input, {}, ["minCompBand"]),
     },
-    ...BANDS.slice(2).map((band) => ({
+    // B3 to B5 are always tried; the person's own floor is added if it is lower (B1 or B2 are valid floors),
+    // so the bar always shows where they are now.
+    ...BANDS.filter((band, index) => index >= 2 || band === current.minCompBand).map((band) => ({
       label: band,
       current: current.minCompBand === band,
       metric: current.minCompBand === band ? baseline : measure(ledger, input, { minCompBand: band }),
