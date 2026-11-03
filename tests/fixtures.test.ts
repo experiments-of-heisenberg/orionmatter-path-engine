@@ -11,6 +11,12 @@ import {
 } from "../src/lib/model/fixtures";
 
 describe("stableStringify", () => {
+  it("serialises undefined array items as null so [] and [undefined] get different keys", () => {
+    expect(stableStringify([undefined])).toBe("[null]");
+    expect(stableStringify([])).not.toBe(stableStringify([undefined]));
+    expect(stableStringify([1, undefined, 3])).toBe("[1,null,3]");
+  });
+
   it("sorts object keys", () => {
     expect(stableStringify({ b: 1, a: 2 })).toBe('{"a":2,"b":1}');
   });

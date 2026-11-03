@@ -101,10 +101,11 @@ import { z } from "zod";
 import { getEnv } from "../env";
 import { createLogger } from "../log";
 import { chatStructured, createModelClient, runToolLoop, toolDefinition } from "../model";
-import { ToolArgSchemas } from "../tools/toolSchemas";
+import { EvidenceLedger, ToolArgSchemas } from "../tools";
 
 const env = getEnv();
 const client = createModelClient(env, { logger: createLogger({ level: "info" }) });
+const ledger = new EvidenceLedger();
 
 // 1. Validated JSON back, with one automatic repair retry on bad output.
 const Parsed = z.object({ level: z.string(), years: z.number() });
@@ -134,7 +135,11 @@ const loop = await runToolLoop({
     ],
     messages: [{ role: "user", content: "How many twins …? Use findTwins." }],
   },
-  execute: ({ name, args }) => JSON.stringify(callThroughLedger(name, args)),
+  // Model-supplied calls go through the ledger: it validates the tool name and arguments.
+  execute: ({ name, args }) => {
+    const outcome = ledger.callUntrusted(name, args);
+    return JSON.stringify(outcome.ok ? outcome.evidence : { error: outcome.error });
+  },
 });
 ```
 
@@ -163,6 +168,28 @@ backoff and escalation logic is unit-tested offline with fakes: scripted transpo
 with canned responses, a recording `sleep` captures delays, and `random: () => 0.5` makes
 jitter exact. The mock client goes one step further, letting agent tests script whole
 conversations without even a fake transport.
+
+## Live verification
+
+Unit tests use fakes. `scripts/live-client-check.ts` runs the real client against both live
+models (`bash with_keys.sh npx tsx scripts/live-client-check.ts`). Result on 3 Nov 2026,
+7 of 7 checks passing, with the redacted logs scanned for key leaks (none):
+
+| Check                                          | Spark (Meta API)                                   | Spark Open (Baseten)              |
+| ---------------------------------------------- | -------------------------------------------------- | --------------------------------- |
+| Starved 200-token budget                       | Escalated automatically (2 attempts), replied "OK" | Replied on first attempt          |
+| Structured output (Zod)                        | Valid on first try                                 | Valid on first try                |
+| Tool loop with real `findTwins` via the ledger | 1 call, reported the true n = 150                  | 1 call, reported the true n = 150 |
+| Fixture record then replay                     | Replayed with the API unreachable                  | (same code path)                  |
+
+## Findings from the Muse Code run, and what we did
+
+Muse Code wrote 47 of the tests here and this page's first draft, and found no bug. It raised
+one doubt, which was valid: `stableStringify` serialised an `undefined` array item as an empty
+string, so `[]` and `[undefined]` produced the same fixture key. Harmless for typed requests,
+but a latent collision. It now serialises as `null` (like `JSON.stringify`) and is tested.
+
+The usage example originally called an undefined helper; it now uses the real `EvidenceLedger`.
 
 ## How to verify
 

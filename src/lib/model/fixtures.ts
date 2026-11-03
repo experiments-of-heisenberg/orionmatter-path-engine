@@ -29,7 +29,9 @@ export interface FixtureStore {
 
 /** JSON.stringify with object keys sorted, so equal data always serialises identically. */
 export function stableStringify(value: unknown): string {
-  if (Array.isArray(value)) return `[${value.map(stableStringify).join(",")}]`;
+  // Array holes and undefined items become null, matching JSON.stringify, so [] and [undefined] differ.
+  if (Array.isArray(value))
+    return `[${value.map((item) => (item === undefined ? "null" : stableStringify(item))).join(",")}]`;
   if (value && typeof value === "object") {
     const entries = Object.entries(value as Record<string, unknown>)
       .filter(([, item]) => item !== undefined)
