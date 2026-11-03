@@ -1,0 +1,18 @@
+Done. `npm run check` passes: typecheck, lint, format check, **697 tests passed + 1 skipped across 49 files**, secret scan clean. No file under `src/`, `evals/` or `scripts/` was touched.
+
+## Files created
+
+- [tests/tornadoEdges.test.ts](/agent/workspace/orionmatter-path-engine/tests/tornadoEdges.test.ts) — 5 tests: seven people across 6 role families × 5 regions (four bars, exactly one current option equal to the baseline, integer swings 0–100, worst ≤ best, swing-descending with remote/noRelocation/maxMonths/minCompBand ties); a zero-twin EM2 goal (no throw, null baseline route, all swings 0 — EM2 chosen after counting `endLevel` in the cohort: only L6 and EM1 exist); month edges 6/120/24 (no duplicates, ascending, "no limit" last); risk tolerance never adds a bar, route always valid, plus a pinned case where it moves the baseline (B5 floor: low/medium → jump, high → pivot); input immutability and no leakage between calls.
+- [tests/wouldItTakeEdges.test.ts](/agent/workspace/orionmatter-path-engine/tests/wouldItTakeEdges.test.ts) — 8 tests: `alreadyMet` ⟺ `meetsTarget` over a 13-constraint × 5-target grid; unset knobs never offered over all 16 set/unset combinations (+ explicit `false` counts as unset); minimality loop (months−1 / next-stricter-band fails) as the key property; 120-month max (no option, no throw); B1 (only candidate is "no floor", which filters nothing, so never an option); zero target (any route meets it, a missing route still fails); options never have a null route; sentence shape (per-knob phrase, full stop, "(limited evidence)" ⟺ `thin`, with all four knobs and both flag parities observed).
+- [docs/parts/part-8-sensitivity-and-what-would-it-take.md](/agent/workspace/orionmatter-path-engine/docs/parts/part-8-sensitivity-and-what-would-it-take.md) — plain-language guide. All numbers verified by running throwaway scripts in `/tmp` before writing: swings 83/30/1/1 (as expected), 12→23 months (jump, 34, 40–64%), B5→B4 under (40, 60%) (climb, 41, 62–84%), and the large-relaxation example (platform, IN-south, B5 + 24 mo → 54 months, pivot, 15, 33–67%).
+
+## Bug hunt: one real bug
+
+**Tornado pay-band bar marks no option current for B1/B2 floors** — [sensitivity.ts](/agent/workspace/orionmatter-path-engine/src/lib/whatif/sensitivity.ts) lines 130–141. The bar only tries `no floor, B3, B4, B5` (`BANDS.slice(2)`), so when `constraints.minCompBand` is `"B1"` or `"B2"` (both valid per the `Constraints` schema), every option has `current: false`, breaking the "exactly one current per bar" invariant the existing tests pin for other floors. Concrete input: sample engineer with `{ minCompBand: "B2" }` — verified `current options: []`. Suggested fix: mirror `monthsBar` and union the person's own band into the tried values (ordered no-floor-first, then ascending), so the baseline is always represented. No failing test was written for it, per the rules.
+
+Checked and found correct: both relaxation loops (bounds, direction, termination, steps counting), bar tie-break (`-swing`, then build order) and worst/best first-listed ties, B1 search (only "no floor" tried), unknown band labels via unvalidated input (loop is empty, no crash).
+
+## Doubts
+
+- `meetsTarget` requires a route even for a `{0, 0}` target — conservative and arguably intended, but worth a conscious decision.
+- `to: "no floor"` for pay appears unreachable in this cohort: B1/B2 filter nothing (no B1 endings exist), so the search always stops at B2/B1 first, or the floor was already met. The code path is correct, just dead on this data.
