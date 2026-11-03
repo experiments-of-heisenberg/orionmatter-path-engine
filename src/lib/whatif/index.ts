@@ -21,3 +21,9 @@ export {
 export type { Narration, NarrateDeps } from "./narrate";
 export { runWhatIf } from "./run";
 export type { RunWhatIfDeps, WhatIfRun } from "./run";
+export { headlineMetric, rateMid } from "./metric";
+export type { HeadlineMetric } from "./metric";
+export { MONTH_OPTIONS, sensitivityTornado } from "./sensitivity";
+export type { Tornado, TornadoBar, TornadoKnob, TornadoOption } from "./sensitivity";
+export { DEFAULT_TARGET, meetsTarget, whatWouldItTake } from "./wouldItTake";
+export type { RelaxKnob, Relaxation, Target, WhatItTake } from "./wouldItTake";
