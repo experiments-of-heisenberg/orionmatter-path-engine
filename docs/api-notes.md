@@ -1,5 +1,9 @@
 # API notes: what we verified against the live Muse APIs
 
+> **Decision of 3 Nov 2026 (ADR 0011): the project uses Muse Spark on the Meta Model API only.**
+> The Muse Spark Open (Baseten) column and findings below are kept as the historical record of
+> Part 0, when both models were probed. Nothing in the code calls the open model any more.
+
 _Part 0 findings, 3 Nov 2026. Everything below was observed with live calls from
 `scripts/smoke-models.ts` and `scripts/probe-vision.ts`, not assumed from docs._
 

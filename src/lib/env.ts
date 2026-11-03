@@ -18,15 +18,10 @@ const booleanFlag = z
 
 const EnvSchema = z
   .object({
-    // Meta Model API (Muse Spark): Planner, Skeptic, What-if, Intake.
+    // Meta Model API (Muse Spark): Planner, Skeptic, What-if, Intake, Privacy Guard. The only model provider.
     MODEL_API_KEY: z.string().min(1).optional(),
     META_API_BASE_URL: z.url().default("https://api.meta.ai/v1"),
     META_MODEL_SPARK: z.string().min(1).default("muse-spark-1.3"),
-
-    // Baseten (Muse Spark Open, open weights): Privacy Guard.
-    BASETEN_API_KEY: z.string().min(1).optional(),
-    OPEN_API_BASE_URL: z.url().default("https://inference.baseten.co/v1"),
-    OPEN_MODEL_ID: z.string().min(1).default("meta-models/muse-spark-open-1026"),
 
     // When true, agents replay recorded fixtures instead of calling the live APIs.
     // Used as the demo fallback and for offline development.
@@ -50,16 +45,13 @@ const EnvSchema = z
         message: "RECORD_FIXTURES cannot be true while USE_FIXTURES is true",
       });
     }
-    // Live mode needs both keys. Fixture replay needs neither.
-    if (env.USE_FIXTURES) return;
-    for (const key of ["MODEL_API_KEY", "BASETEN_API_KEY"] as const) {
-      if (!env[key]) {
-        ctx.addIssue({
-          code: "custom",
-          path: [key],
-          message: `${key} is required unless USE_FIXTURES=true`,
-        });
-      }
+    // Live mode needs the key. Fixture replay needs none.
+    if (!env.USE_FIXTURES && !env.MODEL_API_KEY) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["MODEL_API_KEY"],
+        message: "MODEL_API_KEY is required unless USE_FIXTURES=true",
+      });
     }
   });
 

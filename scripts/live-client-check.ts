@@ -2,7 +2,7 @@
  * live-client-check.ts: end-to-end check of the model client against the REAL APIs.
  *
  * Unit tests prove the client's logic with fakes; this script proves it works with
- * Muse Spark and Muse Spark Open. It exercises, on both targets where relevant:
+ * Muse Spark. It exercises:
  *   1. budget escalation   a deliberately tiny token budget that reasoning will eat
  *   2. structured output   Zod-validated JSON with the repair retry available
  *   3. tool loop           a real tool (findTwins via the evidence ledger), checking the
@@ -10,7 +10,7 @@
  *   4. fixtures            record a live call, then replay it with no network
  *
  * Costs a few cents. Run via the credentials wrapper:
- *   npm run live:client   (with MODEL_API_KEY and BASETEN_API_KEY exported; see .env.example)
+ *   npm run live:client   (with MODEL_API_KEY exported; see .env.example)
  * Logs go to stderr (redacted); the report goes to stdout. No keys are printed.
  */
 import { mkdtemp } from "node:fs/promises";
@@ -33,7 +33,7 @@ import { EvidenceLedger, ToolArgSchemas } from "../src/lib/tools";
 import { Profile } from "../src/lib/schemas";
 
 const env = getEnv();
-const secrets = [env.MODEL_API_KEY, env.BASETEN_API_KEY].filter((key): key is string => Boolean(key));
+const secrets = [env.MODEL_API_KEY].filter((key): key is string => Boolean(key));
 const logger = createLogger({ level: "info", secrets });
 const client = createModelClient(env, { logger });
 
@@ -62,7 +62,7 @@ async function check(name: string, fn: () => Promise<{ ok: boolean; detail: stri
   }
 }
 
-const targets: ModelTarget[] = ["spark", "open"];
+const targets: ModelTarget[] = ["spark"];
 
 // 1. Budget escalation: 200 tokens was fully consumed by reasoning on Muse Spark in Part 0.
 for (const target of targets) {

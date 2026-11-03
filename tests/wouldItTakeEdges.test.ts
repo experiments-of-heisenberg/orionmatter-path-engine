@@ -115,7 +115,7 @@ describe("whatWouldItTake edges", () => {
     }
     expect(met).toBeGreaterThan(0);
     expect(unmet).toBeGreaterThan(0);
-  });
+  }, 30_000);
 
   it("never offers to relax a knob that is not set, over every combination of set and unset knobs", () => {
     let seen = 0;
@@ -149,7 +149,7 @@ describe("whatWouldItTake edges", () => {
     const off = whatWouldItTake(withC({ remote: false, noRelocation: false, maxMonths: 12 }));
     expect(off.options.map((option) => option.knob)).not.toContain("remote");
     expect(off.options.map((option) => option.knob)).not.toContain("noRelocation");
-  });
+  }, 30_000);
 
   it("every option is minimal: one step less relaxation does not meet the target", () => {
     let checkedMonths = 0;

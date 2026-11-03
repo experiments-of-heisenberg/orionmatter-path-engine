@@ -17,7 +17,7 @@ import { goal, profile } from "./lib/sampleInput";
 import { interpretWhatIf } from "../src/lib/whatif";
 
 const env = getEnv();
-const secrets = [env.MODEL_API_KEY, env.BASETEN_API_KEY].filter((key): key is string => Boolean(key));
+const secrets = [env.MODEL_API_KEY].filter((key): key is string => Boolean(key));
 const client = createModelClient(env, { logger: createLogger({ level: "warn", secrets }) });
 const repeat = Number(process.env.REPEAT ?? 1);
 

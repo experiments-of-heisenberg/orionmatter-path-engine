@@ -5,7 +5,7 @@
 
 ## Context
 
-The project needs two API keys (Meta Model API and Baseten) and uses Muse Code, an
+The project needs an API key (Meta Model API; a second key for Baseten was used until ADR 0011 removed that provider) and uses Muse Code, an
 autonomous coding agent, which can run shell commands. The build container has no OS
 sandbox helper (`bwrap`), so Muse Code's built-in containment cannot run there.
 

@@ -3,11 +3,11 @@
  *
  * These types are deliberately independent of any provider's wire format. Agents are
  * written against them; the client translates to and from the OpenAI-compatible
- * Chat Completions format that both the Meta Model API and Baseten speak.
+ * Chat Completions format that the Meta Model API speaks.
  */
 
-/** Which model an agent wants: Muse Spark (Meta API) or Muse Spark Open (open weights on Baseten). */
-export type ModelTarget = "spark" | "open";
+/** Which model an agent wants. There is one: Muse Spark on the Meta Model API. */
+export type ModelTarget = "spark";
 
 /**
  * How much the model thinks before answering. Lower is faster and cheaper.
@@ -77,7 +77,7 @@ export interface ChatResult {
   usage: TokenUsage;
   /** Model id that actually served the request. */
   model: string;
-  /** Visible reasoning text when the provider exposes it (Muse Spark Open does). */
+  /** Visible reasoning text when the provider exposes it (Muse Spark does not). */
   reasoning?: string;
   /** HTTP attempts used, including retries and token-budget escalations. 0 when replayed from a fixture. */
   attempts: number;

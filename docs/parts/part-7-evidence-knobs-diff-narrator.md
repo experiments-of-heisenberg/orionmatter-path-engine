@@ -256,7 +256,7 @@ Unit tests use the scripted mock model. One live script runs full What-if turns
 on the real model and reports the narrator:
 
 ```bash
-npm run live:whatif-run   # with MODEL_API_KEY and BASETEN_API_KEY exported; see .env.example
+npm run live:whatif-run   # with MODEL_API_KEY exported; see .env.example
 ```
 
 It reports how often the narration came from the model versus the template, how

@@ -1,14 +1,13 @@
 /**
- * smoke-models.ts: live connectivity and capability probe for the two Muse models.
+ * smoke-models.ts: live connectivity and capability probe for Muse Spark.
  *
  * Purpose: the agent code depends on behaviours (tool calling, JSON output, image
  * input, reasoning control) that must be confirmed against the real APIs rather
  * than assumed from docs. Run it, read the report, and adapt the model client to
  * what actually works. Findings are recorded in docs/api-notes.md.
  *
- * Targets:
+ * Target:
  *   spark  Muse Spark on the Meta Model API   (MODEL_API_KEY)
- *   open   Muse Spark Open on Baseten         (BASETEN_API_KEY)
  *
  * Output: a JSON report on stdout. Key values are never printed.
  * Run:    npx tsx scripts/smoke-models.ts

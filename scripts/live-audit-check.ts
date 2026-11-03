@@ -19,7 +19,7 @@ import { runPlan } from "../src/lib/orchestrator";
 import { Constraints, Goal, Profile } from "../src/lib/schemas";
 
 const env = getEnv();
-const secrets = [env.MODEL_API_KEY, env.BASETEN_API_KEY].filter((key): key is string => Boolean(key));
+const secrets = [env.MODEL_API_KEY].filter((key): key is string => Boolean(key));
 const client = createModelClient(env, { logger: createLogger({ level: "warn", secrets }) });
 
 const person = (overrides: Record<string, unknown>) =>

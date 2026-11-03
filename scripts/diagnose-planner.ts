@@ -23,7 +23,7 @@ interface LogLine {
   finishReason?: string;
 }
 const lines: LogLine[] = [];
-const secrets = [env.MODEL_API_KEY, env.BASETEN_API_KEY].filter((key): key is string => Boolean(key));
+const secrets = [env.MODEL_API_KEY].filter((key): key is string => Boolean(key));
 const logger = createLogger({
   level: "info",
   secrets,

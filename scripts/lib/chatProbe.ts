@@ -8,7 +8,7 @@
 
 /** A model endpoint we can probe. */
 export interface Target {
-  name: "spark" | "open";
+  name: "spark";
   baseUrl: string;
   key: string;
   model: string;
@@ -35,7 +35,7 @@ export interface ChatResult {
   raw: string;
 }
 
-/** The two model targets, reading keys from the environment (never printed). */
+/** The model target, reading the key from the environment (never printed). */
 export function loadTargets(): Target[] {
   return [
     {
@@ -43,12 +43,6 @@ export function loadTargets(): Target[] {
       baseUrl: "https://api.meta.ai/v1",
       key: process.env.MODEL_API_KEY ?? "",
       model: process.env.META_MODEL_SPARK ?? "muse-spark-1.3",
-    },
-    {
-      name: "open",
-      baseUrl: "https://inference.baseten.co/v1",
-      key: process.env.BASETEN_API_KEY ?? "",
-      model: process.env.OPEN_MODEL_ID ?? "meta-models/muse-spark-open-1026",
     },
   ];
 }

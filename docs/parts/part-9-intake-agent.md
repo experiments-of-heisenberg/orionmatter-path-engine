@@ -219,5 +219,5 @@ npm run check
 npm run live:intake
 ```
 
-The live evaluation runs the labeled cases against the real model and needs both API keys
+The live evaluation runs the labeled cases against the real model and needs the API key
 exported (see `.env.example`); set `REPEAT=3` to check consistency.

@@ -229,7 +229,7 @@ Unit tests use the scripted mock model. One live script exercises the real
 thing across the labeled cases in `evals/whatif/cases.ts`:
 
 ```bash
-npm run live:whatif   # with MODEL_API_KEY and BASETEN_API_KEY exported; see .env.example
+npm run live:whatif   # with MODEL_API_KEY exported; see .env.example
 ```
 
 It reports the per-category pass rate, the failures with reasons, and latency.

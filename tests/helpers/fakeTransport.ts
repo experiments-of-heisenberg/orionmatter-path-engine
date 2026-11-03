@@ -86,7 +86,7 @@ export function errorResponse(
 }
 
 /** Valid environment for live-mode tests. Values are deliberately short fakes. */
-export const testEnv = parseEnv({ MODEL_API_KEY: "test-meta-key", BASETEN_API_KEY: "test-baseten-key" });
+export const testEnv = parseEnv({ MODEL_API_KEY: "test-meta-key" });
 
 /** A sleep that records requested delays and returns immediately. */
 export function recordingSleep() {

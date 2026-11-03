@@ -1,7 +1,7 @@
 # Part 3: Model client
 
 **Goal:** give every agent one simple, safe way to talk to the models — Muse Spark on the
-Meta Model API and Muse Spark Open on Baseten — that survives slow networks, rate limits and
+Meta Model API (Muse Spark) — that survives slow networks, rate limits and
 empty replies, and that works offline in tests and demos.
 
 ## What problem the client solves
@@ -171,16 +171,16 @@ conversations without even a fake transport.
 
 ## Live verification
 
-Unit tests use fakes. `scripts/live-client-check.ts` runs the real client against both live
-models (`npm run live:client`, with both API keys exported as in `.env.example`). Result on 3 Nov 2026,
-7 of 7 checks passing, with the redacted logs scanned for key leaks (none):
+Unit tests use fakes. `scripts/live-client-check.ts` runs the real client against the live
+model (`npm run live:client`, with the API key exported as in `.env.example`). Result on 3 Nov 2026,
+7 of 7 checks passing while both models were tested (the Baseten column is historical; after ADR 0011 the same run covers Spark only and passes 4 of 4), with the redacted logs scanned for key leaks (none):
 
-| Check                                          | Spark (Meta API)                                   | Spark Open (Baseten)              |
-| ---------------------------------------------- | -------------------------------------------------- | --------------------------------- |
-| Starved 200-token budget                       | Escalated automatically (2 attempts), replied "OK" | Replied on first attempt          |
-| Structured output (Zod)                        | Valid on first try                                 | Valid on first try                |
-| Tool loop with real `findTwins` via the ledger | 1 call, reported the true n = 150                  | 1 call, reported the true n = 150 |
-| Fixture record then replay                     | Replayed with the API unreachable                  | (same code path)                  |
+| Check                                          | Spark (Meta API)                                   | Spark Open (Baseten, since removed; ADR 0011) |
+| ---------------------------------------------- | -------------------------------------------------- | --------------------------------------------- |
+| Starved 200-token budget                       | Escalated automatically (2 attempts), replied "OK" | Replied on first attempt                      |
+| Structured output (Zod)                        | Valid on first try                                 | Valid on first try                            |
+| Tool loop with real `findTwins` via the ledger | 1 call, reported the true n = 150                  | 1 call, reported the true n = 150             |
+| Fixture record then replay                     | Replayed with the API unreachable                  | (same code path)                              |
 
 ## Findings from the Muse Code run, and what we did
 

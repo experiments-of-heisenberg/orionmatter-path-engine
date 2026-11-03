@@ -52,14 +52,6 @@ describe("request building", () => {
     expect(sentBody(transport)).toMatchObject({ model: "muse-spark-1.3", max_completion_tokens: 4000 });
   });
 
-  it("routes the open target to Baseten with its own key and model", async () => {
-    const { client, transport } = setup([okResponse()]);
-    await client.chat({ ...request, target: "open" });
-    expect(transport.requests[0]?.url).toBe("https://inference.baseten.co/v1/chat/completions");
-    expect(transport.requests[0]?.headers.Authorization).toBe("Bearer test-baseten-key");
-    expect(sentBody(transport).model).toBe("meta-models/muse-spark-open-1026");
-  });
-
   it("omits temperature and reasoning_effort unless the caller sets them", async () => {
     const { client, transport } = setup([okResponse(), okResponse()]);
     await client.chat(request);
@@ -70,7 +62,7 @@ describe("request building", () => {
   });
 
   it("refuses to call live without an API key, naming the target", async () => {
-    const env = parseEnv({ USE_FIXTURES: "false", MODEL_API_KEY: "k-one-two", BASETEN_API_KEY: "k-three" });
+    const env = parseEnv({ USE_FIXTURES: "false", MODEL_API_KEY: "k-one-two" });
     const keyless = { ...env, MODEL_API_KEY: undefined };
     const { client } = setup([], keyless);
     await expect(client.chat(request)).rejects.toThrow(ModelConfigError);

@@ -30,8 +30,8 @@
 # Safety notes:
 #   * The OS sandbox helper (bwrap) is unavailable in our container, so we pass
 #     --disable-sandbox. That is acceptable ONLY because the container is disposable.
-#     To limit exposure, Muse Code receives just META_API_KEY; MODEL_API_KEY and
-#     BASETEN_API_KEY are removed from its environment.
+#     To limit exposure, Muse Code receives just META_API_KEY; every other *_API_KEY
+#     variable (MODEL_API_KEY and anything else exported) is removed from its environment.
 #   * After the run we scan the export for our key values and delete it on a match.
 #   * Muse Code's exit code only says the run finished, not that the work is right.
 #     Always verify with the project's own tests afterwards.
@@ -51,9 +51,14 @@ mkdir -p "$evidence_dir"
 cp "$prompt_file" "$evidence_dir/$slug.prompt.md"
 
 # Remember the key values for the leak scan, then hide them from Muse Code.
-scan_model_key="$MODEL_API_KEY"
-scan_baseten_key="${BASETEN_API_KEY:-}"
+scan_secrets=()
+unset_args=()
+while IFS= read -r name; do
+  [[ -n "${!name:-}" ]] && scan_secrets+=("${!name}")
+  [[ "$name" == "META_API_KEY" ]] || unset_args+=(-u "$name")
+done < <(compgen -e | grep -E '_API_KEY$' || true)
 export META_API_KEY="${META_API_KEY:-$MODEL_API_KEY}"
+scan_secrets+=("$META_API_KEY")
 
 # Contributor mode defaults to OFF (no training on our content). Opt in only on purpose.
 # The model id is what actually selects the mode, so derive it from the same switch.
@@ -66,7 +71,7 @@ esac
 
 echo "muse-run: starting '$slug' (max $max_steps steps, model: $muse_model, contributor mode: $contributor_mode)"
 set +e
-env -u MODEL_API_KEY -u BASETEN_API_KEY \
+env "${unset_args[@]}" \
   timeout 900 muse exec \
     --disable-sandbox --disable-approval --trust-workspace \
     --model "$muse_model" \
@@ -82,8 +87,8 @@ echo "muse-run: muse exec finished with exit code $muse_status (0 = turn complet
 # Export the redacted session log as evidence (scanned raw below, then gzipped).
 muse export --last --redacted --out "$evidence_dir/$slug.session.json" >/dev/null
 
-# Leak scan: refuse to keep evidence that contains either key value.
-for secret in "$scan_model_key" "$scan_baseten_key"; do
+# Leak scan: refuse to keep evidence that contains any key value.
+for secret in "${scan_secrets[@]}"; do
   [[ -n "$secret" ]] || continue
   if grep -rqF -- "$secret" "$evidence_dir/$slug."*; then
     echo "muse-run: SECRET FOUND in evidence files; deleting them" >&2

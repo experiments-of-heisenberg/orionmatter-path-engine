@@ -2,7 +2,7 @@
  * client.ts: the model client every agent uses.
  *
  * One function, `chat`, hides everything that is annoying about calling a hosted model:
- *   - routing to the right provider (Meta Model API for "spark", Baseten for "open")
+ *   - sending every request to the Meta Model API (Muse Spark), the only provider
  *   - timeouts and retries with backoff on transient failures (429, 5xx, network)
  *   - Muse Spark's habit of spending the whole token budget on hidden reasoning and
  *     returning nothing: the client detects this and retries with a bigger budget
@@ -78,10 +78,10 @@ interface TargetConfig {
   model: string;
 }
 
-function resolveTarget(env: Env, target: ModelTarget): TargetConfig {
-  return target === "spark"
-    ? { baseUrl: env.META_API_BASE_URL, apiKey: env.MODEL_API_KEY, model: env.META_MODEL_SPARK }
-    : { baseUrl: env.OPEN_API_BASE_URL, apiKey: env.BASETEN_API_KEY, model: env.OPEN_MODEL_ID };
+function resolveTarget(env: Env, _target: ModelTarget): TargetConfig {
+  // One provider: the Meta Model API. `target` stays an explicit field on every request so that
+  // recorded fixtures keep their keys and a future provider would be a visible, reviewed change.
+  return { baseUrl: env.META_API_BASE_URL, apiKey: env.MODEL_API_KEY, model: env.META_MODEL_SPARK };
 }
 
 function modeFromEnv(env: Env): FixtureMode {

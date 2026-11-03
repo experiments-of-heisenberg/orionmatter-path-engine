@@ -1,6 +1,6 @@
 /**
  * wire.ts: translation between our provider-independent types and the OpenAI-compatible
- * Chat Completions format spoken by the Meta Model API and Baseten.
+ * Chat Completions format spoken by the Meta Model API.
  *
  * Responses are parsed with Zod rather than trusted: a malformed 200 should become a
  * clear ModelProtocolError, not an undefined-property crash three layers up.

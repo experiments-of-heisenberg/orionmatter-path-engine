@@ -206,7 +206,7 @@ Unit tests use the scripted mock model. One live script exercises the real thing
 (run through the credentials wrapper):
 
 ```bash
-npm run live:audit   # with MODEL_API_KEY and BASETEN_API_KEY exported; see .env.example
+npm run live:audit   # with MODEL_API_KEY exported; see .env.example
 ```
 
 It runs the full pipeline — Planner, Skeptic, revisions — on real models across
