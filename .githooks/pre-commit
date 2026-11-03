@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Pre-commit hook: block secrets and obvious breakage before a commit is created.
+# Enabled by `npm run prepare` (git config core.hooksPath .githooks).
+set -euo pipefail
+bash scripts/scan-secrets.sh
+npm run --silent typecheck
+npm run --silent lint

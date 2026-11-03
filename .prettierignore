@@ -1,0 +1,8 @@
+node_modules
+.next
+coverage
+package-lock.json
+data/cohort.synthetic.json
+docs/muse-code
+skills
+skill-src

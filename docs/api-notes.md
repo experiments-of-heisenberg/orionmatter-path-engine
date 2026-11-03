@@ -5,12 +5,12 @@ _Part 0 findings, 3 Nov 2026. Everything below was observed with live calls from
 
 ## Endpoints and models
 
-| | Muse Spark (Meta Model API) | Muse Spark Open (Baseten) |
-|---|---|---|
-| Base URL | `https://api.meta.ai/v1` | `https://inference.baseten.co/v1` |
-| Auth | `Authorization: Bearer $MODEL_API_KEY` | `Authorization: Bearer $BASETEN_API_KEY` |
-| Model id we use | `muse-spark-1.3` | `meta-models/muse-spark-open-1026` (hackathon id) |
-| Endpoint | `POST /chat/completions` (OpenAI-compatible) | same |
+|                 | Muse Spark (Meta Model API)                  | Muse Spark Open (Baseten)                         |
+| --------------- | -------------------------------------------- | ------------------------------------------------- |
+| Base URL        | `https://api.meta.ai/v1`                     | `https://inference.baseten.co/v1`                 |
+| Auth            | `Authorization: Bearer $MODEL_API_KEY`       | `Authorization: Bearer $BASETEN_API_KEY`          |
+| Model id we use | `muse-spark-1.3`                             | `meta-models/muse-spark-open-1026` (hackathon id) |
+| Endpoint        | `POST /chat/completions` (OpenAI-compatible) | same                                              |
 
 Other models on the Meta API (from `GET /v1/models`): `muse-spark-1.2`, `muse-spark-1.1`,
 `muse-wonder-1.0`, `muse-image-1.0`, `muse-voice-transcribe-1.0`, `sam-3.1`, plus
@@ -19,18 +19,18 @@ Other models on the Meta API (from `GET /v1/models`): `muse-spark-1.2`, `muse-sp
 
 ## Capability matrix (all probes passed after fixing our own probe bugs)
 
-| Capability | Spark | Open | Note |
-|---|---|---|---|
-| Plain reply | yes | yes | |
-| `system` role | yes | yes | |
-| `developer` role | yes | yes | Meta docs prefer `developer` |
-| Native tool calling | yes | yes | returns `tool_calls`, `finish_reason: "tool_calls"` |
-| JSON via prompt | yes | yes | clean JSON, no fences in our probe |
-| `response_format: json_object` | yes | yes | Baseten docs say Open lacks JSON mode, yet it worked. Treat as best effort. |
-| `reasoning_effort` low / minimal | yes | yes | `none` is rejected by Spark per docs |
-| `temperature: 0.2` | accepted | accepted | Meta recommends leaving the default (1.0) for Spark |
-| Image input | yes | yes | see vision findings |
-| Reasoning text exposed in message | no | yes (`reasoning` field) | |
+| Capability                        | Spark    | Open                    | Note                                                                        |
+| --------------------------------- | -------- | ----------------------- | --------------------------------------------------------------------------- |
+| Plain reply                       | yes      | yes                     |                                                                             |
+| `system` role                     | yes      | yes                     |                                                                             |
+| `developer` role                  | yes      | yes                     | Meta docs prefer `developer`                                                |
+| Native tool calling               | yes      | yes                     | returns `tool_calls`, `finish_reason: "tool_calls"`                         |
+| JSON via prompt                   | yes      | yes                     | clean JSON, no fences in our probe                                          |
+| `response_format: json_object`    | yes      | yes                     | Baseten docs say Open lacks JSON mode, yet it worked. Treat as best effort. |
+| `reasoning_effort` low / minimal  | yes      | yes                     | `none` is rejected by Spark per docs                                        |
+| `temperature: 0.2`                | accepted | accepted                | Meta recommends leaving the default (1.0) for Spark                         |
+| Image input                       | yes      | yes                     | see vision findings                                                         |
+| Reasoning text exposed in message | no       | yes (`reasoning` field) |                                                                             |
 
 ## Findings that change the code
 
@@ -59,7 +59,7 @@ Other models on the Meta API (from `GET /v1/models`): `muse-spark-1.2`, `muse-sp
 - `muse exec` works non-interactively; verified it writes files and runs commands.
 - The OS sandbox helper `bwrap` is **unavailable** in our container, so shell commands
   fail unless the sandbox is disabled. We pass `--disable-sandbox --disable-approval
-  --trust-workspace` only because the container is disposable, and withhold every key
+--trust-workspace` only because the container is disposable, and withhold every key
   except `META_API_KEY` from the process.
 - `muse export --last --redacted --out <file>` produces a self-contained JSON session
   log (about 0.4 to 0.6 MB per run). We scanned raw and redacted exports and the JSONL

@@ -1,15 +1,15 @@
 import { z } from "zod";
 
-export const RoleFamily = z.enum(["backend","platform","ml","frontend","embedded","sre"]);
-export const Archetype = z.enum(["climb","jump","pivot"]);
-export const Outcome = z.enum(["reached","stalled","left-field"]);
+export const RoleFamily = z.enum(["backend", "platform", "ml", "frontend", "embedded", "sre"]);
+export const Archetype = z.enum(["climb", "jump", "pivot"]);
+export const Outcome = z.enum(["reached", "stalled", "left-field"]);
 
 export const CohortRecord = z.object({
   id: z.string(),
   synthetic: z.literal(true),
   roleFamily: RoleFamily,
-  startLevel: z.enum(["L3","L4","L5"]),
-  endLevel: z.enum(["L4","L5","L6","L7","EM1","EM2"]),
+  startLevel: z.enum(["L3", "L4", "L5"]),
+  endLevel: z.enum(["L4", "L5", "L6", "L7", "EM1", "EM2"]),
   archetype: Archetype,
   companyTypeSteps: z.array(z.string()),
   months: z.number(),
@@ -29,9 +29,17 @@ export const Profile = z.object({
   stack: z.array(z.string()).max(15),
   region: z.string(),
   compBand: z.string().optional(),
-  milestones: z.array(z.object({
-    type: z.string(), quarter: z.string(), note: z.string().max(200), verified: z.literal(false),
-  })).max(20).default([]),
+  milestones: z
+    .array(
+      z.object({
+        type: z.string(),
+        quarter: z.string(),
+        note: z.string().max(200),
+        verified: z.literal(false),
+      }),
+    )
+    .max(20)
+    .default([]),
 });
 export type Profile = z.infer<typeof Profile>;
 
@@ -40,7 +48,7 @@ export const Constraints = z.object({
   noRelocation: z.boolean().optional(),
   minCompBand: z.string().optional(),
   maxMonths: z.number().optional(),
-  riskTolerance: z.enum(["low","medium","high"]).default("medium"),
+  riskTolerance: z.enum(["low", "medium", "high"]).default("medium"),
   addSkills: z.array(z.string()).default([]),
 });
 export type Constraints = z.infer<typeof Constraints>;
@@ -75,8 +83,12 @@ export const Route = z.object({
     reachedRate: z.tuple([z.number(), z.number()]),
     evidenceN: z.number().int(),
     radar: z.object({
-      comp: z.number(), speed: z.number(), risk: z.number(),
-      learning: z.number(), balance: z.number(), stability: z.number(),
+      comp: z.number(),
+      speed: z.number(),
+      risk: z.number(),
+      learning: z.number(),
+      balance: z.number(),
+      stability: z.number(),
     }),
   }),
   evidenceThin: z.boolean(),
@@ -91,9 +103,13 @@ export type PlanResult = z.infer<typeof PlanResult>;
 
 export const SkepticVerdict = z.object({
   approved: z.boolean(),
-  rejections: z.array(z.object({
-    routeIndex: z.number(), claimText: z.string(), reason: z.string(),
-  })),
+  rejections: z.array(
+    z.object({
+      routeIndex: z.number(),
+      claimText: z.string(),
+      reason: z.string(),
+    }),
+  ),
   notes: z.array(z.string()),
 });
 export type SkepticVerdict = z.infer<typeof SkepticVerdict>;

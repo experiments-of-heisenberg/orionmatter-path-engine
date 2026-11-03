@@ -4,16 +4,37 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "typecheck": "tsc",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "scan:secrets": "bash scripts/scan-secrets.sh",
+    "check": "npm run typecheck && npm run lint && npm run format:check && npm run test && npm run scan:secrets",
     "gen:cohort": "tsx scripts/generate-cohort.ts",
-    "test": "vitest run"
+    "smoke:models": "tsx scripts/smoke-models.ts",
+    "probe:vision": "tsx scripts/probe-vision.ts",
+    "prepare": "git config core.hooksPath .githooks || true"
   },
   "dependencies": {
     "zod": "^4.0.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/node": "^26.6.6",
+    "eslint": "^10.14.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.14.0",
+    "prettier": "^3.9.10",
     "tsx": "^4.23.15",
-    "typescript": "^7.0.2",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.72.1",
     "vitest": "^5.1.0"
+  },
+  "description": "Orionmatter Path Engine: a multi-agent career route planner for engineers, built for the Meta Global AI Developer Hackathon.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
   }
 }

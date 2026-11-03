@@ -17,7 +17,7 @@ const CRC_TABLE = Array.from({ length: 256 }, (_, n) => {
 /** CRC-32 of a buffer, as required by every PNG chunk. */
 function crc32(buf: Buffer): number {
   let c = 0xffffffff;
-  for (const byte of buf) c = CRC_TABLE[(c ^ byte) & 0xff] ^ (c >>> 8);
+  for (const byte of buf) c = (CRC_TABLE[(c ^ byte) & 0xff] ?? 0) ^ (c >>> 8);
   return (c ^ 0xffffffff) >>> 0;
 }
 

@@ -1,9 +1,33 @@
 {
   "_note": "Fictional, tiered, illustrative markers.",
   "markers": [
-    {"id":"m_fintech","name":"Series C fintech","monthsPerLevel":{"L4":20,"L5":26,"L6":34},"onCall":"medium","interview":"coding + system design + behavioural"},
-    {"id":"m_bigtech","name":"BigTech","monthsPerLevel":{"L4":24,"L5":30,"L6":40},"onCall":"low","interview":"4 coding rounds + design"},
-    {"id":"m_infra","name":"Growth-stage infra startup","monthsPerLevel":{"L4":14,"L5":20,"L6":28},"onCall":"high","interview":"take-home + system design"},
-    {"id":"m_robotics","name":"Robotics startup","monthsPerLevel":{"L4":16,"L5":24,"L6":32},"onCall":"low","interview":"domain project + coding"}
+    {
+      "id": "m_fintech",
+      "name": "Series C fintech",
+      "monthsPerLevel": { "L4": 20, "L5": 26, "L6": 34 },
+      "onCall": "medium",
+      "interview": "coding + system design + behavioural"
+    },
+    {
+      "id": "m_bigtech",
+      "name": "BigTech",
+      "monthsPerLevel": { "L4": 24, "L5": 30, "L6": 40 },
+      "onCall": "low",
+      "interview": "4 coding rounds + design"
+    },
+    {
+      "id": "m_infra",
+      "name": "Growth-stage infra startup",
+      "monthsPerLevel": { "L4": 14, "L5": 20, "L6": 28 },
+      "onCall": "high",
+      "interview": "take-home + system design"
+    },
+    {
+      "id": "m_robotics",
+      "name": "Robotics startup",
+      "monthsPerLevel": { "L4": 16, "L5": 24, "L6": 32 },
+      "onCall": "low",
+      "interview": "domain project + coding"
+    }
   ]
 }

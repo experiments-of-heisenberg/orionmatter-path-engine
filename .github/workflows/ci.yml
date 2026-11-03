@@ -1,0 +1,41 @@
+# Continuous integration: every push and pull request must pass the same checks
+# a developer runs locally with `npm run check`.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read # least privilege: CI only needs to read the repo
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Type-check
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint
+      - name: Format check
+        run: npm run format:check
+      - name: Unit tests
+        run: npm test
+        env:
+          USE_FIXTURES: "true" # CI never calls live model APIs
+      - name: Secret scan
+        run: npm run scan:secrets
+      - name: Dependency audit (production dependencies, high severity)
+        run: npm audit --omit=dev --audit-level=high
