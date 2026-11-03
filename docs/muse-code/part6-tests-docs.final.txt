@@ -1,0 +1,21 @@
+Done. Tests and docs only — nothing under `src/` or `evals/` was touched.
+
+## Files created
+
+- [tests/whatifSchemas.test.ts](/agent/workspace/orionmatter-path-engine/tests/whatifSchemas.test.ts) — 21 tests: per-field value types, phrase/field rejection rules, Clarification/Contradiction bounds, ModelOutput limits and explicit-null clarification, exact ChangeField list.
+- [tests/whatifPrompts.test.ts](/agent/workspace/orionmatter-path-engine/tests/whatifPrompts.test.ts) — 12 tests: user-message layout (goal/role/level/region, CURRENT JSON, `<message>` wrap, `<history>` rendering), verbatim message placement, system-prompt rules, and the worked-example honest-quote check (parses `message:`/`->` pairs, asserts each change phrase is a substring).
+- [tests/whatifExports.test.ts](/agent/workspace/orionmatter-path-engine/tests/whatifExports.test.ts) — 2 tests: the 9 public exports exist and the constants equal `{min:6,max:120}`, 500, 5.
+- [docs/parts/part-6-whatif-interpreter.md](/agent/workspace/orionmatter-path-engine/docs/parts/part-6-whatif-interpreter.md) — plain-language guide with all requested sections; the "Live evaluation" section is the exact single sentence. The one illustrative conflict quote uses real engine output (jump route, 18–23 months), verified by running the code.
+
+## Verification
+
+`npm run check` passes: typecheck, lint, format check, **36 files / 504 tests all green** (35 new), secret scan clean. Not committed.
+
+## Bugs and doubts (nothing fixed, per instructions)
+
+No definite bugs found. Four observations, all confirmed by reading plus a runtime probe:
+
+1. **Redundant notes on duplicate skill add** ([apply.ts](/agent/workspace/orionmatter-path-engine/src/lib/whatif/apply.ts):208-212). Adding an already-present skill yields two notes (`"rust" was already in your skills list.` plus `Skills to add was already rust.`) because the de-dup guard checks for the field label, which the skill-specific note doesn't contain. Cosmetic. Suggested fix: skip the generic "already" note when this change already added a note (compare `notes.length` before/after the switch).
+2. **Empty skills array passes the schema** ([schemas.ts](/agent/workspace/orionmatter-path-engine/src/lib/whatif/schemas.ts):52, `value` has no `.min(1)`). It produces a spurious `Skills to add was already none.` note. Suggested fix: `.min(1)` on the array, or skip empty changes in `applyChanges`.
+3. **Quote guard is substring-based, so short phrases false-positive** ([apply.ts](/agent/workspace/orionmatter-path-engine/src/lib/whatif/apply.ts):38-41). Verified: `phraseInText("go", "I want to reach my goal")` is `true`. Probably accepted design (matches the critic's guard), but a quoted skill like "go" can pass on an unrelated word. Word-boundary matching would tighten it at some recall cost.
+4. **Time-limit check is silent when no route has a timeline** ([conflicts.ts](/agent/workspace/orionmatter-path-engine/src/lib/whatif/conflicts.ts):55-58). If `maxMonths` is set but every route's `monthsToGoal` is null, `fastest` is undefined and no conflict is reported — even though nobody ever reached the goal. The `twins.n === 0` case is covered; the "twins exist, none reached" case is not. Flagging as a question for the maintainer rather than a bug.
