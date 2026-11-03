@@ -32,11 +32,25 @@ const EnvSchema = z
     // Used as the demo fallback and for offline development.
     USE_FIXTURES: booleanFlag,
 
+    // When true, live model responses are saved as fixtures (needs real keys).
+    RECORD_FIXTURES: booleanFlag,
+
+    // Minimum log level: debug, info, warn or error.
+    LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
+
     // Seed for the synthetic cohort generator, so data is reproducible.
     COHORT_SEED: z.coerce.number().int().default(1026),
   })
   .superRefine((env, ctx) => {
-    // Live mode needs both keys. Fixture mode needs neither.
+    // Replaying and recording are opposites: replay never calls the API, record always does.
+    if (env.USE_FIXTURES && env.RECORD_FIXTURES) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["RECORD_FIXTURES"],
+        message: "RECORD_FIXTURES cannot be true while USE_FIXTURES is true",
+      });
+    }
+    // Live mode needs both keys. Fixture replay needs neither.
     if (env.USE_FIXTURES) return;
     for (const key of ["MODEL_API_KEY", "BASETEN_API_KEY"] as const) {
       if (!env[key]) {
