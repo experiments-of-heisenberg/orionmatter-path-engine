@@ -1,0 +1,23 @@
+Done. `npm run check` passes: typecheck, lint, format check, **96 files / 1429 tests passed, 1 skipped** (the skip is pre-existing, not mine), secret scan clean. No files under `src/`, `evals/`, `scripts/` or `next.config.ts` were touched; nothing committed.
+
+## Files created
+
+- `tests/uiLimitsEdges.test.ts` (15 tests), `tests/uiDeltaEdges.test.ts` (10), `tests/uiScenariosEdges.test.ts` (11), `tests/uiChatEdges.test.ts` (8), `tests/uiTornadoEdges.test.ts` (8), `tests/whatIfAppEdges.test.tsx` (8, jsdom), `tests/uiCssWhatIf.test.ts` (7) — 67 new tests, all deterministic and offline.
+- `docs/parts/part-13-what-if-screen.md` — plain-language Part 13 guide with all required sections, including the exact one-sentence "Live evaluation" section.
+
+## Bugs (not fixed, per instructions — no failing tests written for them)
+
+1. **`withLimit` stores NaN** — [limits.ts](/agent/workspace/orionmatter-path-engine/src/ui/limits.ts:63). `withLimit(c, NaN)` yields `maxMonths: NaN` (outside 1..240, non-integer); the label then reads "NaN months" and the API receives `null` on the wire. Fix: `if (Number.isNaN(months)) return normalise(c);`. No UI path produces NaN today, so severity is low.
+2. **`cleanSkill`/`renameScenario` split surrogate pairs** — [limits.ts](/agent/workspace/orionmatter-path-engine/src/ui/limits.ts:90), [scenarios.ts](/agent/workspace/orionmatter-path-engine/src/ui/scenarios.ts:114). `cleanSkill("x".repeat(39) + "😀")` ends in a lone high surrogate. Fix: `Array.from(s).slice(0, 40).join("")`.
+3. **Stale chat answer overwrites newer slider moves** — [usePathState.ts](/agent/workspace/orionmatter-path-engine/src/components/usePathState.ts:129). Ask "within 2 years", drag the slider to 36 while it works: on finish the limits snap to 24 and the slider move is lost. The `sent` constraints are already captured; suggested fix is to only auto-apply when the user hasn't moved since, otherwise offer Apply. Asserted as current behavior in `whatIfAppEdges.test.tsx`.
+4. **`applyRelaxation` returns `undefined` for an unknown knob** — [limits.ts](/agent/workspace/orionmatter-path-engine/src/ui/limits.ts:133). No `default` case; typed away but runtime-unsafe. Fix: add `default: return c;`.
+5. **`.applied__change` has no CSS rule** — used in [Chat.tsx](/agent/workspace/orionmatter-path-engine/src/components/Chat.tsx:45), absent from `globals.css` (verified). Harmless (grid placement comes from the parent); carried on the new test's allowlist with a reason.
+6. **Drafts lost on tab switch** — chat draft, skill input, and scenario rename field are local `useState` in components that unmount when leaving the What if tab. Type half a message, visit Map, come back: it's gone. Fix: lift draft state into `usePathState`.
+
+## Doubts and observations
+
+- `delta.ts` singular branches ("1 point", "1 month") are unreachable: reporting requires ≥5 points / ≥3 months, so the minimum reads are plural. Harmless dead code; "1 engineer" works and is tested.
+- `tornadoSummary` with swing exactly 1.0 reads "a swing of about 1 points" ([tornadoLayout.ts](/agent/workspace/orionmatter-path-engine/src/ui/tornadoLayout.ts:66)). Cosmetic.
+- Baseline race: if a slider moves before the *first* explore response lands, the baseline is set from moved limits while chips claim "since your starting limits" ([usePathState.ts](/agent/workspace/orionmatter-path-engine/src/components/usePathState.ts:88)). Narrow window, minor.
+- `normalise` drops unknown keys; `sameConstraints` is case- and order-sensitive for skills; `checkMessage` counts UTF-16 units and lets lone surrogates through; a question dies with a later error turn — all asserted as documented behavior.
+- Checked and clean: no `Constraints` mutation, explore abort handling, error alert keeps old data on screen (tested), "clearly ahead" backed by non-overlap, labels/roles/groups present, no keyboard traps, user text escaped by React, API-bound values bounded except the NaN hole above. Possible `.applied__item` squeeze at 390 px with very long phrases is worth a glance in the phone preview but unverified.
