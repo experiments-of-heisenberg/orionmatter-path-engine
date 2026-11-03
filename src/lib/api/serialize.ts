@@ -5,7 +5,14 @@
  * lists (150 ids per plan), no raw ledger. Second, every number the browser shows still traces to
  * an evidence id, so those ids stay.
  */
-import { summarizeEvidence, type FactSheet, type RouteFacts, type Ranking } from "../engine";
+import {
+  reachedPoints,
+  summarizeEvidence,
+  type FactSheet,
+  type RouteFacts,
+  type Ranking,
+  type ReachedPoint,
+} from "../engine";
 import type { RunPlanOutput } from "../orchestrator";
 import type { Constraints, Goal } from "../schemas";
 import type { EvidenceLedger } from "../tools/ledger";
@@ -22,6 +29,8 @@ export interface ClientRoute {
   reachedN: number;
   evidenceThin: boolean;
   monthsToGoal: RouteFacts["monthsToGoal"];
+  /** Median months to the goal among those who reached it within the limits, or null. */
+  monthsMedian: number | null;
   reachedRate: RouteFacts["reachedRate"];
   compBandRange: RouteFacts["compBandRange"];
   topRisks: string[];
@@ -33,6 +42,8 @@ export interface ClientRoute {
   /** What the cohort says when the person's limits are ignored. */
   ignoringLimits: RouteFacts["stats"]["ignoringLimits"];
   skills: SkillFacts[];
+  /** Every comparable engineer who reached the goal on this route, with whether they met the limits. For drawing the spread of months. */
+  reachedPoints: ReachedPoint[];
 }
 
 /** A fact sheet, as sent to the browser. */
@@ -47,6 +58,7 @@ export interface ClientSheet {
 
 /** Trim a fact sheet to what the browser needs. */
 export function sheetToClient(sheet: FactSheet): ClientSheet {
+  const points = reachedPoints(sheet.input);
   return {
     goal: sheet.input.goal,
     constraints: sheet.input.constraints,
@@ -59,6 +71,7 @@ export function sheetToClient(sheet: FactSheet): ClientSheet {
       reachedN: route.stats.reachedN,
       evidenceThin: route.evidenceThin,
       monthsToGoal: route.monthsToGoal,
+      monthsMedian: route.stats.monthsP50,
       reachedRate: route.reachedRate,
       compBandRange: route.compBandRange,
       topRisks: route.topRisks,
@@ -68,6 +81,7 @@ export function sheetToClient(sheet: FactSheet): ClientSheet {
       outcomeShares: route.stats.outcomeShares,
       ignoringLimits: route.stats.ignoringLimits,
       skills: route.skills,
+      reachedPoints: points[route.archetype],
     })),
     ranking: sheet.ranking,
     survivorship: sheet.survivorship,

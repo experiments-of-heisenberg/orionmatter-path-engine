@@ -39,10 +39,12 @@ export function exploreExtras(body: PlanRequest, constraints = body.constraints)
   return { tornado: sensitivityTornado(input), wouldItTake: whatWouldItTake(input) };
 }
 
+/** What /api/explore returns: a fact sheet plus the tornado, the smallest helpful changes and the conflicts. */
+export type ExploreResult = ClientSheet &
+  ReturnType<typeof exploreExtras> & { conflicts: ReturnType<typeof evidenceConflicts> };
+
 /** POST /api/explore: the fast path, no model. Sliders call this on every change. */
-export function handleExplore(
-  body: PlanRequest,
-): ClientSheet & ReturnType<typeof exploreExtras> & { conflicts: ReturnType<typeof evidenceConflicts> } {
+export function handleExplore(body: PlanRequest): ExploreResult {
   const sheet = gatherEvidence(new EvidenceLedger(), {
     profile: body.profile,
     goal: body.goal,

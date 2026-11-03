@@ -7,6 +7,8 @@ export { assemblePlan, assembleRoute, survivorshipCaveat } from "./assemble";
 export { PlanDraft, RouteDraft } from "./drafts";
 export { ARCHETYPES, gatherEvidence, limitsOf } from "./facts";
 export type { EngineInput, FactSheet, RouteFacts, SkillFacts } from "./facts";
+export { reachedPoints } from "./distribution";
+export type { ReachedPoint } from "./distribution";
 export { rankRoutes } from "./rank";
 export type { Ranking } from "./rank";
 export { computeRadar, RADAR_BASIS } from "./radar";
