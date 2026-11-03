@@ -47,6 +47,15 @@ export function evidenceConflicts(sheet: FactSheet, constraints: Constraints): C
     });
   }
 
+  // 1b. Comparable engineers exist, but none of them reached the goal: no route has a timeline.
+  if (sheet.twins.n > 0 && sheet.routes.every((route) => route.monthsToGoal === null)) {
+    conflicts.push({
+      kind: "infeasible",
+      fields: narrowingFields(constraints),
+      message: `None of the ${sheet.twins.n} comparable engineers reached this goal, so no route has any timeline evidence.`,
+    });
+  }
+
   // 2. A time limit shorter than anyone's typical timeline.
   if (constraints.maxMonths !== undefined) {
     const timed = sheet.routes.flatMap((route) =>

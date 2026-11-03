@@ -144,7 +144,8 @@ untrusted. Six guards stand between them and the constraints:
    ones. History is trimmed to the last three turns.
 3. **The quote guard.** Every change carries a `phrase` — words copied from the
    person's message. Code checks each phrase appears in what the person wrote
-   (ignoring case and whitespace) and discards anything quoting words that were
+   (as whole words, ignoring case and whitespace, so a quote of "go" is not "found"
+   inside "goal") and discards anything quoting words that were
    never said, counting the discards in the notes. Quotes may come from the
    person's earlier answers, but never from the assistant's own question: a
    phrase found only in "Which band? B1 is lowest, B5 highest" does not count.
@@ -175,7 +176,33 @@ untrusted. Six guards stand between them and the constraints:
 
 ## Live evaluation
 
-Results of the live evaluation are added by the maintainer after measurement.
+Measured on 3 Nov 2026 against the real model (`npm run live:whatif`): 28 labeled
+utterances in eight categories, each run three times (84 runs).
+
+| Category                                                                       | Passed       |
+| ------------------------------------------------------------------------------ | ------------ |
+| Clear requests (11 cases)                                                      | 33 of 33     |
+| Relative changes: undo, remove a skill, clear a pay floor (3 cases)            | 9 of 9       |
+| Unsupported requests: 4-day week, on-call, visa, and a mixed message (4 cases) | 12 of 12     |
+| Vague requests that need a question (3 cases)                                  | 9 of 9       |
+| Contradictions (2 cases)                                                       | 6 of 6       |
+| Chit-chat (2 cases)                                                            | 6 of 6       |
+| Multi-turn answer to a clarification (1 case)                                  | 3 of 3       |
+| Safety: out-of-range value, prompt injection (2 cases)                         | 6 of 6       |
+| **Overall**                                                                    | **84 of 84** |
+
+Latency (including the model call) had a median of about 2 s and a p90 of 3 to 4 s.
+
+What the evaluation found along the way, all fixed:
+
+- **A prompt bug:** "what if I learn Rust?" was treated as chit-chat, because my rule listed
+  "a question" as a non-request. A "what if" question is the canonical What-if request. The
+  prompt now says so and has an example; a test pins it.
+- **A guard that was too loose** (found by Muse Code): the quote guard matched substrings, so a
+  quote of "go" passed on the word "goal". It now matches whole words. The evaluation was
+  re-run afterwards and recall did not drop (84 of 84 again).
+- **A silent gap** (found by Muse Code): if comparable engineers existed but none reached the
+  goal, no conflict was reported. It now is.
 
 ## Known limits
 

@@ -37,7 +37,11 @@ const normalise = (text: string): string => text.replace(/\s+/g, " ").trim().toL
  */
 export function phraseInText(phrase: string, userText: string): boolean {
   const needle = normalise(phrase);
-  return needle.length > 0 && normalise(userText).includes(needle);
+  if (needle.length === 0) return false;
+  // Whole-word match: a short quote such as "go" must not be "found" inside "goal".
+  // Unicode-aware, so "caf" does not match inside "café" either.
+  const escaped = needle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`(?<![\\p{L}\\p{N}])${escaped}(?![\\p{L}\\p{N}])`, "u").test(normalise(userText));
 }
 
 /**
@@ -152,11 +156,13 @@ export function applyChanges(current: ConstraintsType, changes: readonly ModelCh
 
   for (const change of changes) {
     if (blocked.has(change.field)) continue; // disagreed with itself: ask, do not guess
+    if (change.field === "skills" && change.value.length === 0) continue; // nothing to add or remove
     const key = `${change.field}|${valueKey(change)}`;
     if (seen.has(key)) continue;
     seen.add(key);
 
     const before = show(change.field, next);
+    const notesBefore = notes.length;
     const refuse = (reason: string) => refused.push({ field: change.field, phrase: change.phrase, reason });
 
     switch (change.field) {
@@ -207,8 +213,11 @@ export function applyChanges(current: ConstraintsType, changes: readonly ModelCh
 
     const after = show(change.field, next);
     if (before === after) {
-      if (!notes.some((note) => note.includes(LABELS[change.field])))
+      // Add the generic "already" note only if this change did not already explain itself
+      // (a repeated skill adds its own, more specific note).
+      if (notes.length === notesBefore && !notes.some((note) => note.includes(LABELS[change.field]))) {
         notes.push(`${LABELS[change.field]} was already ${after}.`);
+      }
     } else {
       // Merge repeated changes to the same field (e.g. two skills) into one line.
       const existing = applied.find((item) => item.field === change.field);
