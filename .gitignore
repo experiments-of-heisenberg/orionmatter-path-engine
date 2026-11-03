@@ -5,3 +5,5 @@ node_modules
 .tsx-cache
 coverage
 *.log
+next-env.d.ts
+*.tsbuildinfo

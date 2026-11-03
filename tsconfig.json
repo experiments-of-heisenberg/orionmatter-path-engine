@@ -9,8 +9,15 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "noEmit": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "allowJs": false,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
     "types": ["node"],
-
     // Strictness: catch whole classes of bugs at compile time.
     "strict": true,
     "noUncheckedIndexedAccess": true, // arr[i] is T | undefined, forcing explicit handling
@@ -22,5 +29,16 @@
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true
   },
-  "include": ["src", "scripts", "tests", "evals", "*.config.ts", "*.config.js"]
+  "include": [
+    "next-env.d.ts",
+    "src",
+    "scripts",
+    "tests",
+    "evals",
+    "*.config.ts",
+    "*.config.js",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts"
+  ],
+  "exclude": ["node_modules"]
 }

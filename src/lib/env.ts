@@ -23,6 +23,10 @@ const EnvSchema = z
     META_API_BASE_URL: z.url().default("https://api.meta.ai/v1"),
     META_MODEL_SPARK: z.string().min(1).default("muse-spark-1.3"),
 
+    // API protection (per server instance). Model routes are the costly ones.
+    RATE_LIMIT_PER_MINUTE: z.coerce.number().int().min(1).max(10_000).default(12),
+    MAX_CONCURRENT_RUNS: z.coerce.number().int().min(1).max(100).default(6),
+
     // When true, agents replay recorded fixtures instead of calling the live APIs.
     // Used as the demo fallback and for offline development.
     USE_FIXTURES: booleanFlag,

@@ -52,11 +52,37 @@ describe("parseEnv", () => {
     expect(Object.keys(env).sort()).toEqual([
       "COHORT_SEED",
       "LOG_LEVEL",
+      "MAX_CONCURRENT_RUNS",
       "META_API_BASE_URL",
       "META_MODEL_SPARK",
       "MODEL_API_KEY",
+      "RATE_LIMIT_PER_MINUTE",
       "RECORD_FIXTURES",
       "USE_FIXTURES",
     ]);
+  });
+});
+
+describe("API protection settings", () => {
+  it("defaults to 12 requests a minute and 6 concurrent runs, and accepts overrides", () => {
+    const env = parseEnv({ MODEL_API_KEY: fakeMetaKey });
+    expect([env.RATE_LIMIT_PER_MINUTE, env.MAX_CONCURRENT_RUNS]).toEqual([12, 6]);
+    const tuned = parseEnv({
+      MODEL_API_KEY: fakeMetaKey,
+      RATE_LIMIT_PER_MINUTE: "30",
+      MAX_CONCURRENT_RUNS: "2",
+    });
+    expect([tuned.RATE_LIMIT_PER_MINUTE, tuned.MAX_CONCURRENT_RUNS]).toEqual([30, 2]);
+  });
+
+  it.each([
+    ["RATE_LIMIT_PER_MINUTE", "0"],
+    ["RATE_LIMIT_PER_MINUTE", "abc"],
+    ["RATE_LIMIT_PER_MINUTE", "1.5"],
+    ["MAX_CONCURRENT_RUNS", "0"],
+    ["MAX_CONCURRENT_RUNS", "-1"],
+    ["MAX_CONCURRENT_RUNS", "1000"],
+  ])("rejects %s=%s", (name, value) => {
+    expect(() => parseEnv({ MODEL_API_KEY: fakeMetaKey, [name]: value })).toThrow(EnvError);
   });
 });

@@ -5,12 +5,14 @@ import prettier from "eslint-config-prettier";
 import globals from "globals";
 
 export default tseslint.config(
-  { ignores: ["node_modules", ".next", "coverage", "docs/muse-code", "skills", "skill-src"] },
+  {
+    ignores: ["node_modules", ".next", "next-env.d.ts", "coverage", "docs/muse-code", "skills", "skill-src"],
+  },
   js.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
   {
     languageOptions: {
-      globals: { ...globals.node },
+      globals: { ...globals.node, ...globals.browser },
       parserOptions: { projectService: true, tsconfigRootDir: import.meta.dirname },
     },
     rules: {
