@@ -1,0 +1,20 @@
+Done. Tests and docs only — no file under `src/` was touched (verified via `git status`: only new untracked files).
+
+## Files created
+
+- [tests/wire.test.ts](/agent/workspace/orionmatter-path-engine/tests/wire.test.ts) — 20 tests: message translation (incl. image part, empty `toolCalls` omits the key), request-body tool/`tool_choice` inclusion rules, response parsing defaults (`usage` zeros, `""`, `"unknown"`, `reasoning_content` fallback + `reasoning` preference), `ModelProtocolError` cases, `describeErrorBody` extraction/truncation/fallback.
+- [tests/mock.test.ts](/agent/workspace/orionmatter-path-engine/tests/mock.test.ts) — 8 tests: ordered playback, request recording, `remaining` countdown, exhaustion error naming call + label, function steps, `callTools` ids/arg handling, defaults.
+- [tests/toolDefs.test.ts](/agent/workspace/orionmatter-path-engine/tests/toolDefs.test.ts) — 4 tests: name/description, object type + properties/required, no `$schema`, real `findTwins` example with `profile`/`goal`.
+- [tests/fixtures.test.ts](/agent/workspace/orionmatter-path-engine/tests/fixtures.test.ts) — 10 tests: `stableStringify` key sorting/undefined/nesting, file-store round-trip/miss/16-char filename/corrupt + wrong-shape rejection/prefix-collision miss, memory-store put/get. Uses `mkdtemp` under `os.tmpdir()` with `afterEach` cleanup.
+- [tests/transport.test.ts](/agent/workspace/orionmatter-path-engine/tests/transport.test.ts) — 5 tests against a real loopback `node:http` server (port 0, closed afterwards): status/body/`retry-after`, non-2xx returned not thrown, 50 ms timeout → `ModelTimeoutError`, pre-aborted signal → `ModelAbortedError`, closed port → `ModelNetworkError`.
+- [docs/parts/part-3-model-client.md](/agent/workspace/orionmatter-path-engine/docs/parts/part-3-model-client.md) — problem statement, layer diagram, file table, typed-error table with retryability, fixture modes (`USE_FIXTURES`/`RECORD_FIXTURES`), agent usage example (`createModelClient`, `chatStructured`, `runToolLoop`), and the three design decisions. All details read from source, not guessed.
+
+## Verification
+
+`npm run check` passes end to end: typecheck, ESLint, Prettier, **155/155 tests across 16 files** (47 new), secret scan clean.
+
+## Bugs / doubts in `src/`
+
+No clear bug found; I did not write any failing test. One minor doubt:
+
+- [fixtures.ts](/agent/workspace/orionmatter-path-engine/src/lib/fixtures.ts) (`src/lib/model/fixtures.ts`, line 32): `stableStringify` drops `undefined` array elements (`[undefined]` serialises as `"[]"` because `JSON.stringify(undefined)` returns `undefined` and `join` renders it as empty), so `[]` and `[undefined]` would share a fixture key. Harmless in practice since request content arrays are typed to never contain `undefined`. Suggested fix if it matters: serialise `undefined` array items as `"null"` to match `JSON.stringify` semantics.
