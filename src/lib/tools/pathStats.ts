@@ -1,0 +1,34 @@
+import type { z } from "zod";
+import type { Archetype as ArchetypeSchema } from "../schemas";
+type Archetype = z.infer<typeof ArchetypeSchema>;
+import { COHORT, THIN_N } from "./data";
+import { bandIdx, BANDS, percentile } from "./stats";
+
+export function pathStats(twinIds: string[], archetype: Archetype) {
+  const ids = new Set(twinIds);
+  const rows = COHORT.filter(r => ids.has(r.id) && r.archetype === archetype);
+  const n = rows.length;
+  if (n === 0) return { n: 0, evidenceThin: true, reachedRate: [0, 0] as [number, number], monthsP25: NaN, monthsP50: NaN, monthsP75: NaN, compBandRange: ["-", "-"] as [string, string], topRisks: [] as string[], topGates: [] as string[] };
+  const reached = rows.filter(r => r.outcome === "reached");
+  const months = reached.map(r => r.months).sort((a, b) => a - b);
+  // Wilson interval for reached rate
+  const p = reached.length / n, z = 1.96;
+  const denom = 1 + z * z / n;
+  const centre = (p + z * z / (2 * n)) / denom;
+  const half = (z * Math.sqrt((p * (1 - p) + z * z / (4 * n)) / n)) / denom;
+  const reachedRate: [number, number] = [Math.max(0, +(centre - half).toFixed(2)), Math.min(1, +(centre + half).toFixed(2))];
+  const ends = reached.map(r => bandIdx(r.compBandEnd)).sort((a, b) => a - b);
+  const compBandRange: [string, string] = ends.length
+    ? [BANDS[Math.round(percentile(ends, 0.25))], BANDS[Math.round(percentile(ends, 0.75))]]
+    : ["-", "-"];
+  const count = (xs: string[]) => Object.entries(xs.reduce<Record<string, number>>((m, x) => ((m[x] = (m[x] ?? 0) + 1), m), {})).sort((a, b) => b[1] - a[1]).map(e => e[0]);
+  const risks = [
+    ...(rows.filter(r => r.outcome === "stalled").length / n > 0.1 ? ["promotion stall"] : []),
+    ...(rows.filter(r => r.outcome === "left-field").length / n > 0.1 ? ["left the field / role"] : []),
+  ];
+  return {
+    n, evidenceThin: n < THIN_N, reachedRate,
+    monthsP25: Math.round(percentile(months, 0.25)), monthsP50: Math.round(percentile(months, 0.5)), monthsP75: Math.round(percentile(months, 0.75)),
+    compBandRange, topRisks: risks, topGates: count(reached.flatMap(r => r.skillsProven)).slice(0, 3),
+  };
+}

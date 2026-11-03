@@ -1,0 +1,12 @@
+{
+  "_note": "Illustrative mapping, not real company data.",
+  "levels": ["L3","L4","L5","L6","L7","EM1","EM2"],
+  "systems": {
+    "BigTech A": { "SDE I": "L3", "SDE II": "L4", "Senior SDE": "L5", "Principal": "L6", "Senior Principal": "L7" },
+    "BigTech B": { "E3": "L3", "E4": "L4", "E5": "L5", "E6": "L6", "E7": "L7" },
+    "Series C Fintech": { "Engineer": "L3", "Software Engineer II": "L4", "Senior": "L5", "Staff": "L6", "Principal": "L7" },
+    "Growth Startup": { "Engineer": "L4", "Senior": "L5", "Staff": "L6", "Lead": "L6" },
+    "Robotics Startup": { "Engineer": "L3", "Senior": "L5", "Staff": "L6" },
+    "Infra Scaleup": { "SWE": "L3", "SWE II": "L4", "Senior SWE": "L5", "Staff SWE": "L6", "Senior Staff": "L7" }
+  }
+}
