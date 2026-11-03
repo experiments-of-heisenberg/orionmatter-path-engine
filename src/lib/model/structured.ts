@@ -16,6 +16,8 @@ export interface StructuredResult<T> {
   data: T;
   /** True when the first reply was invalid and the repair retry fixed it. */
   repaired: boolean;
+  /** Why the first reply was rejected (validation messages), present only when `repaired`. Contains no model text. */
+  repairReason?: string;
   /** Result of the call that produced `data`. */
   result: ChatResult;
   /** Sum of token usage across the first call and the repair retry, if any. */
@@ -104,6 +106,7 @@ export async function chatStructured<T>(
     return {
       data: secondCheck.data,
       repaired: true,
+      repairReason: firstCheck.issues,
       result: second,
       totalTokens: first.usage.completionTokens + second.usage.completionTokens,
     };

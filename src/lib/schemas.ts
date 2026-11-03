@@ -100,8 +100,11 @@ export const Route = z.object({
   archetype: Archetype,
   summary: z.string().max(400),
   steps: z.array(Step).min(2).max(6),
+  // Ledger evidence ids behind this route's metrics (its pathStats call and the compBands call).
+  evidenceIds: z.array(z.string()).min(1),
   metrics: z.object({
-    monthsToGoal: z.tuple([z.number(), z.number()]),
+    // P25 to P75 months among twins who reached the goal; null when none did (no timing evidence).
+    monthsToGoal: z.tuple([z.number(), z.number()]).nullable(),
     compGrowthBand: z.tuple([z.string(), z.string()]),
     reachedRate: z.tuple([z.number(), z.number()]),
     evidenceN: z.number().int(),
@@ -120,6 +123,8 @@ export const Route = z.object({
 export type Route = z.infer<typeof Route>;
 /** One move on a route (what, when, why it works with evidence, proof needed, gap closers). */
 export type Step = z.infer<typeof Step>;
+/** The six radar axes, each 0 to 100 where higher is more favourable. See engine/radar.ts for how each is derived. */
+export type Radar = Route["metrics"]["radar"];
 
 // The planner's output contract (consumed by later agent parts): exactly three routes plus caveats.
 export const PlanResult = z.object({

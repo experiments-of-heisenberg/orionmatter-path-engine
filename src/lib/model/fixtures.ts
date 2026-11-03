@@ -14,7 +14,11 @@ import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { z } from "zod";
+import { stableStringify } from "../stable";
 import type { ChatRequest, ChatResult } from "./types";
+
+// Re-exported so existing imports from the model layer keep working.
+export { stableStringify };
 
 /** off = always live, record = live and save, replay = never live. */
 export type FixtureMode = "off" | "record" | "replay";
@@ -25,20 +29,6 @@ export type FixtureResult = Omit<ChatResult, "attempts" | "latencyMs" | "fromFix
 export interface FixtureStore {
   get(key: string): Promise<FixtureResult | undefined>;
   put(key: string, label: string, result: FixtureResult): Promise<void>;
-}
-
-/** JSON.stringify with object keys sorted, so equal data always serialises identically. */
-export function stableStringify(value: unknown): string {
-  // Array holes and undefined items become null, matching JSON.stringify, so [] and [undefined] differ.
-  if (Array.isArray(value))
-    return `[${value.map((item) => (item === undefined ? "null" : stableStringify(item))).join(",")}]`;
-  if (value && typeof value === "object") {
-    const entries = Object.entries(value as Record<string, unknown>)
-      .filter(([, item]) => item !== undefined)
-      .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
-    return `{${entries.map(([key, item]) => `${JSON.stringify(key)}:${stableStringify(item)}`).join(",")}}`;
-  }
-  return JSON.stringify(value);
 }
 
 /**

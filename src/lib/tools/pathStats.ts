@@ -27,7 +27,21 @@ export interface PathStatsResult {
   compBandRange: [string, string];
   topRisks: string[];
   topGates: string[];
+  /** Most common company types along the routes of twins who reached the goal (up to 3). */
+  topCompanyTypes: string[];
+  /** Mean number of company moves among twins who reached the goal, one decimal; null if none did. */
+  avgTransitions: number | null;
+  /** Share of twins who reached the goal and work remotely, 0 to 1; null if none reached it. */
+  remoteShare: number | null;
+  /** Share of ALL twins on this archetype by outcome, each 0 to 1. Zeros when n = 0. */
+  outcomeShares: { reached: number; stalled: number; leftField: number };
 }
+
+/** Arithmetic mean of a non-empty list. */
+const mean = (values: number[]): number => values.reduce((sum, value) => sum + value, 0) / values.length;
+
+/** Round to a fixed number of decimal places. */
+const round = (value: number, places: number): number => Math.round(value * 10 ** places) / 10 ** places;
 
 /** Rounded percentile of ascending-sorted values, or null when there is nothing to measure. */
 function roundedPercentile(sorted: number[], p: number): number | null {
@@ -66,6 +80,10 @@ export function pathStats(twinIds: string[], archetype: Archetype): PathStatsRes
       compBandRange: ["-", "-"],
       topRisks: [],
       topGates: [],
+      topCompanyTypes: [],
+      avgTransitions: null,
+      remoteShare: null,
+      outcomeShares: { reached: 0, stalled: 0, leftField: 0 },
     };
   const reached = rows.filter((r) => r.outcome === "reached");
   const months = reached.map((r) => r.months).sort((a, b) => a - b);
@@ -101,5 +119,13 @@ export function pathStats(twinIds: string[], archetype: Archetype): PathStatsRes
     compBandRange,
     topRisks: risks,
     topGates: count(reached.flatMap((r) => r.skillsProven)).slice(0, 3),
+    topCompanyTypes: count(reached.flatMap((r) => r.companyTypeSteps)).slice(0, 3),
+    avgTransitions: reached.length ? round(mean(reached.map((r) => r.companyTypeSteps.length)), 1) : null,
+    remoteShare: reached.length ? round(reached.filter((r) => r.remote).length / reached.length, 2) : null,
+    outcomeShares: {
+      reached: round(reached.length / n, 2),
+      stalled: round(rows.filter((r) => r.outcome === "stalled").length / n, 2),
+      leftField: round(rows.filter((r) => r.outcome === "left-field").length / n, 2),
+    },
   };
 }

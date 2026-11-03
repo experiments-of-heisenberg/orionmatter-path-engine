@@ -50,6 +50,7 @@ describe("chatStructured", () => {
     ]);
     const out = await chatStructured(client, request, Answer);
     expect(out.repaired).toBe(true);
+    expect(out.repairReason).toContain("years"); // says which field failed, without echoing model text
     expect(out.data.years).toBe(7);
     const repairMessages = client.requests[1]?.messages ?? [];
     expect(JSON.stringify(repairMessages)).toContain("seven"); // its own bad output

@@ -52,6 +52,22 @@ Other models on the Meta API (from `GET /v1/models`): `muse-spark-1.2`, `muse-sp
    image call. Open: 0.5 to 2 s, about 2.9 s for an image call. Design the streaming
    UI so the first agent event appears within a second or two.
 
+## Reasoning effort and latency (measured in Part 4)
+
+Muse Spark's hidden reasoning dominates latency. For the Planner's composition call (write
+structured JSON around computed facts), measured on 3 Nov 2026:
+
+| Reasoning effort | Compose call                                                                                           | Whole planner run | Validated first time?                     |
+| ---------------- | ------------------------------------------------------------------------------------------------------ | ----------------- | ----------------------------------------- |
+| medium           | 157 s (6,782 tokens, 5,415 of them reasoning; the 8,000-token budget was exhausted once and escalated) | 174 s             | yes, after escalation                     |
+| low              | 47 s (4,481 tokens, 3,526 reasoning)                                                                   | 70 s              | no: reply had no parseable JSON, repaired |
+| minimal          | 13 s (1,753 tokens, 956 reasoning)                                                                     | 32 s              | yes                                       |
+
+Across four further live runs at `minimal`, whole runs took 19 to 42 s, every plan's claims were
+consistent with the evidence ledger, and one of four needed a repair. Lesson: for tasks that
+mostly write text around supplied facts, more reasoning is slower and no more reliable. Reserve
+higher effort for tasks that genuinely need judgement.
+
 ## Muse Code
 
 - Installed version: **1.4.14**, binary at `~/.local/bin/muse`.
