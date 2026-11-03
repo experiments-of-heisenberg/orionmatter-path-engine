@@ -1,0 +1,12 @@
+Done. Tests and docs only — no file under `src/` was touched (verified with `git status`).
+
+**Files created**
+
+- [tests/plannerTools.test.ts](/agent/workspace/orionmatter-path-engine/tests/plannerTools.test.ts) — 18 tests driving `createPlannerExecutor` directly: findTwins records the input's profile/goal, ignores smuggled keys, `{ remote: true }` overrides only that knob, and the model JSON has `evidenceId`/`n`/`next` but no `syn_` ids; pathStats success plus all four error cases (unknown id, compBands id, bad archetype, missing id) with `isError` results; compBands valid/invalid; unknown tool; tool_call→tool_result ordering and result shapes; `PLANNER_TOOLS` names, object schemas, no `$schema`, pathStats required/enum.
+- [tests/plannerPrompts.test.ts](/agent/workspace/orionmatter-path-engine/tests/plannerPrompts.test.ts) — 9 tests using a real `gatherEvidence` fact sheet: goal/constraints/profile/fact-sheet/markers blocks, exact fact-sheet route keys, climb/jump/pivot order, milestones and the hostile note excluded, gather message contents, and both system-prompt phrases.
+- [tests/events.test.ts](/agent/workspace/orionmatter-path-engine/tests/events.test.ts) — 2 tests: `noEmit` accepts all four event types and returns `undefined`; `Emit` accepts each type.
+- [docs/parts/part-4-planner.md](/agent/workspace/orionmatter-path-engine/docs/parts/part-4-planner.md) — guide covering the core idea, flow diagram, Who-owns-what table, file tables, reuse rules, model-facing tool rationale, failure table, radar basis texts, the measured reasoning numbers, known limits, and verification.
+
+**Verification:** `npm run check` passes — typecheck, lint, format check, all 231 tests in 21 files (29 new), secret scan clean. Nothing committed.
+
+**Bugs in `src/`:** none found, so nothing to report there. One minor observation (not a bug): the `findTwins` tool schema types `args.constraints` as optional, so my test narrows it before asserting on the knobs even though the executor always records constraints.
