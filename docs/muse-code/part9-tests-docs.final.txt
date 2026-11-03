@@ -1,0 +1,25 @@
+Done. `npm run check` passes (typecheck, lint, format, 818 tests passed + 1 pre-existing skip, secret scan clean). No file under `src/`, `evals/` or `scripts/` was touched; nothing committed.
+
+## Files created
+
+- [tests/intakeRedactEdges.test.ts](/agent/workspace/orionmatter-path-engine/tests/intakeRedactEdges.test.ts) — 24 tests: email shapes (plus, subdomain, uppercase, punctuation, two-per-line, `@handle` left alone), link shapes (`http`/`https`/`www.`/bare linkedin/github, trailing `.` `,` `)` `?` preserved), phone shapes (incl. parenthesised area code), five non-phone cases asserted unchanged, email-in-link order, placeholder counts, idempotence, empty/whitespace, and a 6000-char backtracking probe.
+- [tests/intakeValidateEdges.test.ts](/agent/workspace/orionmatter-path-engine/tests/intakeValidateEdges.test.ts) — 28 tests: whole-word quote guard, level labels (`l5`→`L5`, `EM1`/`EM2`, `l 5`/`L05` refused), every title in `data/level-map.json` mapped to its table level plus wrong-company refusal, literal-vs-mapping precedence both ways, years (0, 40, 40.5 refused, 2.5 accepted, NaN/Infinity refused, `twenty`→20, `twenty-one` documented), region, stack, milestones, goal trim/fallback, and 30-char caps on all six refusal-message slices.
+- [tests/intakeImageEdges.test.ts](/agent/workspace/orionmatter-path-engine/tests/intakeImageEdges.test.ts) — 13 tests: JPEG/WebP accepted, mislabelled WebP/GIF/SVG refused, malformed data URLs (incl. case-sensitive `DATA:`), exact `MAX_IMAGE_BYTES` boundary both sides, 64×64 / 63×64 / 64×63, truncated-PNG behavior, error shape.
+- [tests/intakeMergeEdges.test.ts](/agent/workspace/orionmatter-path-engine/tests/intakeMergeEdges.test.ts) — 12 tests via `runIntake` + mock: nulls never erase, stack/milestone dedup and 15/20 caps across turns, provenance relabelling (`mapped` stays), silent-turn completion with goal kept, reference isolation, three-turn completion, question order, `compBand` in `Profile`, double-`not json` → `ModelParseError` with 2 requests.
+- [docs/parts/part-9-intake-agent.md](/agent/workspace/orionmatter-path-engine/docs/parts/part-9-intake-agent.md) — all required sections, with refusal messages, eval examples, level table, warnings (`EM1 and L6` coverage) and the exact Live-evaluation sentence verified against the code.
+
+## Bugs (src/ untouched, nothing fixed)
+
+1. [redact.ts:41-48](/agent/workspace/orionmatter-path-engine/src/lib/intake/redact.ts) — email-in-link mangles output: `see https://x.com/a@b.com end` → `see [link removed] removed] end` with counts `{emails:1, links:1}` matching no placeholder. Fix: replace links before emails, or single-pass.
+2. [redact.ts:24-32](/agent/workspace/orionmatter-path-engine/src/lib/intake/redact.ts) — `server 192.168.1.100 up` → `server [phone removed] up`: IPv4 addresses redacted as phones. Fix: reject `\d{1,3}(\.\d{1,3}){3}` in `looksLikePhone`.
+3. [redact.ts:20-21](/agent/workspace/orionmatter-path-engine/src/lib/intake/redact.ts) — LINK swallows `]`: `[https://x.com/a]` → `[[link removed]`. Fix: exclude `]`/`[` from link chars like `)` is.
+4. [image.ts:54](/agent/workspace/orionmatter-path-engine/src/lib/intake/image.ts) — PNG shorter than 24 bytes skips the dimension check (8-byte magic-only file accepted). Fix: throw when a PNG is under 24 bytes.
+5. [intake.ts:83-87](/agent/workspace/orionmatter-path-engine/src/lib/intake/intake.ts) — `merge` shallow-copies: `result.draft.goal` and milestone elements alias the previous state, so deep mutation leaks (array pushes are isolated — pinned by test). Fix: deep-copy goal/milestones.
+
+## Doubts
+
+- `(415) 555-0134` → `([phone removed]`: leading `(` left behind (cosmetic).
+- 16-digit `4111 1111 1111 1111` survives redaction while SSN-shaped `123-45-6789` is removed — digit-cap tradeoff worth a conscious call.
+- `twenty-one` cannot state 21 (`NUMBER_WORDS` has no compounds) — false refusal; same for thirty-/forty- compounds.
+- `normalizeSkill("123")` returns `"123"` — numeric-only stack items are kept.
+- Backtracking: 6000-char digit/space input redacts in ~2 ms — no ReDoS.
