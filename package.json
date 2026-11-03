@@ -21,7 +21,8 @@
     "live:audit": "tsx scripts/live-audit-check.ts",
     "diagnose:planner": "tsx scripts/diagnose-planner.ts",
     "debug:compose": "tsx scripts/debug-compose.ts",
-    "debug:failures": "tsx scripts/debug-planner-failures.ts"
+    "debug:failures": "tsx scripts/debug-planner-failures.ts",
+    "live:whatif": "tsx scripts/live-whatif-check.ts"
   },
   "dependencies": {
     "zod": "^4.0.0"

@@ -12,7 +12,11 @@ import type { Rejection } from "../schemas";
 export type CallSource = "agent" | "engine";
 
 export type AgentEvent =
-  | { type: "stage"; stage: "gathering" | "composing" | "auditing" | "revising" | "done"; round?: number }
+  | {
+      type: "stage";
+      stage: "interpreting" | "gathering" | "composing" | "auditing" | "revising" | "done";
+      round?: number;
+    }
   | { type: "tool_call"; id: string; name: string; args: unknown; by: CallSource }
   | {
       type: "tool_result";

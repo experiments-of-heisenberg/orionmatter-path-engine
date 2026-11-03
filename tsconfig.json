@@ -22,5 +22,5 @@
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true
   },
-  "include": ["src", "scripts", "tests", "*.config.ts", "*.config.js"]
+  "include": ["src", "scripts", "tests", "evals", "*.config.ts", "*.config.js"]
 }
