@@ -1,6 +1,5 @@
 /** Panels.tsx: the detail under the map, the Compare tab and the Why tab. */
 "use client";
-import { useState } from "react";
 import type { ClientRoute, ClientSheet } from "../lib/api/serialize";
 import { RADAR_BASIS } from "../lib/engine/radar";
 import {
@@ -122,15 +121,17 @@ export function isBest(
 }
 
 /** Compare tab: the radar, with toggles, and a table of the same facts. */
-export function ComparePanel({ sheet, selected }: { sheet: ClientSheet; selected: Archetype }) {
-  const [hidden, setHidden] = useState<ReadonlySet<Archetype>>(new Set());
-  const toggle = (a: Archetype): void =>
-    setHidden((prev) => {
-      const next = new Set(prev);
-      if (next.has(a)) next.delete(a);
-      else next.add(a);
-      return next;
-    });
+export function ComparePanel({
+  sheet,
+  selected,
+  hidden,
+  onToggle,
+}: {
+  sheet: ClientSheet;
+  selected: Archetype;
+  hidden: ReadonlySet<Archetype>;
+  onToggle: (archetype: Archetype) => void;
+}) {
   return (
     <section className="panel" aria-labelledby="compare-title">
       <h2 id="compare-title" className="panel__title">
@@ -146,7 +147,7 @@ export function ComparePanel({ sheet, selected }: { sheet: ClientSheet; selected
                   type="button"
                   className="toggle"
                   aria-pressed={!hidden.has(r.archetype)}
-                  onClick={() => toggle(r.archetype)}
+                  onClick={() => onToggle(r.archetype)}
                   disabled={r.n === 0}
                 >
                   <span className="swatch" style={{ background: ROUTE_COLORS[r.archetype].ui }} />{" "}
@@ -178,7 +179,11 @@ export function ComparePanel({ sheet, selected }: { sheet: ClientSheet; selected
                 <th scope="row">Typical time</th>
                 {sheet.routes.map((r) => (
                   <td key={r.archetype}>
-                    {r.reachedN > 0 ? monthsRange(r.monthsToGoal) : "None within limits"}
+                    {r.n === 0
+                      ? "No data"
+                      : r.reachedN > 0
+                        ? monthsRange(r.monthsToGoal)
+                        : "None within limits"}
                   </td>
                 ))}
               </tr>

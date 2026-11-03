@@ -43,7 +43,9 @@ export function engineersText(n: number): string {
 
 /** "B4–B5", or "B5" when both ends match, or an em dash when there is no data. */
 export function bandRange(range: readonly [string, string]): string {
-  if (range[0] === "-" || range[1] === "-") return "\u2014";
+  const known = range.filter((band) => band !== "-");
+  if (known.length === 0) return "\u2014";
+  if (known.length === 1) return known[0] ?? "\u2014"; // one end is missing: show the band we do have
   return range[0] === range[1] ? range[0] : `${range[0]}${DASH}${range[1]}`;
 }
 
@@ -85,7 +87,10 @@ export function summaryLine(route: ClientRoute): string {
     );
   }
   const limited = status === "limited" ? " Limited evidence." : "";
-  return `Usually ${monthsRange(route.monthsToGoal)}. ${percentRange(route.reachedRate)} got there. Based on ${route.n} engineers.${limited}`;
+  const time = route.monthsToGoal
+    ? `Usually ${monthsRange(route.monthsToGoal)}. `
+    : "No typical time is available. ";
+  return `${time}${percentRange(route.reachedRate)} got there. Based on ${route.n} engineer${route.n === 1 ? "" : "s"}.${limited}`;
 }
 
 /** The text a screen reader gets for a route on the map. */
@@ -95,6 +100,7 @@ export function routeAriaLabel(route: ClientRoute): string {
 
 /** Share by outcome as whole percentages that always add to 100 (largest remainder). */
 export function roundedShares(shares: readonly number[]): number[] {
+  if (shares.some((v) => !Number.isFinite(v) || v < 0)) return shares.map(() => 0); // not a share: draw nothing rather than NaN
   const total = shares.reduce((sum, v) => sum + v, 0);
   if (total <= 0) return shares.map(() => 0);
   const exact = shares.map((v) => (v / total) * 100);

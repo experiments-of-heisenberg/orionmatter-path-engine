@@ -38,23 +38,19 @@ describe("monthsRange and percentRange edges", () => {
 });
 
 describe("bandRange with one end missing", () => {
-  it("states it: one real band plus a dash collapses to an em dash, hiding the real band", () => {
-    expect(bandRange(["-", "B5"])).toBe("\u2014");
-    expect(bandRange(["B5", "-"])).toBe("\u2014");
+  it("one real band plus a dash shows the real band, not a dash (review finding)", () => {
+    expect(bandRange(["-", "B5"])).toBe("B5");
+    expect(bandRange(["B4", "-"])).toBe("B4");
+    expect(bandRange(["-", "-"])).toBe("\u2014");
   });
 });
 
 describe("roundedShares edges", () => {
-  it("states it: NaN shares do not crash but come back as NaN", () => {
-    const out = roundedShares([Number.NaN, 1]);
-    expect(out).toHaveLength(2);
-    expect(out[0]).toBeNaN();
-    expect(out[1]).toBeNaN();
-  });
-
-  it("states it: negative shares do not crash but pass through, even below zero", () => {
-    expect(roundedShares([-1, 2])).toEqual([-100, 200]);
-    expect(roundedShares([-1, -2])).toEqual([0, 0]); // total at or below zero gives zeros
+  it("shares that are not shares (NaN, infinity, negative) draw nothing instead of NaN or negative widths (review finding)", () => {
+    expect(roundedShares([Number.NaN, 1])).toEqual([0, 0]);
+    expect(roundedShares([Number.POSITIVE_INFINITY, 1])).toEqual([0, 0]);
+    expect(roundedShares([-1, 2])).toEqual([0, 0]);
+    expect(roundedShares([-1, -2])).toEqual([0, 0]);
   });
 
   it("gives a single share the whole bar, or zero when it is zero", () => {
@@ -83,10 +79,7 @@ describe("routeStatus edges", () => {
 });
 
 describe("summaryLine edges", () => {
-  it("states it: monthsToGoal null with reachedN above 0 prints a contradiction", () => {
-    // "Usually No one reached it. 74–92% got there." cannot both be true. The real pipeline
-    // never produces this state (a null window means reachedN is 0), but the sentence is
-    // misleading if it ever happens.
+  it("a null window with people who reached it does not claim 'Usually No one reached it' (review finding)", () => {
     const route = withRoute({
       n: 20,
       reachedN: 5,
@@ -95,15 +88,16 @@ describe("summaryLine edges", () => {
       evidenceThin: false,
     });
     expect(summaryLine(route)).toBe(
-      "Usually No one reached it. 74\u201392% got there. Based on 20 engineers.",
+      "No typical time is available. 74\u201392% got there. Based on 20 engineers.",
     );
   });
 
-  it("documents the singular grammar bug: one engineer still says 'Based on 1 engineers'", () => {
-    // BUG (src/ui/format.ts summaryLine): the count is always plural. It should read
-    // "Based on 1 engineer".
+  it("says 'engineer' for one and 'engineers' for the rest (review finding)", () => {
     expect(summaryLine(withRoute({ n: 1, reachedN: 1, evidenceThin: true }))).toContain(
-      "Based on 1 engineers",
+      "Based on 1 engineer.",
+    );
+    expect(summaryLine(withRoute({ n: 2, reachedN: 1, evidenceThin: true }))).toContain(
+      "Based on 2 engineers.",
     );
   });
 });

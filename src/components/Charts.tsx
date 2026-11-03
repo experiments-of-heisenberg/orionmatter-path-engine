@@ -45,6 +45,8 @@ export function RangeBar({
   );
 }
 
+const clamp01 = (v: number): number => Math.min(1, Math.max(0, v));
+
 /** The 95% range of the success rate on a 0 to 100% scale. */
 export function SuccessMeter({
   range,
@@ -61,8 +63,8 @@ export function SuccessMeter({
       <div
         className="meter__band"
         style={{
-          left: `${range[0] * 100}%`,
-          width: `${Math.max(1.5, (range[1] - range[0]) * 100)}%`,
+          left: `${clamp01(range[0]) * 100}%`,
+          width: `${Math.max(1.5, (clamp01(range[1]) - clamp01(range[0])) * 100)}%`,
           background: color,
         }}
       />
@@ -74,7 +76,7 @@ const W = 520;
 const H = 156;
 const PAD = { left: 12, right: 12, top: 22, bottom: 26 };
 
-/** How long it took: a bar for every six months, with the typical window shaded and the person's limit marked. */
+/** How long it took: a bar for every three months, with the typical window shaded and the person's limit marked. */
 export function DistributionChart({
   route,
   maxMonths,

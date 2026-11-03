@@ -86,6 +86,14 @@ function reach(route: ClientRoute): number {
   return route.monthsToGoal?.[1] ?? 0;
 }
 
+/**
+ * The number of months the time axis reaches: the longest route (or fastest ghost) or the person's limit, rounded up
+ * to whole years, never below 36. The map and the cards use this one function so their scales always agree.
+ */
+export function axisMaxFor(routes: readonly ClientRoute[], maxMonths: number | undefined): number {
+  return roundUp(Math.max(0, ...routes.map(reach), maxMonths ?? 0), 12, 36);
+}
+
 /** Round a number up to the next multiple of `step`, with a floor. */
 const roundUp = (value: number, step: number, floor: number): number =>
   Math.max(floor, Math.ceil(value / step) * step);
@@ -126,7 +134,7 @@ export function layoutMap(
   size: MapSize = DESKTOP,
 ): MapLayout {
   const innerWidth = size.width - size.padLeft - size.padRight;
-  const axisMax = roundUp(Math.max(0, ...routes.map(reach), maxMonths ?? 0), 12, 36);
+  const axisMax = axisMaxFor(routes, maxMonths);
   const x = (months: number): number =>
     size.padLeft + (Math.min(Math.max(months, 0), axisMax) / axisMax) * innerWidth;
   const originY = size.height / 2;

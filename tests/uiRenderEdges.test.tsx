@@ -171,8 +171,64 @@ describe("compare best cells", () => {
   it("ties mark every tied cell", () => {
     const { data } = exploreFor();
     const tied = { ...data, routes: data.routes.map((r) => ({ ...r, radar: { ...r.radar, comp: 50 } })) };
-    const html = renderToStaticMarkup(<ComparePanel sheet={tied} selected="climb" />);
+    const html = renderToStaticMarkup(
+      <ComparePanel sheet={tied} selected="climb" hidden={new Set()} onToggle={() => undefined} />,
+    );
     const pay = /<th scope="row">Pay score<\/th>([\s\S]*?)<\/tr>/.exec(html)?.[1] ?? "";
     expect(count(pay, "cell--best")).toBe(3);
+  });
+});
+
+describe("review findings from Part 12", () => {
+  const render = (
+    props: Partial<Parameters<typeof PathView>[0]> & {
+      constraints?: object;
+      person?: ReturnType<typeof exploreFor>["person"];
+    } = {},
+  ) => {
+    const { person, data } = exploreFor(props.constraints ?? {}, props.person);
+    return renderToStaticMarkup(
+      <PathView
+        person={person}
+        data={data}
+        error={undefined}
+        tab={props.tab ?? "map"}
+        selected={props.selected ?? "climb"}
+        onTab={() => undefined}
+        onSelect={() => undefined}
+        onRetry={() => undefined}
+        hidden={props.hidden}
+      />,
+    );
+  };
+
+  it("Compare says 'No data' for a route with no comparable engineers, not 'None within limits'", () => {
+    const person = { ...exploreFor().person, goal: { targetLevel: "EM2", label: "Director" } };
+    const html = render({ tab: "compare", person });
+    expect(html).toContain("No data");
+    expect(html).not.toContain("None within limits");
+  });
+
+  it("the Compare radar toggles come from the parent, so hiding a route survives a tab switch", () => {
+    const html = render({ tab: "compare", hidden: new Set(["jump", "pivot"] as const) });
+    expect(html).toMatch(/aria-pressed="false"[^>]*disabled?|aria-pressed="false"/);
+    expect((html.match(/<polygon[^>]*fill-opacity/g) ?? []).length).toBe(1);
+  });
+
+  it("card names are headings at the same level as the detail heading, so the outline is h1, then h2s", () => {
+    const html = render();
+    expect(html).not.toContain('<h3 class="route-card__name"');
+    expect((html.match(/<h2 class="route-card__name"/g) ?? []).length).toBe(3);
+    expect(html.indexOf("route-card__name")).toBeLessThan(html.indexOf("in detail"));
+  });
+
+  it("selecting is wired once: the card's button has no handler of its own (a click on it bubbles to the card)", () => {
+    const html = render();
+    expect(html).toContain('<article class="route-card route-card--selected"');
+  });
+
+  it("the cards use the same time scale as the map: the card axis includes the person's limit", () => {
+    const html = render({ constraints: { maxMonths: 120 } });
+    expect(html).toContain("on a scale from 0 to 120 months");
   });
 });

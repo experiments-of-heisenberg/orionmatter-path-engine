@@ -41,9 +41,12 @@ const files: [string, string][] = [
   ["limited", page(limited, "map", "jump")],
 ];
 for (const [name, html] of files) writeFileSync(`${out}/${name}.html`, html);
-const phone = files[0]?.[1] ?? "";
-writeFileSync(
-  `${out}/phone.html`,
-  `<!doctype html><html><body style="margin:0;background:#888;display:flex;justify-content:center"><iframe style="width:390px;height:1700px;border:0;background:#fff" srcdoc="${phone.replace(/&/g, "&amp;").replace(/"/g, "&quot;")}"></iframe></body></html>`,
+// Phone view: a 390px column with the small-screen rules switched on unconditionally, because a static page
+// cannot resize its own viewport and a nested frame would not be allowed to load here.
+const phoneCss = css.replace(/@media \(max-width: (?:720|860)px\) \{/g, "@media all {");
+const phoneBody = (files[0]?.[1] ?? "").replace(
+  /<style>[\s\S]*?<\/style>/,
+  `<style>${phoneCss}</style><style>body{max-width:390px;margin:0 auto;box-shadow:0 0 0 1px #ccc}</style>`,
 );
+writeFileSync(`${out}/phone.html`, phoneBody);
 console.log(`wrote ${files.length + 1} files to ${out}`);

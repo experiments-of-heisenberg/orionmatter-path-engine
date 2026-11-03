@@ -35,11 +35,11 @@ export function RouteCard({ route, axisMax, selected, recommended, onSelect }: P
     >
       <header className="route-card__head">
         <span className="route-card__dot" />
-        <h3 className="route-card__name">
-          <button type="button" className="route-card__button" aria-pressed={selected} onClick={onSelect}>
+        <h2 className="route-card__name">
+          <button type="button" className="route-card__button" aria-pressed={selected}>
             {name}
           </button>
-        </h3>
+        </h2>
         <div className="route-card__tags">
           {recommended && !empty && <span className="tag tag--start">Start here</span>}
           {badge && (

@@ -8,6 +8,7 @@ import { useCallback, useEffect, useState } from "react";
 import { ApiClientError, postJson } from "../lib/api/client";
 import type { ExploreResult } from "../lib/api/handlers";
 import { ARCHETYPE_LABEL, summaryLine, type Archetype } from "../ui/format";
+import { axisMaxFor } from "../ui/mapLayout";
 import { REGION_LABEL, ROLE_LABEL, SAMPLE_PERSON, type Person } from "../ui/sample";
 import { Constellation } from "./Constellation";
 import { ComparePanel, RouteDetail, WhyPanel } from "./Panels";
@@ -29,9 +30,15 @@ export interface ViewProps {
   onTab: (tab: Tab) => void;
   onSelect: (archetype: Archetype) => void;
   onRetry: () => void;
+  /** Routes hidden in the radar. Held by the parent so the choice survives a tab switch. */
+  hidden?: ReadonlySet<Archetype>;
+  onToggleRoute?: (archetype: Archetype) => void;
 }
 
 /** The whole screen as a pure function of its props, so it can be rendered on the server and tested without a browser. */
+const NONE: ReadonlySet<Archetype> = new Set();
+const noop = (): void => undefined;
+
 export function PathView({
   person,
   data,
@@ -41,17 +48,11 @@ export function PathView({
   onTab,
   onSelect,
   onRetry,
+  hidden = NONE,
+  onToggleRoute = noop,
 }: ViewProps) {
   const route = data?.routes.find((r) => r.archetype === chosen);
-  const axisMax = data
-    ? Math.max(
-        36,
-        Math.ceil(
-          Math.max(0, ...data.routes.map((r) => r.monthsToGoal?.[1] ?? r.ignoringLimits.fastestMonths ?? 0)) /
-            12,
-        ) * 12,
-      )
-    : 60;
+  const axisMax = data ? axisMaxFor(data.routes, person.constraints.maxMonths) : 60;
   const maxMonths = person.constraints.maxMonths;
   const youLabel = `${ROLE_LABEL[person.profile.roleFamily]} · ${person.profile.level}`;
   return (
@@ -167,7 +168,9 @@ export function PathView({
                 <RouteDetail route={route} maxMonths={maxMonths} />
               </>
             )}
-            {tab === "compare" && <ComparePanel sheet={data} selected={chosen} />}
+            {tab === "compare" && (
+              <ComparePanel sheet={data} selected={chosen} hidden={hidden} onToggle={onToggleRoute} />
+            )}
             {tab === "why" && <WhyPanel sheet={data} />}
           </div>
         )}
@@ -188,6 +191,15 @@ export function PathApp({ person = SAMPLE_PERSON }: { person?: Person }) {
   const [error, setError] = useState<string | undefined>();
   const [tab, setTab] = useState<Tab>("map");
   const [selected, setSelected] = useState<Archetype | undefined>();
+  const [hidden, setHidden] = useState<ReadonlySet<Archetype>>(NONE);
+  const toggleRoute = useCallback((a: Archetype) => {
+    setHidden((prev) => {
+      const next = new Set(prev);
+      if (next.has(a)) next.delete(a);
+      else next.add(a);
+      return next;
+    });
+  }, []);
 
   const load = useCallback(async () => {
     setError(undefined);
@@ -214,6 +226,8 @@ export function PathApp({ person = SAMPLE_PERSON }: { person?: Person }) {
       onTab={setTab}
       onSelect={setSelected}
       onRetry={() => void load()}
+      hidden={hidden}
+      onToggleRoute={toggleRoute}
     />
   );
 }
