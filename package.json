@@ -24,7 +24,8 @@
     "debug:failures": "tsx scripts/debug-planner-failures.ts",
     "live:whatif": "tsx scripts/live-whatif-check.ts",
     "live:whatif-run": "tsx scripts/live-whatif-run.ts",
-    "live:intake": "tsx scripts/live-intake-check.ts"
+    "live:intake": "tsx scripts/live-intake-check.ts",
+    "live:privacy": "tsx scripts/live-privacy-check.ts"
   },
   "dependencies": {
     "zod": "^4.0.0"

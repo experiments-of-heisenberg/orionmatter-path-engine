@@ -16,6 +16,7 @@ export type AgentEvent =
       type: "stage";
       stage:
         | "reading"
+        | "protecting"
         | "interpreting"
         | "explaining"
         | "gathering"

@@ -56,3 +56,31 @@ export function redactPii(text: string): { text: string; redactions: Redactions 
   });
   return { text: out, redactions };
 }
+
+/** One personal identifier found in text. */
+export interface PiiMatch {
+  kind: "email" | "phone" | "link";
+  /** The matched text exactly as written. */
+  text: string;
+}
+
+/**
+ * List the identifiers `redactPii` would remove, with their original text. Same patterns and the
+ * same order (links, then emails, then phones), so an email inside a link is one link, not two items.
+ */
+export function findPii(text: string): PiiMatch[] {
+  const found: PiiMatch[] = [];
+  let work = text.replace(LINK, (match) => {
+    found.push({ kind: "link", text: match });
+    return " ";
+  });
+  work = work.replace(EMAIL, (match) => {
+    found.push({ kind: "email", text: match });
+    return " ";
+  });
+  work.replace(PHONE, (match) => {
+    if (looksLikePhone(match)) found.push({ kind: "phone", text: match.trim() });
+    return match;
+  });
+  return found;
+}
