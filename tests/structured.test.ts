@@ -7,6 +7,7 @@ import {
   createMockClient,
   ModelParseError,
   reply,
+  STRUCTURED_TEMPERATURE,
   type ChatRequest,
 } from "../src/lib/model";
 
@@ -154,5 +155,23 @@ describe("chatStructured and stray-tail recovery", () => {
     expect(JSON.stringify(client.requests[1]?.messages.at(-1))).toMatch(
       /looks like JSON but is not valid: .* at character \d+/,
     );
+  });
+});
+
+describe("chatStructured temperature", () => {
+  it("uses the structured temperature (0.3) by default, on the first call and the repair", async () => {
+    const client = createMockClient([reply("not json"), reply('{"level":"L5","years":1}')]);
+    await chatStructured(client, request, Answer);
+    expect(client.requests.map((r) => r.temperature)).toEqual([
+      STRUCTURED_TEMPERATURE,
+      STRUCTURED_TEMPERATURE,
+    ]);
+    expect(STRUCTURED_TEMPERATURE).toBe(0.3);
+  });
+
+  it("respects a temperature the caller sets explicitly", async () => {
+    const client = createMockClient([reply('{"level":"L5","years":1}')]);
+    await chatStructured(client, { ...request, temperature: 1 }, Answer);
+    expect(client.requests[0]?.temperature).toBe(1);
   });
 });

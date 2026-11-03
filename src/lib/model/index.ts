@@ -12,7 +12,7 @@ export { extractJson, JsonExtractError, parseModelJson } from "./json";
 export type { ParsedJson, ParseOptions } from "./json";
 export { createMockClient, callTools, reply } from "./mock";
 export type { MockModelClient, MockReply, MockStep } from "./mock";
-export { chatStructured } from "./structured";
+export { chatStructured, STRUCTURED_TEMPERATURE } from "./structured";
 export type { StructuredOptions, StructuredResult } from "./structured";
 export { toolDefinition } from "./toolDefs";
 export { runToolLoop } from "./toolLoop";

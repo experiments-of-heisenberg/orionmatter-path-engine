@@ -7,7 +7,7 @@
  * (The last part previews what the Skeptic will enforce in Part 5.)
  *
  * Scenarios: a well-supported plan (backend L5 to Staff) and a thin one (ML pivot).
- * Costs a few cents. Run: bash with_keys.sh npx tsx scripts/live-planner-check.ts
+ * Costs a few cents. Run: npm run live:planner   (with both API keys exported; see .env.example)
  */
 import { runPlanner, type AgentEvent } from "../src/lib/agents";
 import type { EngineInput } from "../src/lib/engine";

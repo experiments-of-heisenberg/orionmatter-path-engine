@@ -1,0 +1,204 @@
+{
+  "status": "approved",
+  "verdicts": [
+    {
+      "approved": false,
+      "rejections": [
+        {
+          "code": "n_mismatch",
+          "source": "verifier",
+          "routeIndex": 0,
+          "stepIndex": 2,
+          "claimText": "Comp for twins on this path clustered in B4-B5 band",
+          "reason": "The claim says n=34, but the cited evidence has n=53. Copy the sample size exactly."
+        }
+      ],
+      "notes": [
+        "Verifier checked 7 claims across 3 routes.",
+        "Critic skipped: fix the mechanical problems first."
+      ]
+    },
+    {
+      "approved": true,
+      "rejections": [],
+      "notes": ["Verifier checked 7 claims across 3 routes."]
+    }
+  ],
+  "plan": {
+    "routes": [
+      {
+        "archetype": "climb",
+        "summary": "Grow toward Staff Engineer (L6) at current company; twins who reached it typically took 34-40 months.",
+        "steps": [
+          {
+            "what": "Lead cross-team backend initiative using go and kubernetes",
+            "monthWindow": [0, 12],
+            "whyItWorks": [
+              {
+                "text": "Among 34 twins, those reaching L6 typically took 34-40 months with focus on cross-team-lead and system-design",
+                "evidenceIds": ["ev_d5147428"],
+                "n": 34,
+                "range": [34, 40]
+              }
+            ],
+            "proofNeeded": ["system-design review record", "cross-team-lead examples"],
+            "gapClosers": ["ship cross-team RFC", "mentor peers on kubernetes"],
+            "companyMarkerIds": []
+          },
+          {
+            "what": "Close system-design and kubernetes gates for promotion packet",
+            "monthWindow": [12, 30],
+            "whyItWorks": [
+              {
+                "text": "Among 34 twins, reached rate was in range 0.7-0.94 for this path",
+                "evidenceIds": ["ev_d5147428"],
+                "n": 34,
+                "range": [0.7, 0.94]
+              }
+            ],
+            "proofNeeded": ["system-design artifacts", "kubernetes depth demo"],
+            "gapClosers": ["complete advanced system-design study", "lead incident review"],
+            "companyMarkerIds": []
+          },
+          {
+            "what": "Seek Staff scope review aligned to B4-B5 band",
+            "monthWindow": [30, 40],
+            "whyItWorks": [
+              {
+                "text": "Comp for twins on this path clustered in B4-B5 band",
+                "evidenceIds": ["ev_557bfc0e"],
+                "n": 53
+              }
+            ],
+            "proofNeeded": ["promotion packet", "peer feedback"],
+            "gapClosers": ["align scope with manager", "document impact"],
+            "companyMarkerIds": []
+          }
+        ],
+        "evidenceIds": ["ev_d5147428", "ev_557bfc0e"],
+        "metrics": {
+          "monthsToGoal": [34, 40],
+          "compGrowthBand": ["B4", "B5"],
+          "reachedRate": [0.7, 0.94],
+          "evidenceN": 34,
+          "radar": {
+            "comp": 88,
+            "speed": 46,
+            "risk": 82,
+            "learning": 33,
+            "balance": 100,
+            "stability": 91
+          }
+        },
+        "evidenceThin": false
+      },
+      {
+        "archetype": "jump",
+        "summary": "One external move to better-fit remote company; twins who reached it typically took 18-23 months.",
+        "steps": [
+          {
+            "what": "Prepare system-design and kubernetes portfolio for remote search",
+            "monthWindow": [0, 8],
+            "whyItWorks": [
+              {
+                "text": "Among 36 twins, those reaching L6 typically took 18-23 months after addressing system-design and kubernetes",
+                "evidenceIds": ["ev_cb9e5c04"],
+                "n": 36,
+                "range": [18, 23]
+              }
+            ],
+            "proofNeeded": ["system-design samples", "kubernetes case studies"],
+            "gapClosers": ["practice system-design interviews", "publish design notes"],
+            "companyMarkerIds": []
+          },
+          {
+            "what": "Move to Series C fintech or growth-infra remote role",
+            "monthWindow": [8, 18],
+            "whyItWorks": [
+              {
+                "text": "Among 36 twins, reached rate was in range 0.45-0.75 for this path",
+                "evidenceIds": ["ev_cb9e5c04"],
+                "n": 36,
+                "range": [0.45, 0.75]
+              }
+            ],
+            "proofNeeded": ["offer with Staff-track scope", "remote work agreement"],
+            "gapClosers": ["target seriesC-fintech and seriesB-fintech types", "assess promotion path"],
+            "companyMarkerIds": ["m_fintech", "m_infra", "m_bigtech"]
+          }
+        ],
+        "evidenceIds": ["ev_cb9e5c04", "ev_557bfc0e"],
+        "metrics": {
+          "monthsToGoal": [18, 23],
+          "compGrowthBand": ["B4", "B5"],
+          "reachedRate": [0.45, 0.75],
+          "evidenceN": 36,
+          "radar": {
+            "comp": 88,
+            "speed": 85,
+            "risk": 60,
+            "learning": 67,
+            "balance": 100,
+            "stability": 78
+          }
+        },
+        "evidenceThin": false
+      },
+      {
+        "archetype": "pivot",
+        "summary": "Change domain or stack then rise to L6; twins who reached it typically took 42-46 months.",
+        "steps": [
+          {
+            "what": "Build distributed-systems and ml-ops foundations alongside go background",
+            "monthWindow": [0, 18],
+            "whyItWorks": [
+              {
+                "text": "Among 18 twins, those reaching L6 typically took 42-46 months when pivoting via distributed-systems",
+                "evidenceIds": ["ev_7364fa6f"],
+                "n": 18,
+                "range": [42, 46]
+              }
+            ],
+            "proofNeeded": ["distributed-systems coursework", "ml-ops labs"],
+            "gapClosers": ["take distributed-systems course", "shadow ml-ops project"],
+            "companyMarkerIds": []
+          },
+          {
+            "what": "Take pivot role with Staff growth path, then pursue L6",
+            "monthWindow": [18, 46],
+            "whyItWorks": [
+              {
+                "text": "Among 18 twins, reached rate was in range 0.49-0.88 for this path",
+                "evidenceIds": ["ev_7364fa6f"],
+                "n": 18,
+                "range": [0.49, 0.88]
+              }
+            ],
+            "proofNeeded": ["pivot project outcomes", "promotion evidence"],
+            "gapClosers": ["seek mentorship in new domain", "document transferable impact"],
+            "companyMarkerIds": ["m_fintech", "m_bigtech"]
+          }
+        ],
+        "evidenceIds": ["ev_7364fa6f", "ev_557bfc0e"],
+        "metrics": {
+          "monthsToGoal": [42, 46],
+          "compGrowthBand": ["B5", "B5"],
+          "reachedRate": [0.49, 0.88],
+          "evidenceN": 18,
+          "radar": {
+            "comp": 100,
+            "speed": 35,
+            "risk": 69,
+            "learning": 100,
+            "balance": 100,
+            "stability": 83
+          }
+        },
+        "evidenceThin": false
+      }
+    ],
+    "caveats": [
+      "Of 88 comparable engineers across these routes, about 27% did not reach the goal (they stalled or left the field). People who struggle on a path are less likely to share it, so real-world success rates may be lower than any cohort suggests."
+    ]
+  }
+}

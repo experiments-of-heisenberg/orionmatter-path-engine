@@ -2,7 +2,7 @@
  * debug-planner-failures.ts: run the real Planner repeatedly and capture the raw reply of any
  * run whose composition fails validation, to find out what the model actually sent.
  * The reply is synthetic-data only (no user data), so printing its head and tail is safe here.
- * Run: ATTEMPTS=8 bash with_keys.sh npx tsx scripts/debug-planner-failures.ts
+ * Run: ATTEMPTS=8 npm run debug:failures   (both API keys exported)
  */
 import { writeFileSync } from "node:fs";
 import { runPlanner } from "../src/lib/agents";
@@ -51,7 +51,7 @@ for (let i = 1; i <= attempts; i++) {
   try {
     const out = await runPlanner({ client }, input);
     console.log(
-      `#${i} ok in ${((Date.now() - started) / 1000).toFixed(0)}s repaired=${out.repaired}${out.repairReason ? ` (first draft: ${out.repairReason.slice(0, 80)})` : ""}`,
+      `#${i} ok in ${((Date.now() - started) / 1000).toFixed(0)}s repaired=${out.repaired} recovered=${out.recovered}${out.repairReason ? ` (first draft: ${out.repairReason.slice(0, 80)})` : ""}`,
     );
   } catch (error) {
     failures++;

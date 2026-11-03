@@ -5,7 +5,7 @@
 # way, (b) reproducible from a prompt file, and (c) backed by a session log a judge
 # can inspect. This script does all three.
 #
-# Usage (must run with the model keys in the environment, e.g. via with_keys.sh):
+# Usage (MODEL_API_KEY must be exported in the environment; see .env.example):
 #   bash scripts/muse-run.sh <slug> <prompt-file> [max-steps]
 #
 #   slug         short name for the task, e.g. "part2-data-docs"
@@ -41,7 +41,7 @@ slug="${1:?usage: muse-run.sh <slug> <prompt-file> [max-steps]}"
 prompt_file="${2:?usage: muse-run.sh <slug> <prompt-file> [max-steps]}"
 max_steps="${3:-40}"
 
-: "${MODEL_API_KEY:?MODEL_API_KEY must be set (run via with_keys.sh)}"
+: "${MODEL_API_KEY:?MODEL_API_KEY must be exported (see .env.example)}"
 export PATH="$HOME/.local/bin:$PATH"
 command -v muse >/dev/null || { echo "muse-run.sh: muse CLI not found on PATH" >&2; exit 69; }
 [[ -f "$prompt_file" ]] || { echo "muse-run.sh: prompt file not found: $prompt_file" >&2; exit 66; }

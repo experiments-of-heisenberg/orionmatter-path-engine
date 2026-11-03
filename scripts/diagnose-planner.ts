@@ -3,7 +3,7 @@
  *
  * Runs one scenario with per-call timing from the client's log lines, and prints the reason
  * the first composition draft was rejected (if it was). Used to tune prompts and settings.
- * Run: bash with_keys.sh npx tsx scripts/diagnose-planner.ts
+ * Run: npm run diagnose:planner   (with both API keys exported; see .env.example)
  */
 import { runPlanner } from "../src/lib/agents";
 import { getEnv } from "../src/lib/env";

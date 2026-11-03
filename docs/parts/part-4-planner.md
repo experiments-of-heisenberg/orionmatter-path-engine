@@ -195,7 +195,7 @@ npm run check
 
 Unit tests use the scripted mock model. Two live scripts exercise the real thing
 (run through the credentials wrapper, e.g.
-`bash with_keys.sh npx tsx scripts/live-planner-check.ts`):
+`npm run live:planner`, with both API keys exported as in `.env.example`):
 
 - `scripts/live-planner-check.ts` runs the Planner against the real models on a
   well-supported and a thin scenario and checks claim consistency with the ledger.

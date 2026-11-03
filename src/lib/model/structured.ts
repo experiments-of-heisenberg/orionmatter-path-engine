@@ -12,6 +12,18 @@ import { ModelParseError } from "./errors";
 import { parseModelJson } from "./json";
 import type { ChatMessage, ChatRequest, ChatResult, ModelClient } from "./types";
 
+/**
+ * Temperature used for structured (JSON) calls unless the caller sets one.
+ *
+ * Meta recommends Muse Spark's default of 1.0 for general use. For strict JSON syntax we
+ * measured otherwise: composing the Planner's JSON, 9 of 50 replies failed to parse at the
+ * default versus 3 of 50 at 0.3 (a consistent 3x reduction; at this sample size it is
+ * suggestive rather than statistically conclusive, p around 0.1). The downside of a lower
+ * temperature here is negligible (we want the same answer, not a varied one), so structured
+ * calls use 0.3. Free-text calls are unaffected. See docs/api-notes.md and ADR 0006.
+ */
+export const STRUCTURED_TEMPERATURE = 0.3;
+
 export interface StructuredResult<T> {
   data: T;
   /** True when the first reply was invalid and the repair retry fixed it. */
@@ -79,7 +91,8 @@ export async function chatStructured<T>(
     ? [...request.messages, schemaInstruction(schema)]
     : [...request.messages];
 
-  const first = await client.chat({ ...request, messages });
+  const settings = { ...request, temperature: request.temperature ?? STRUCTURED_TEMPERATURE };
+  const first = await client.chat({ ...settings, messages });
   const firstCheck = validate(first, schema);
   if (firstCheck.ok) {
     return {
@@ -101,7 +114,7 @@ export async function chatStructured<T>(
     },
   ];
   const second = await client.chat({
-    ...request,
+    ...settings,
     label: `${request.label}:repair`,
     messages: repairMessages,
   });

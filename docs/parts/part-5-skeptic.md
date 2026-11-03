@@ -86,9 +86,11 @@ Two details make this work in practice:
   fractions like `0.56`, but prose says "56%". The supported set includes the
   percentage form of every fraction between 0 and 1 (rounded to two decimals), so
   writing "56%" for a cited rate of `0.56` passes.
-- **Labels are not numbers.** Band labels (`B4`), levels (`L6`) and ids (`ev_12`,
-  `m_fintech`) have digits glued to letters, so the extractor skips them. "Twins
-  reached L6 with comp in B4-B5" contains no checkable numbers.
+- **Labels are not numbers.** Band labels (`B4`), levels (`L6`), ids (`ev_12`,
+  `m_fintech`), ordinals (`1st`) and times (`6pm`) have digits glued to letters, so the
+  extractor skips them. "Twins reached L6 with comp in B4-B5" contains no checkable
+  numbers. Thousands separators are understood (`1,000` is one thousand). These two
+  rules were bugs, found by Muse Code during review and fixed in Part 5.
 
 ## Layer 2: the critic (model)
 
@@ -162,7 +164,25 @@ hide the real problem or multiply one fault into many confusing rejections.
 
 ## Live results
 
-Results of the live audit runs are added by the maintainer after measurement.
+Measured on 3 Nov 2026 against the real models, six scenarios per run
+(`npm run live:audit`: backend, backend with remote and no-relocation, a thin ML pivot, a thin
+embedded pivot, an engineering-manager goal, and an SRE with a low-risk preference).
+
+| Run                            | Approved | First-pass approvals | Time per scenario              | What happened                                                                                                                                                                                                                                                   |
+| ------------------------------ | -------- | -------------------- | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| First (default temperature)    | 5 of 6   | 4 of 6               | 29-38 s                        | One scenario **failed outright**: both composition attempts returned unparseable JSON. One scenario got a critic rejection that was a **false positive**: the critic's fact digest omitted company types the Planner was allowed to cite. Revision resolved it. |
+| Second (after the fixes below) | 6 of 6   | 5 of 6               | 21-37 s (51 s with a revision) | One **genuine verifier rejection**: a pay claim said `n=34` where its cited comp evidence has `n=53`. The Planner fixed it in one revision.                                                                                                                     |
+
+What the first run taught us, and what changed:
+
+- **Critic false positive:** the digest now includes everything the Planner may cite (company
+  types, comp bands, marker names), and a test pins it.
+- **Unparseable JSON:** see "JSON reliability" in `docs/api-notes.md` and ADR 0006. Structured calls
+  now use temperature 0.3, parse errors say where the JSON broke, and a conservative recovery
+  handles a stray tail.
+
+Natural rejections are not frequent: across the 12 live scenarios, 1 verifier rejection and
+1 critic rejection occurred. We deliberately do not stage them. The demo uses a recorded real run.
 
 ## Known limits
 
@@ -171,8 +191,9 @@ Results of the live audit runs are added by the maintainer after measurement.
   itself describes fictional engineers.
 - The critic is a model and can miss problems (or raise ones the quote guard then
   discards). Layer 1 is exact; layer 2 is judgemental.
-- Overclaim detection is a word list (`will`, `guaranteed`, `always`, …). It can
-  fire on innocent uses and it cannot catch every kind of overclaim — a confident
+- Overclaim detection is a word list (`will`, `guaranteed`, `always`, ...). It ignores
+  hyphenated compounds such as "will-power" or "never-ending", but it can still fire on
+  other innocent uses and it cannot catch every kind of overclaim: a confident
   implication with none of the listed words sails through.
 
 ## How to verify
@@ -185,7 +206,7 @@ Unit tests use the scripted mock model. One live script exercises the real thing
 (run through the credentials wrapper):
 
 ```bash
-bash with_keys.sh npx tsx scripts/live-audit-check.ts
+npm run live:audit   # with MODEL_API_KEY and BASETEN_API_KEY exported; see .env.example
 ```
 
 It runs the full pipeline — Planner, Skeptic, revisions — on real models across

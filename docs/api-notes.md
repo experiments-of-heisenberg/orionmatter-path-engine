@@ -68,6 +68,28 @@ consistent with the evidence ledger, and one of four needed a repair. Lesson: fo
 mostly write text around supplied facts, more reasoning is slower and no more reliable. Reserve
 higher effort for tasks that genuinely need judgement.
 
+## JSON reliability and temperature (measured in Part 5)
+
+Muse Spark occasionally emits slightly invalid JSON when composing long structured output.
+Captured real examples (kept in `tests/fixtures/model-replies/`) show two shapes:
+
+- **Stray tail:** a complete document, then junk tokens and an unclosed bracket
+  (`...}]} %}`, `...}]} mutated]}`).
+- **Misplaced brace:** an extra `}` in the middle (`[]}}]}`).
+
+Measured on the Planner's composition call (JSON of about 1,500 tokens):
+
+| Temperature   | Replies that failed to parse |
+| ------------- | ---------------------------- |
+| default (1.0) | 9 of 50 (18%)                |
+| 0.3           | 3 of 50 (6%)                 |
+
+A consistent 3x reduction, though at this sample size it is suggestive, not conclusive
+(p around 0.1). With temperature 0.3 plus the parser changes, 20 further full Planner runs
+needed a repair call only once (5%), against 4 of 20 (20%) before. Structured calls therefore
+use temperature 0.3 (`STRUCTURED_TEMPERATURE`); free-text calls keep the default, in line with
+Meta's guidance. Lesson: when the output must be syntactically exact, lower the temperature.
+
 ## Muse Code
 
 - Installed version: **1.4.14**, binary at `~/.local/bin/muse`.

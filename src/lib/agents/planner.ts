@@ -57,6 +57,8 @@ export interface PlannerOutput {
   filledIn: string[];
   /** True when the composition needed its one repair retry. */
   repaired: boolean;
+  /** True when the draft had a short stray tail dropped to make it parseable (see parseModelJson). */
+  recovered: boolean;
   /** Why the first draft was rejected, when it was. Useful for tuning the prompt. */
   repairReason?: string;
 }
@@ -153,6 +155,7 @@ export async function runPlanner(
     agentToolCalls: gathering.toolCallCount,
     filledIn: sheet.filledIn,
     repaired: composed.repaired,
+    recovered: composed.recovered,
     ...(composed.repairReason ? { repairReason: composed.repairReason } : {}),
   };
 }

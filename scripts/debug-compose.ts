@@ -2,7 +2,7 @@
  * debug-compose.ts: repeat the Planner's composition call and show what comes back when it fails.
  *
  * Used to investigate unparseable replies: prints finish reason, token usage and the head and
- * tail of the raw text for each failing attempt. Run: bash with_keys.sh npx tsx scripts/debug-compose.ts
+ * tail of the raw text for each failing attempt. Run: npm run debug:compose   (both API keys exported)
  */
 import { gatherEvidence } from "../src/lib/engine";
 import { COMPOSE_SYSTEM_PROMPT, composeUserMessage } from "../src/lib/agents/plannerPrompts";

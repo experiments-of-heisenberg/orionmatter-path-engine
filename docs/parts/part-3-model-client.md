@@ -172,7 +172,7 @@ conversations without even a fake transport.
 ## Live verification
 
 Unit tests use fakes. `scripts/live-client-check.ts` runs the real client against both live
-models (`bash with_keys.sh npx tsx scripts/live-client-check.ts`). Result on 3 Nov 2026,
+models (`npm run live:client`, with both API keys exported as in `.env.example`). Result on 3 Nov 2026,
 7 of 7 checks passing, with the redacted logs scanned for key leaks (none):
 
 | Check                                          | Spark (Meta API)                                   | Spark Open (Baseten)              |

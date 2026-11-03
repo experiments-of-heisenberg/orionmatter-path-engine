@@ -15,7 +15,13 @@
     "gen:cohort": "tsx scripts/generate-cohort.ts",
     "smoke:models": "tsx scripts/smoke-models.ts",
     "probe:vision": "tsx scripts/probe-vision.ts",
-    "prepare": "git config core.hooksPath .githooks || true"
+    "prepare": "git config core.hooksPath .githooks || true",
+    "live:client": "tsx scripts/live-client-check.ts",
+    "live:planner": "tsx scripts/live-planner-check.ts",
+    "live:audit": "tsx scripts/live-audit-check.ts",
+    "diagnose:planner": "tsx scripts/diagnose-planner.ts",
+    "debug:compose": "tsx scripts/debug-compose.ts",
+    "debug:failures": "tsx scripts/debug-planner-failures.ts"
   },
   "dependencies": {
     "zod": "^4.0.0"

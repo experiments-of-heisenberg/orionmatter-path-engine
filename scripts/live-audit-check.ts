@@ -5,7 +5,7 @@
  * does the Skeptic really reject a plan, what for, do revisions resolve it, and how long
  * does it all take? Nothing is staged: every rejection reported here came from a real run.
  *
- * Costs a few cents per scenario. Run: bash with_keys.sh npx tsx scripts/live-audit-check.ts
+ * Costs a few cents per scenario. Run: npm run live:audit   (with both API keys exported; see .env.example)
  * Optional: SCENARIOS=1,3 to run a subset; DUMP_DIR=/tmp/audit to save each plan as JSON.
  */
 import { mkdirSync, writeFileSync } from "node:fs";

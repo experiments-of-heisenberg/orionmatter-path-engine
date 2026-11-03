@@ -10,7 +10,7 @@
  *   4. fixtures            record a live call, then replay it with no network
  *
  * Costs a few cents. Run via the credentials wrapper:
- *   bash with_keys.sh npx tsx scripts/live-client-check.ts
+ *   npm run live:client   (with MODEL_API_KEY and BASETEN_API_KEY exported; see .env.example)
  * Logs go to stderr (redacted); the report goes to stdout. No keys are printed.
  */
 import { mkdtemp } from "node:fs/promises";
