@@ -47,6 +47,11 @@ already spent one rate-limit hit, because the limiter runs first.)
 | `POST /api/privacy` | How identifying is this profile and story?                                 | `profile`, `goal`, `text?`, `companyType?`, `k?`, `useModel?`                    | JSON     | yes, unless `useModel: false` or no text | model   | 64 KB      |
 | `GET /api/health`   | Is the server up, and in which mode?                                       | none                                                                             | JSON     | no                                       | none    | —          |
 
+Limits at the door match the agents' own: a What-if `message` is at most 500 characters,
+privacy `text` at most 3000, intake `text` at most 6000, an image data URL about 4 MB, and
+`constraints.addSkills` at most 5 entries of 1 to 40 characters. A request over a limit is refused with
+field-level `issues` before any model work is spent.
+
 `constraints` and `current` default to `{ riskTolerance: "medium",
 addSkills: [] }` when omitted. Health answers without going through the
 guards: `{ ok, mode, model, keyConfigured, cohort }`, where `mode` is `live`
@@ -101,7 +106,7 @@ a person.
 `toApiError` (in `src/lib/api/errors.ts`) is what turns a thrown error into a
 code: input errors from the agents keep their person-friendly message as
 `invalid_request`; `ZodError` becomes `invalid_request` with issues;
-`ModelParseError` becomes `model_unreadable`; missing configuration or a
+`ModelParseError`, `ModelProtocolError` and `ModelEmptyResponseError` (an answer that arrived but cannot be used) become `model_unreadable`; missing configuration or a
 missing fixture becomes `not_configured`; HTTP, timeout and network model
 failures become `model_unavailable` (using the provider's `Retry-After` when
 it sent one, else 5 s); a cancelled request becomes `client_closed`. Anything
@@ -156,6 +161,10 @@ key is redacted if it ever appears in an error message.
 
 ## Disconnects
 
+A consumer that stays connected but never reads is treated the same way: once 500 chunks are
+waiting unread (a run emits a few dozen events), the stream is closed and the run stops, so one idle
+connection cannot make the server buffer without limit.
+
 If the browser closes a stream, the next event the run tries to send throws:
 the run stops there instead of spending further model calls for nobody, the
 outcome is logged as closed-by-client, and the concurrency slot is freed.
@@ -168,7 +177,7 @@ made.
 instant routes, `streamPost` for the streaming ones. Both turn every failure
 (an HTTP error, an `error` event, a dropped connection) into one
 `ApiClientError` with a stable code, so the interface has a single place to
-decide what to show. `ApiClientError.retryable` is true when trying again
+decide what to show. `client.ts` and `sseClient.ts` are free of server imports, so they bundle for the browser (a test builds them with `platform: "browser"` to keep it so). `ApiClientError.retryable` is true when trying again
 later makes sense. On top of the server's codes the client adds three of its
 own: `network` (unreachable, or broke mid-stream), `stream_ended` (the
 connection closed before the answer arrived) and `bad_response` (the server
@@ -310,7 +319,8 @@ from that run.
 | `src/lib/api/schemas.ts`       | The Zod schemas: what each route accepts                                         |
 | `src/lib/api/serialize.ts`     | Shapes engine results for the browser, without internals                         |
 | `src/lib/api/services.ts`      | Everything a route needs, built once and injectable for tests                    |
-| `src/lib/api/sse.ts`           | The server event stream and the client-side parser                               |
+| `src/lib/api/sse.ts`           | The server event stream (heartbeat, one result or error, stops on disconnect)    |
+| `src/lib/api/sseClient.ts`     | The client-side event parser, with no server imports                             |
 | `src/app/layout.tsx`           | The root page shell and metadata                                                 |
 | `src/app/page.tsx`             | The placeholder home page; the interface arrives in later parts                  |
 | `src/app/globals.css`          | The global stylesheet (light/dark theme variables)                               |
@@ -323,7 +333,36 @@ from that run.
 
 ## Live evaluation
 
-Results of the live evaluation are added by the maintainer after measurement.
+Measured on 3 Nov 2026 over real HTTP: `next start` with the real model key, each route called once with
+`curl` for the sample engineer (backend, L5, 7 years, IN-south, goal Staff). This checks that the pieces work
+together; the agents' own quality is measured in their parts.
+
+| Route               | Result                                                                                                          | Time    |
+| ------------------- | --------------------------------------------------------------------------------------------------------------- | ------- |
+| `GET /api/health`   | `mode: "live"`, `keyConfigured: true`, no key in the body                                                       | instant |
+| `POST /api/privacy` | JSON; high risk for the email, the project and the employer found                                               | 2.6 s   |
+| `POST /api/intake`  | stream of 3 events; `complete`, every field read with its quote                                                 | 8.8 s   |
+| `POST /api/whatif`  | stream of 4 events; time limit 24 months applied, template or model narration, tornado attached                 | 10.5 s  |
+| `POST /api/plan`    | stream of 17 events (open, stages, tool calls and results); `approved`, 3 routes, 5 evidence records, no repair | 25.7 s  |
+
+One log line per request carried route, status, duration and an anonymous client label, and no request
+content. Everything else in this part (guards, limits, streaming behaviour, error mapping) is pinned by tests
+that need no network.
+
+What review found along the way, all fixed with regression tests:
+
+- **A hanging stream (found by my own test):** when the browser's abort signal fired, the stream was never
+  closed, so a reader that was still reading waited forever. It now always closes.
+- **A test helper that hid a gap:** the helper built its own logger with no secrets, so a test of key redaction
+  could not pass. The services now accept a log sink, and the production logger with the key redacted is what
+  gets tested.
+- **A browser client that could not be bundled (Muse Code's bug hunt):** it reached Node-only modules through
+  server barrel files. The client half of the SSE code moved to its own file, and a test builds the client for
+  the browser to keep it that way.
+- **Doubts that were real:** limits at the door were wider than the agents' own (a 600-character What-if message
+  passed the schema and failed later), `addSkills` had no cap, a plain-Error `AbortError` was reported as a network
+  failure, two model failures fell through to a generic 500, and a connected consumer that never read could make
+  the server buffer without limit.
 
 ## Known limits
 

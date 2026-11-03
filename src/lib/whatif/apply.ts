@@ -9,14 +9,14 @@
  *     applied: we do not rely on the model to notice its own contradiction
  *   - a change that would not alter anything is noted, not reported as a change
  */
-import { Constraints } from "../schemas";
+import { Constraints, MAX_SKILLS } from "../schemas";
 import type { Constraints as ConstraintsType } from "../schemas";
 import type { AppliedChange, ChangeField, Contradiction, ModelChange, RefusedChange } from "./schemas";
 
 /** Allowed range for a time limit, in months. Below 6 or above 120 is not a meaningful career plan. */
 export const MONTHS_RANGE = { min: 6, max: 120 } as const;
-/** Most extra skills a person can ask about at once. */
-export const MAX_SKILLS = 5;
+/** Most extra skills a person can ask about at once (defined with the Constraints schema, which enforces it too). */
+export { MAX_SKILLS };
 
 /**
  * Words that are never part of a real skill name but are typical of prompt-injection strings.

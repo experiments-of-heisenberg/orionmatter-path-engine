@@ -35,6 +35,11 @@ jobs:
         run: npm test
         env:
           USE_FIXTURES: "true" # CI never calls live model APIs
+      - name: Production build
+        run: npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+          USE_FIXTURES: "true" # the build needs no key
       - name: Secret scan
         run: npm run scan:secrets
       - name: Dependency audit (production dependencies, high severity)

@@ -38,16 +38,16 @@ export type CohortRecord = z.infer<typeof CohortRecord>;
 // The user's verified-ish current position; findTwins matches twins against it.
 export const Profile = z.object({
   roleFamily: RoleFamily,
-  level: z.string(),
+  level: z.string().max(10),
   yearsExperience: z.number().min(0).max(40),
-  stack: z.array(z.string()).max(15),
-  region: z.string(),
-  compBand: z.string().optional(),
+  stack: z.array(z.string().max(40)).max(15),
+  region: z.string().max(20),
+  compBand: z.string().max(4).optional(),
   milestones: z
     .array(
       z.object({
-        type: z.string(),
-        quarter: z.string(),
+        type: z.string().max(40),
+        quarter: z.string().max(10),
         note: z.string().max(200),
         verified: z.literal(false),
       }),
@@ -57,6 +57,9 @@ export const Profile = z.object({
 });
 /** Inferred `Profile` type; milestones stay unverified (`verified: false`) by construction. */
 export type Profile = z.infer<typeof Profile>;
+
+/** Most skills a person can ask about at once. The What-if interpreter enforces the same limit. */
+export const MAX_SKILLS = 5;
 
 // What-if knobs (remote, relocation, risk); findTwins reads remote/noRelocation.
 export const Constraints = z.object({
@@ -70,13 +73,14 @@ export const Constraints = z.object({
   /** A time limit in whole months, 1 to 240. */
   maxMonths: z.number().int().min(1).max(240).optional(),
   riskTolerance: z.enum(["low", "medium", "high"]).default("medium"),
-  addSkills: z.array(z.string()).default([]),
+  /** Skills the person asks about. At most MAX_SKILLS, each a short name: every one costs a tool call per route. */
+  addSkills: z.array(z.string().min(1).max(40)).max(MAX_SKILLS).default([]),
 });
 /** Inferred `Constraints` type; riskTolerance defaults to "medium", addSkills to []. */
 export type Constraints = z.infer<typeof Constraints>;
 
 // Target level plus a human-readable label; findTwins requires twins to have reached it.
-export const Goal = z.object({ targetLevel: z.string(), label: z.string() });
+export const Goal = z.object({ targetLevel: z.string().max(10), label: z.string().max(60) });
 /** Inferred `Goal` type; targetLevel is a free string so unknown ladders still parse. */
 export type Goal = z.infer<typeof Goal>;
 

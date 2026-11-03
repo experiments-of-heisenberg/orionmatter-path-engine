@@ -67,9 +67,9 @@ describe("constraints defaults", () => {
 });
 
 describe("WhatIfRequest boundaries", () => {
-  it("accepts a 2000-character message and rejects 2001", () => {
-    expect(WhatIfRequest.safeParse({ ...whatIfBase, message: "x".repeat(2000) }).success).toBe(true);
-    expect(WhatIfRequest.safeParse({ ...whatIfBase, message: "x".repeat(2001) }).success).toBe(false);
+  it("accepts a 500-character message (the interpreter's own cap) and rejects 501", () => {
+    expect(WhatIfRequest.safeParse({ ...whatIfBase, message: "x".repeat(500) }).success).toBe(true);
+    expect(WhatIfRequest.safeParse({ ...whatIfBase, message: "x".repeat(501) }).success).toBe(false);
   });
 
   it("accepts up to 3 history turns and rejects a fourth", () => {
@@ -100,9 +100,9 @@ describe("WhatIfRequest boundaries", () => {
 });
 
 describe("PrivacyRequest boundaries", () => {
-  it("accepts 3500 text characters and rejects 3501", () => {
-    expect(PrivacyRequest.safeParse({ ...person, text: "x".repeat(3500) }).success).toBe(true);
-    expect(PrivacyRequest.safeParse({ ...person, text: "x".repeat(3501) }).success).toBe(false);
+  it("accepts 3000 text characters (the Guard's own cap) and rejects 3001", () => {
+    expect(PrivacyRequest.safeParse({ ...person, text: "x".repeat(3000) }).success).toBe(true);
+    expect(PrivacyRequest.safeParse({ ...person, text: "x".repeat(3001) }).success).toBe(false);
   });
 
   it("accepts a 40-character companyType and rejects 41", () => {
@@ -125,9 +125,10 @@ describe("PrivacyRequest boundaries", () => {
 });
 
 describe("IntakeRequest boundaries", () => {
-  it("accepts MAX_INTAKE_CHARS + 1000 text characters and rejects one more", () => {
-    expect(IntakeRequest.safeParse({ text: "x".repeat(MAX_INTAKE_CHARS + 1000) }).success).toBe(true);
-    expect(IntakeRequest.safeParse({ text: "x".repeat(MAX_INTAKE_CHARS + 1001) }).success).toBe(false);
+  it("accepts MAX_INTAKE_CHARS text characters (6000, Intake's own cap) and rejects one more", () => {
+    expect(MAX_INTAKE_CHARS).toBe(6000);
+    expect(IntakeRequest.safeParse({ text: "x".repeat(MAX_INTAKE_CHARS) }).success).toBe(true);
+    expect(IntakeRequest.safeParse({ text: "x".repeat(MAX_INTAKE_CHARS + 1) }).success).toBe(false);
   });
 
   it("accepts an image data URL at the 5_800_000-character cap and rejects one over", () => {
@@ -267,14 +268,16 @@ describe("Constraints value types inside requests", () => {
     expect(PlanRequest.safeParse({ ...person, constraints: { minCompBand: "B5" } }).success).toBe(true);
   });
 
-  it("states: Constraints sets no cap on addSkills, so a long list is accepted; entries must be strings", () => {
-    expect(
-      PlanRequest.safeParse({
-        ...person,
-        constraints: { addSkills: Array.from({ length: 100 }, () => "go") },
-      }).success,
-    ).toBe(true);
-    expect(PlanRequest.safeParse({ ...person, constraints: { addSkills: ["go", 5] } }).success).toBe(false);
+  it("caps addSkills at 5 entries of 1 to 40 characters, and entries must be strings (review finding)", () => {
+    const withSkills = (addSkills: unknown[]) =>
+      PlanRequest.safeParse({ ...person, constraints: { addSkills } }).success;
+    expect(withSkills(["a", "b", "c", "d", "e"])).toBe(true);
+    expect(withSkills(["a", "b", "c", "d", "e", "f"])).toBe(false);
+    expect(withSkills(Array.from({ length: 100 }, () => "go"))).toBe(false);
+    expect(withSkills(["x".repeat(40)])).toBe(true);
+    expect(withSkills(["x".repeat(41)])).toBe(false);
+    expect(withSkills([""])).toBe(false);
+    expect(withSkills(["go", 5])).toBe(false);
   });
 });
 

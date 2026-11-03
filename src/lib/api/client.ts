@@ -7,7 +7,7 @@
  * same code is tested without a network.
  */
 import type { AgentEvent } from "../agents";
-import { isApiErrorBody, parseSse } from "./sse";
+import { isApiErrorBody, parseSse } from "./sseClient";
 import type { ApiErrorBody, ApiErrorCode } from "./errors";
 
 /** Codes the client adds on top of the server's own. */
@@ -61,6 +61,11 @@ export type StreamEvent =
 
 const AGENT_EVENTS = new Set(["stage", "tool_call", "tool_result", "note", "verdict"]);
 
+/** True for the error a cancelled fetch throws: a DOMException in browsers, a plain Error with the same name elsewhere. */
+function isAbort(error: unknown): boolean {
+  return (error instanceof Error || error instanceof DOMException) && error.name === "AbortError";
+}
+
 /** Build an ApiClientError from a response that was not OK. */
 async function failureFrom(response: Response): Promise<ApiClientError> {
   let body: unknown;
@@ -91,7 +96,7 @@ async function send(url: string, body: unknown, options: CallOptions): Promise<R
       ...(options.signal ? { signal: options.signal } : {}),
     });
   } catch (error) {
-    if (error instanceof DOMException && error.name === "AbortError") throw error;
+    if (isAbort(error)) throw error;
     throw new ApiClientError("network", "Could not reach the server. Check your connection and try again.");
   }
 }
@@ -135,7 +140,7 @@ export async function streamPost<T>(url: string, body: unknown, options: StreamO
     }
   } catch (error) {
     if (error instanceof ApiClientError) throw error;
-    if (error instanceof DOMException && error.name === "AbortError") throw error;
+    if (isAbort(error)) throw error;
     throw new ApiClientError("network", "The connection was interrupted. Please try again.");
   }
   throw new ApiClientError(

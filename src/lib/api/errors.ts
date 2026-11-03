@@ -10,6 +10,8 @@ import { z } from "zod";
 import { IntakeImageError, IntakeInputError } from "../intake";
 import {
   FixtureMissError,
+  ModelEmptyResponseError,
+  ModelProtocolError,
   ModelAbortedError,
   ModelConfigError,
   ModelHttpError,
@@ -109,7 +111,12 @@ export function toApiError(error: unknown): ApiError {
     // These messages were written for people ("The text is too long ...").
     return new ApiError("invalid_request", 400, error.message);
   }
-  if (error instanceof ModelParseError) {
+  // An answer that arrived but cannot be used (wrong shape, empty) is retryable like an unreadable one.
+  if (
+    error instanceof ModelParseError ||
+    error instanceof ModelProtocolError ||
+    error instanceof ModelEmptyResponseError
+  ) {
     return new ApiError("model_unreadable", 502, "The model's answer could not be read. Please try again.", {
       retryAfter: 2,
     });

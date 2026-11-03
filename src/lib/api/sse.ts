@@ -7,13 +7,22 @@
  * the next event the run tries to send throws, which stops the run instead of letting it spend
  * model calls for nobody.
  *
- * CLIENT: `parseSse` turns a response body back into events (used by the browser and by tests).
+ * CLIENT: `parseSse` (in sseClient.ts, re-exported here) turns a response body back into events.
  */
 import type { AgentEvent, Emit } from "../agents";
-import { ClientClosedError, toApiError, type ApiErrorBody } from "./errors";
+import { ClientClosedError, toApiError } from "./errors";
+
+// The client half lives in sseClient.ts so the browser bundle never reaches server-only code.
+export { isApiErrorBody, parseSse, type SseEvent } from "./sseClient";
 
 /** How often a comment line is sent to keep the connection alive, in milliseconds. */
 export const HEARTBEAT_MS = 15_000;
+
+/**
+ * Most unread chunks a stream may hold before the reader is considered gone. A run emits a few dozen
+ * events and a heartbeat every 15 s, so hitting this means a connected consumer that never reads.
+ */
+export const MAX_PENDING_CHUNKS = 500;
 
 /** The headers every event stream carries. */
 export const SSE_HEADERS: Record<string, string> = {
@@ -55,6 +64,10 @@ export function sseResponse(work: (ctx: SseContext) => Promise<unknown>, options
     async start(controller) {
       const write = (chunk: string): void => {
         if (closed) return;
+        if (controller.desiredSize !== null && controller.desiredSize < -MAX_PENDING_CHUNKS) {
+          closed = true; // a consumer that never reads must not make the server buffer without limit
+          return;
+        }
         try {
           controller.enqueue(encoder.encode(chunk));
         } catch {
@@ -105,64 +118,4 @@ export function sseResponse(work: (ctx: SseContext) => Promise<unknown>, options
   });
 
   return new Response(stream, { status: 200, headers: { ...SSE_HEADERS, ...options.headers } });
-}
-
-/** One event read from a stream. */
-export interface SseEvent {
-  event: string;
-  data: unknown;
-}
-
-/** Longest single event accepted by the parser, in characters. */
-const MAX_EVENT_CHARS = 5_000_000;
-
-/**
- * Read an event stream from a fetch response body.
- *
- * Handles events split across chunks, CRLF line endings and comment lines; ignores anything that is
- * not valid JSON data rather than throwing, since a half event at a dropped connection is normal.
- */
-export async function* parseSse(body: ReadableStream<Uint8Array>): AsyncGenerator<SseEvent> {
-  const reader = body.getReader();
-  const decoder = new TextDecoder();
-  let buffer = "";
-  try {
-    for (;;) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true }).replace(/\r\n/g, "\n");
-      if (buffer.length > MAX_EVENT_CHARS) throw new Error("SSE event too large");
-      let boundary = buffer.indexOf("\n\n");
-      while (boundary !== -1) {
-        const block = buffer.slice(0, boundary);
-        buffer = buffer.slice(boundary + 2);
-        const parsed = parseBlock(block);
-        if (parsed) yield parsed;
-        boundary = buffer.indexOf("\n\n");
-      }
-    }
-  } finally {
-    reader.releaseLock();
-  }
-}
-
-function parseBlock(block: string): SseEvent | undefined {
-  let event = "message";
-  const data: string[] = [];
-  for (const line of block.split("\n")) {
-    if (line.startsWith(":")) continue; // comment (heartbeat)
-    if (line.startsWith("event:")) event = line.slice(6).trim();
-    else if (line.startsWith("data:")) data.push(line.slice(5).replace(/^ /, ""));
-  }
-  if (data.length === 0) return undefined;
-  try {
-    return { event, data: JSON.parse(data.join("\n")) as unknown };
-  } catch {
-    return undefined;
-  }
-}
-
-/** True for the body of an `error` event. */
-export function isApiErrorBody(value: unknown): value is ApiErrorBody {
-  return typeof value === "object" && value !== null && "code" in value && "message" in value;
 }

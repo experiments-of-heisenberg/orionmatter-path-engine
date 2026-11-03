@@ -327,10 +327,15 @@ describe("POST /api/whatif (streaming)", () => {
     });
   });
 
-  it("maps an over-long message to a 400-class error event", async () => {
-    installServices(noModel());
-    const events = await readEvents(await whatif(post("whatif", { ...person, message: "x".repeat(600) })));
-    expect(events.at(-1)?.data).toMatchObject({ code: "invalid_request" });
+  it("refuses an over-long message at the door with field-level issues, before any model work", async () => {
+    const client = noModel();
+    installServices(client);
+    const response = await whatif(post("whatif", { ...person, message: "x".repeat(600) }));
+    expect(response.status).toBe(400);
+    const body = await json(response);
+    expect(body["code"]).toBe("invalid_request");
+    expect((body["issues"] as { path: string }[]).map((i) => i.path)).toEqual(["message"]);
+    expect(client.requests).toHaveLength(0);
   });
 });
 
