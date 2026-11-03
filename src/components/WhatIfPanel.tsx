@@ -32,11 +32,16 @@ export interface WhatIfBindings {
   refreshing: boolean;
   turns: readonly Turn[];
   chatBusy: boolean;
+  /** The half-typed chat message. Held here, not in the chat, so it survives a switch of tab. */
+  chatDraft: string;
   scenarios: readonly Scenario[];
   scenarioNotice: string | undefined;
   onChange: (next: Constraints) => void;
   onReset: () => void;
   onSend: (text: string) => void;
+  onChatDraft: (text: string) => void;
+  /** Apply an answer that was held back because the limits moved while it was being worked out. */
+  onApplyHeld: (turnId: number) => void;
   onApply: (relaxation: Relaxation) => void;
   onSaveScenario: () => void;
   onOpenScenario: (id: string) => void;
@@ -51,11 +56,14 @@ export const IDLE_BINDINGS: WhatIfBindings = {
   refreshing: false,
   turns: [],
   chatBusy: false,
+  chatDraft: "",
   scenarios: [],
   scenarioNotice: undefined,
   onChange: () => undefined,
   onReset: () => undefined,
   onSend: () => undefined,
+  onChatDraft: () => undefined,
+  onApplyHeld: () => undefined,
   onApply: () => undefined,
   onSaveScenario: () => undefined,
   onOpenScenario: () => undefined,
@@ -121,7 +129,14 @@ export function WhatIfPanel({ person, data, selected, onSelect, bindings: b }: W
           onReset={b.onReset}
           canReset={b.changed}
         />
-        <Chat turns={b.turns} busy={b.chatBusy} onSend={b.onSend} />
+        <Chat
+          turns={b.turns}
+          busy={b.chatBusy}
+          draft={b.chatDraft}
+          onDraft={b.onChatDraft}
+          onSend={b.onSend}
+          onApplyHeld={b.onApplyHeld}
+        />
       </div>
       <TornadoPanel tornado={data.tornado} />
       <WhatItTakePanel data={data.wouldItTake} onApply={b.onApply} />

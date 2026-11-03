@@ -24,11 +24,25 @@ export interface ChatProps {
   turns: readonly Turn[];
   /** True while a turn is being answered. */
   busy: boolean;
+  /** The message being typed, owned by the parent so it is not lost when the tab changes. */
+  draft: string;
+  onDraft: (text: string) => void;
   onSend: (text: string) => void;
+  onApplyHeld: (turnId: number) => void;
 }
 
 /** One answered turn: what was understood, what was not, and the explanation. */
-function Answer({ turn, onSend, last }: { turn: Turn; onSend: (text: string) => void; last: boolean }) {
+function Answer({
+  turn,
+  onSend,
+  onApplyHeld,
+  last,
+}: {
+  turn: Turn;
+  onSend: (text: string) => void;
+  onApplyHeld: (turnId: number) => void;
+  last: boolean;
+}) {
   const result = turn.result;
   if (!result) return null;
   const { interpretation: reading, narration, diff } = result;
@@ -37,8 +51,8 @@ function Answer({ turn, onSend, last }: { turn: Turn; onSend: (text: string) => 
     <div className="turn__answer">
       {reading.applied.length > 0 && (
         <div>
-          <p className="turn__label">Applied</p>
-          <ul className="applied" aria-label="Changes applied">
+          <p className="turn__label">{turn.held ? "Understood, not applied" : "Applied"}</p>
+          <ul className="applied" aria-label={turn.held ? "Changes understood" : "Changes applied"}>
             {reading.applied.map((a) => (
               <li key={`${a.field}-${a.phrase}`} className="applied__item">
                 <span className="applied__name">{a.label}</span>
@@ -81,6 +95,19 @@ function Answer({ turn, onSend, last }: { turn: Turn; onSend: (text: string) => 
             <li key={c.message}>{c.message}</li>
           ))}
         </ul>
+      )}
+      {turn.held && (
+        <div className="question" role="group" aria-label="Held back because you changed your limits">
+          <p className="question__text">
+            You changed your limits while this was being worked out, so it was not applied. Your newer choice
+            stays.
+          </p>
+          <div className="choices">
+            <button type="button" className="choice" onClick={() => onApplyHeld(turn.id)}>
+              Apply these changes instead
+            </button>
+          </div>
+        </div>
       )}
       {question && (
         <div className="question" role="group" aria-label="A question about your request">
@@ -135,8 +162,7 @@ function Answer({ turn, onSend, last }: { turn: Turn; onSend: (text: string) => 
   );
 }
 
-export function Chat({ turns, busy, onSend }: ChatProps) {
-  const [draft, setDraft] = useState("");
+export function Chat({ turns, busy, draft, onDraft, onSend, onApplyHeld }: ChatProps) {
   const [problem, setProblem] = useState<string | undefined>();
   const submit = (): void => {
     const checked = checkMessage(draft);
@@ -145,7 +171,7 @@ export function Chat({ turns, busy, onSend }: ChatProps) {
       return;
     }
     setProblem(undefined);
-    setDraft("");
+    onDraft("");
     onSend(checked.text);
   };
   const open = pendingQuestion(turns);
@@ -194,7 +220,12 @@ export function Chat({ turns, busy, onSend }: ChatProps) {
               </p>
             )}
             {turn.status === "done" && (
-              <Answer turn={turn} onSend={onSend} last={index === turns.length - 1} />
+              <Answer
+                turn={turn}
+                onSend={onSend}
+                onApplyHeld={onApplyHeld}
+                last={index === turns.length - 1}
+              />
             )}
           </li>
         ))}
@@ -219,7 +250,7 @@ export function Chat({ turns, busy, onSend }: ChatProps) {
           placeholder={open ? "Type your answer\u2026" : "What if I\u2026"}
           aria-describedby={problem ? "chat-problem" : undefined}
           aria-invalid={problem ? true : undefined}
-          onChange={(event) => setDraft(event.target.value)}
+          onChange={(event) => onDraft(event.target.value)}
           onKeyDown={(event) => {
             if (event.key === "Enter" && !event.shiftKey) {
               event.preventDefault();

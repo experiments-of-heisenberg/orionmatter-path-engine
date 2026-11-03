@@ -8,6 +8,7 @@
  */
 import { MAX_SKILLS, type Constraints } from "../lib/schemas";
 import type { Relaxation } from "../lib/whatif";
+import { clip } from "./text";
 
 /** Shortest time limit the slider offers, in months. Typing into the chat can go lower (down to 1). */
 export const LIMIT_MIN = 6;
@@ -29,7 +30,7 @@ export const RISK_OPTIONS = [
 
 /** The slider position for a limit. No limit is the last position; a limit outside the slider's range sits at the nearest end. */
 export function limitToSlider(months: number | undefined): number {
-  if (months === undefined) return NO_LIMIT;
+  if (months === undefined || !Number.isFinite(months)) return NO_LIMIT;
   return Math.min(LIMIT_MAX, Math.max(LIMIT_MIN, Math.round(months)));
 }
 
@@ -41,7 +42,7 @@ export function sliderToLimit(position: number): number | undefined {
 
 /** "No limit", "1 month" or "24 months". */
 export function limitLabel(months: number | undefined): string {
-  if (months === undefined) return "No limit";
+  if (months === undefined || !Number.isFinite(months)) return "No limit";
   if (months === 1) return "1 month";
   return `${months} months`;
 }
@@ -58,6 +59,7 @@ export function normalise(c: Constraints): Constraints {
 
 /** Set or clear the time limit. */
 export function withLimit(c: Constraints, months: number | undefined): Constraints {
+  if (months !== undefined && !Number.isFinite(months)) return normalise(c); // not a number of months: change nothing
   const next = { ...c };
   if (months === undefined) delete next.maxMonths;
   else next.maxMonths = Math.min(240, Math.max(1, Math.round(months)));
@@ -87,7 +89,7 @@ export function withRisk(c: Constraints, risk: Constraints["riskTolerance"]): Co
 
 /** A skill name as the engine expects it: trimmed, lower-case, one line, at most 40 characters. */
 export function cleanSkill(raw: string): string {
-  return raw.replace(/\s+/g, " ").trim().toLowerCase().slice(0, 40);
+  return clip(raw.replace(/\s+/g, " ").trim().toLowerCase(), 40);
 }
 
 /** Add a skill to ask about. Ignores blanks and repeats, and stops at the limit. */
@@ -140,5 +142,7 @@ export function applyRelaxation(c: Constraints, r: Pick<Relaxation, "knob" | "va
     case "remote":
     case "noRelocation":
       return withFlag(c, r.knob, false); // a relaxation of a switch always turns it off
+    default:
+      return c; // an unknown knob (the type forbids it, but data from a server is only as good as its version)
   }
 }

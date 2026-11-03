@@ -5,6 +5,7 @@ import type { Relaxation } from "../src/lib/whatif";
 import {
   LIMIT_MAX,
   LIMIT_MIN,
+  NO_LIMIT,
   applyRelaxation,
   cleanSkill,
   describeConstraints,
@@ -37,27 +38,29 @@ describe("slider mapping at the edges", () => {
     expect(limitToSlider(-3)).toBe(LIMIT_MIN);
   });
 
-  it("limitToSlider(NaN) is NaN, and the label then reads 'NaN months'", () => {
-    // NaN survives the clamping (Math.max/min of NaN is NaN). The slider input itself would
-    // sanitise an invalid value, but the output next to it would read "NaN months", so a NaN
-    // limit must never be stored. Reported: withLimit below is the one place that can store it.
-    expect(Number.isNaN(limitToSlider(Number.NaN))).toBe(true);
-    expect(limitLabel(Number.NaN)).toBe("NaN months");
+  it("limitToSlider and limitLabel treat a value that is not a number as 'no limit' (review fix)", () => {
+    expect(limitToSlider(Number.NaN)).toBe(NO_LIMIT);
+    expect(limitToSlider(Number.POSITIVE_INFINITY)).toBe(NO_LIMIT);
+    expect(limitLabel(Number.NaN)).toBe("No limit");
   });
 });
 
 describe("withLimit with hostile numbers", () => {
-  it("clamps infinities into range", () => {
-    expect(withLimit(base, Number.POSITIVE_INFINITY).maxMonths).toBe(240);
-    expect(withLimit(base, Number.NEGATIVE_INFINITY).maxMonths).toBe(1);
+  it("a value that is not a finite number changes nothing (review fix: it used to store NaN, which the API receives as null)", () => {
+    const set = { ...base, maxMonths: 24 };
+    for (const bad of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY]) {
+      expect(withLimit(set, bad)).toEqual(set);
+      expect(withLimit(base, bad)).toEqual(base);
+    }
   });
 
-  it("withLimit(NaN) stores NaN: outside 1..240, non-integer, and null on the wire", () => {
-    // Reported: Math.round(NaN) is NaN and the clamp cannot catch it, so maxMonths becomes NaN.
-    // JSON.stringify turns NaN into null, so the API would receive maxMonths: null and reject it.
-    const next = withLimit(base, Number.NaN).maxMonths;
-    expect(Number.isNaN(next)).toBe(true);
-    expect(JSON.stringify({ maxMonths: next })).toBe('{"maxMonths":null}');
+  it("every limit that can be stored is a whole number from 1 to 240", () => {
+    for (const months of [-5, 0, 0.4, 1.5, 23.6, 240, 241, 99999]) {
+      const stored = withLimit(base, months).maxMonths;
+      expect(Number.isInteger(stored)).toBe(true);
+      expect(stored).toBeGreaterThanOrEqual(1);
+      expect(stored).toBeLessThanOrEqual(240);
+    }
   });
 });
 
@@ -83,11 +86,12 @@ describe("cleanSkill with punctuation, unicode and emoji", () => {
     expect(cleanSkill("日本語")).toBe("日本語");
   });
 
-  it("slice(0, 40) can split a surrogate pair: this input ends in a lone high surrogate", () => {
-    // Reported: 39 units plus one emoji (2 units) cut at 40 units keeps only the emoji's first half.
+  it("never leaves half an emoji at the end when the name is cut (review fix)", () => {
     const cleaned = cleanSkill("x".repeat(39) + "😀");
-    expect(cleaned).toHaveLength(40);
-    expect(/[\ud800-\udbff]$/.test(cleaned)).toBe(true);
+    expect(cleaned).toBe("x".repeat(39));
+    expect(/[\ud800-\udbff]$/.test(cleaned)).toBe(false);
+    expect(cleanSkill("x".repeat(38) + "😀")).toHaveLength(40); // a whole emoji that fits is kept
+    expect(JSON.parse(JSON.stringify(cleaned))).toBe(cleaned); // survives the trip to the server
   });
 });
 
@@ -128,5 +132,13 @@ describe("applyRelaxation with null, undefined and wrong-typed values", () => {
   it("a relaxation of a switch always turns it off, even when the value says otherwise", () => {
     // The value is ignored on purpose; there is no "relax towards on".
     expect(applyRelaxation(base, { knob: "remote", value: true as unknown as false })).toEqual(base);
+  });
+});
+
+describe("applyRelaxation with an unknown knob (review fix)", () => {
+  it("returns the settings unchanged instead of undefined", () => {
+    const c = { ...base, maxMonths: 12 };
+    const next = applyRelaxation(c, { knob: "colour" as unknown as "remote", value: false });
+    expect(next).toEqual(c);
   });
 });

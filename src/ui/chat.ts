@@ -10,6 +10,7 @@
 import type { AgentEvent } from "../lib/agents";
 import type { WhatIfResult } from "../lib/api/handlers";
 import type { Constraints } from "../lib/schemas";
+import { clip } from "./text";
 
 /** Longest message the server accepts. Kept in step with the server's own limit by a test. */
 export const MAX_MESSAGE = 500;
@@ -25,6 +26,11 @@ export interface Turn {
   stage?: string;
   result?: WhatIfResult;
   error?: string;
+  /**
+   * True when the answer was understood but not applied, because the person moved their limits while it was
+   * being worked out. Their newer choice wins; the answer waits behind an "Apply these changes" button.
+   */
+  held?: boolean;
 }
 
 /** Check a message before it is sent, returning the cleaned text or what is wrong in words. */
@@ -82,6 +88,20 @@ export function finishTurn(turns: readonly Turn[], id: number, result: WhatIfRes
   });
 }
 
+/** Mark a finished turn as understood but not applied. */
+export function holdTurn(turns: readonly Turn[], id: number): Turn[] {
+  return turns.map((t) => (t.id === id && t.status === "done" ? { ...t, held: true } : t));
+}
+
+/** Clear the held mark once the person has chosen to apply the answer. */
+export function releaseTurn(turns: readonly Turn[], id: number): Turn[] {
+  return turns.map((t) => {
+    if (t.id !== id) return t;
+    const { held: _held, ...rest } = t;
+    return rest;
+  });
+}
+
 /** Finish a turn with an error message. */
 export function failTurn(turns: readonly Turn[], id: number, error: string): Turn[] {
   return turns.map((t) => {
@@ -110,6 +130,6 @@ export function requestFor(
   return {
     message: text,
     current,
-    history: [{ question: open.question.slice(0, 400), answer: text.slice(0, 600) }],
+    history: [{ question: clip(open.question, 400), answer: clip(text, 600) }],
   };
 }

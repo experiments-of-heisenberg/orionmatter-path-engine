@@ -134,3 +134,12 @@ describe("headlineText corners", () => {
     expect(text).toBe("Jump \u00b7 0\u20130% \u00b7 10 engineers");
   });
 });
+
+describe("renaming with emoji (review fix)", () => {
+  it("cuts a long name without leaving half an emoji", () => {
+    const list = addScenario([], SAMPLE_PERSON.constraints, exploreFor().data);
+    if (!list.ok) throw new Error("setup");
+    const renamed = renameScenario(list.list, "sc-A", "x".repeat(29) + "😀");
+    expect(renamed[0]?.name).toBe("x".repeat(29));
+  });
+});

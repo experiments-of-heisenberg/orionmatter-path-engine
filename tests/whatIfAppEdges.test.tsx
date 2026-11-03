@@ -107,11 +107,8 @@ describe("a second message while the first is still working", () => {
   });
 });
 
-describe("a chat answer that lands after the slider moved", () => {
-  it("the chat answer's limits win and the slider move is lost", async () => {
-    // Read from usePathState.send: on finish it sets the constraints to interpretation.next
-    // unconditionally (unless identical), even if the person moved a slider meanwhile. So the
-    // older chat answer overwrites the newer slider move. Reported as a doubt: surprising.
+describe("a chat answer that lands after the slider moved (review fix)", () => {
+  async function askThenMoveSlider(): Promise<void> {
     install([says({ changes: [{ field: "maxMonths", value: 24, phrase: "within 2 years" }] })]);
     await open();
     let release: (() => void) | undefined;
@@ -123,10 +120,78 @@ describe("a chat answer that lands after the slider moved", () => {
     await userEvent.click(screen.getByRole("button", { name: "Ask" }));
     await waitFor(() => expect(whatifCalls()).toHaveLength(1));
     fireEvent.change(slider(), { target: { value: "36" } });
+    await waitFor(() => expect(exploreCalls().at(-1)?.body["constraints"]).toMatchObject({ maxMonths: 36 }));
     release?.();
-    await screen.findByLabelText("Changes applied");
+    await screen.findByLabelText("Changes understood");
+  }
+
+  it("the newer slider move stays, and the answer waits behind a button", async () => {
+    await askThenMoveSlider();
+    expect(slider().value).toBe("36");
+    expect(screen.getByText("Understood, not applied")).toBeTruthy();
+    expect(screen.getByRole("group", { name: "Held back because you changed your limits" })).toBeTruthy();
+    await new Promise((r) => setTimeout(r, 250));
+    expect(exploreCalls().at(-1)?.body["constraints"]).toMatchObject({ maxMonths: 36 });
+  });
+
+  it("'Apply these changes instead' applies it, redraws, and removes the notice", async () => {
+    await askThenMoveSlider();
+    await userEvent.click(screen.getByRole("button", { name: "Apply these changes instead" }));
     await waitFor(() => expect(slider().value).toBe("24"));
     await waitFor(() => expect(exploreCalls().at(-1)?.body["constraints"]).toMatchObject({ maxMonths: 24 }));
+    expect(screen.queryByRole("group", { name: "Held back because you changed your limits" })).toBeNull();
+    expect(screen.getByLabelText("Changes applied")).toBeTruthy();
+  });
+
+  it("an answer that changes nothing is not held, even if the slider moved", async () => {
+    install([says({})]);
+    await open();
+    let release: (() => void) | undefined;
+    whatifGate = () =>
+      new Promise((resolve) => {
+        release = () => resolve(undefined);
+      });
+    await userEvent.type(chatBox(), "thanks");
+    await userEvent.click(screen.getByRole("button", { name: "Ask" }));
+    await waitFor(() => expect(whatifCalls()).toHaveLength(1));
+    fireEvent.change(slider(), { target: { value: "36" } });
+    release?.();
+    await screen.findByText(/Nothing in that could be turned into a change/);
+    expect(screen.queryByText("Understood, not applied")).toBeNull();
+    expect(slider().value).toBe("36");
+  });
+});
+
+describe("what survives a change of tab (review fix)", () => {
+  it("a half-typed chat message is still there when the person comes back", async () => {
+    install();
+    await open();
+    await userEvent.type(chatBox(), "what if I");
+    await userEvent.click(screen.getByRole("tab", { name: "Map" }));
+    await userEvent.click(screen.getByRole("tab", { name: "What if" }));
+    expect(chatBox().value).toBe("what if I");
+  });
+
+  it("sending clears the saved draft", async () => {
+    install([says({})]);
+    await open();
+    await userEvent.type(chatBox(), "thanks{Enter}");
+    await waitFor(() => expect(chatBox().value).toBe(""));
+    await userEvent.click(screen.getByRole("tab", { name: "Map" }));
+    await userEvent.click(screen.getByRole("tab", { name: "What if" }));
+    expect(chatBox().value).toBe("");
+  });
+});
+
+describe("the starting point for 'what changed'", () => {
+  it("the controls do not exist until the first answer has arrived, so the starting point is always the starting limits", async () => {
+    install();
+    exploreGate = () => new Promise(() => undefined); // the first answer never comes
+    render(<PathApp />);
+    await waitFor(() => expect(exploreCalls()).toHaveLength(1));
+    await userEvent.click(screen.getByRole("tab", { name: "What if" }));
+    expect(screen.queryByLabelText("Time limit")).toBeNull();
+    expect(screen.queryByRole("heading", { name: "Your limits" })).toBeNull();
   });
 });
 

@@ -173,6 +173,23 @@ describe("the chat", () => {
     expect(html).toMatch(/Start|first route/i);
   });
 
+  it("a held answer says it was understood but not applied, and offers to apply it", () => {
+    const turns = conversation()
+      .slice(0, 1)
+      .map((t) => ({ ...t, held: true }));
+    const html = view({}, { turns });
+    expect(html).toContain("Understood, not applied");
+    expect(html).toContain('aria-label="Changes understood"');
+    expect(html).not.toContain('aria-label="Changes applied"');
+    expect(html).toContain('aria-label="Held back because you changed your limits"');
+    expect(html).toContain("Apply these changes instead");
+    expect(html).toContain("Your newer choice stays.");
+  });
+
+  it("the half-typed message comes from the parent", () => {
+    expect(view({}, { chatDraft: "what if I" })).toContain(">what if I</textarea>");
+  });
+
   it("a working turn shows its stage as a status; a failed one as an alert", () => {
     const working = view({}, { turns: startTurn([], "hello").turns, chatBusy: true });
     expect(working).toMatch(/role="status">Understanding what you asked/);

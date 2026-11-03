@@ -5,7 +5,9 @@ import {
   checkMessage,
   failTurn,
   finishTurn,
+  holdTurn,
   progressTurn,
+  releaseTurn,
   requestFor,
   startTurn,
   type Turn,
@@ -83,5 +85,46 @@ describe("numbering after gaps", () => {
     const next = startTurn(gappy, "c");
     expect(next.id).toBe(6);
     expect(next.turns.map((t) => t.id)).toEqual([1, 5, 6]);
+  });
+});
+
+describe("held answers (review fix)", () => {
+  const turn = () =>
+    finishTurn(startTurn([], "within 2 years").turns, 1, {
+      interpretation: {
+        status: "applied",
+        next: SAMPLE_PERSON.constraints,
+        applied: [],
+        refused: [],
+        unsupported: [],
+        conflicts: [],
+        notes: [],
+      },
+    } as unknown as WhatIfResult);
+  it("holdTurn marks only a finished turn, releaseTurn clears the mark", () => {
+    const held = holdTurn(turn(), 1);
+    expect(held[0]?.held).toBe(true);
+    expect("held" in (releaseTurn(held, 1)[0] as object)).toBe(false);
+    const working = startTurn([], "x").turns;
+    expect(holdTurn(working, 1)).toEqual(working);
+    expect(holdTurn(turn(), 99)).toEqual(turn());
+    expect(releaseTurn(turn(), 99)).toEqual(turn());
+  });
+  it("requestFor cuts a long reply without splitting an emoji", () => {
+    const asked = finishTurn(startTurn([], "x").turns, 1, {
+      interpretation: {
+        status: "needs_clarification",
+        next: SAMPLE_PERSON.constraints,
+        applied: [],
+        refused: [],
+        unsupported: [],
+        conflicts: [],
+        notes: [],
+        clarification: { question: "q".repeat(399) + "😀", about: "other" },
+      },
+    } as unknown as WhatIfResult);
+    const history = requestFor(asked, "a".repeat(599) + "😀", SAMPLE_PERSON.constraints).history?.[0];
+    expect(history?.question).toBe("q".repeat(399));
+    expect(history?.answer).toBe("a".repeat(599));
   });
 });

@@ -63,5 +63,5 @@ export function tornadoSummary(rows: readonly TornadoRow[]): string {
   const top = rows[0];
   if (!top) return "No setting changes the odds.";
   if (top.swing < 1) return "None of these settings changes the odds for the start-here route.";
-  return `${top.label} matters most: from ${top.worst.label} (${top.worst.text}) to ${top.best.label} (${top.best.text}), a swing of about ${Math.round(top.swing)} points.`;
+  return `${top.label} matters most: from ${top.worst.label} (${top.worst.text}) to ${top.best.label} (${top.best.text}), a swing of about ${Math.round(top.swing)} point${Math.round(top.swing) === 1 ? "" : "s"}.`;
 }

@@ -17,7 +17,9 @@ import {
   checkMessage,
   failTurn,
   finishTurn,
+  holdTurn,
   progressTurn,
+  releaseTurn,
   requestFor,
   startTurn,
   type Turn,
@@ -56,6 +58,7 @@ export function usePathState(person: Person): PathState {
   const [attempt, setAttempt] = useState(0);
   const [turns, setTurns] = useState<Turn[]>([]);
   const [chatBusy, setChatBusy] = useState(false);
+  const [chatDraft, setChatDraft] = useState("");
   const [scenarios, setScenarios] = useState<Scenario[]>([]);
   const [scenarioNotice, setScenarioNotice] = useState<string | undefined>();
 
@@ -85,6 +88,7 @@ export function usePathState(person: Person): PathState {
             if (controller.signal.aborted) return;
             setError(undefined);
             setData(result);
+            // The first answer is always for the starting limits: the controls only exist once it has arrived.
             setBaseline((prev) => prev ?? result);
             setSelected((current) => current ?? result.ranking.recommended ?? "climb");
             setRefreshing(false);
@@ -124,11 +128,20 @@ export function usePathState(person: Person): PathState {
             },
           },
         );
-        setTurnList(finishTurn(turnsRef.current, started.id, result));
-        // Only a real change re-asks the server: a reply that changes nothing leaves the numbers as they are.
-        setConstraints((prev) =>
-          sameConstraints(prev, result.interpretation.next) ? prev : normalise(result.interpretation.next),
-        );
+        const finished = finishTurn(turnsRef.current, started.id, result);
+        const next = result.interpretation.next;
+        if (sameConstraints(next, sent)) {
+          // The answer changed nothing (a greeting, a question, something that cannot be modelled): leave the
+          // limits exactly as the person has them now, which may differ from what they were when it was asked.
+          setTurnList(finished);
+        } else if (!sameConstraints(constraintsRef.current, sent)) {
+          // The person moved their limits while this was being worked out. Their newer choice wins; the
+          // answer is kept behind a button instead of silently overwriting it.
+          setTurnList(holdTurn(finished, started.id));
+        } else {
+          setTurnList(finished);
+          setConstraints(normalise(next));
+        }
       } catch (e) {
         setTurnList(failTurn(turnsRef.current, started.id, messageOf(e)));
       } finally {
@@ -145,11 +158,20 @@ export function usePathState(person: Person): PathState {
       refreshing,
       turns,
       chatBusy,
+      chatDraft,
       scenarios,
       scenarioNotice,
       onChange: (next) => setConstraints(normalise(next)),
       onReset: () => setConstraints(person.constraints),
       onSend: (text) => void send(text),
+      onChatDraft: setChatDraft,
+      onApplyHeld: (turnId) => {
+        const held = turnsRef.current.find((t) => t.id === turnId);
+        if (!held?.result) return;
+        const next = held.result.interpretation.next;
+        setTurnList(releaseTurn(turnsRef.current, turnId));
+        setConstraints(normalise(next));
+      },
       onApply: (relaxation: Relaxation) => setConstraints((c) => applyRelaxation(c, relaxation)),
       onSaveScenario: () => {
         if (!data || refreshing || !sameConstraints(data.constraints, constraints)) {
@@ -178,10 +200,12 @@ export function usePathState(person: Person): PathState {
       refreshing,
       turns,
       chatBusy,
+      chatDraft,
       scenarios,
       scenarioNotice,
       data,
       send,
+      setTurnList,
     ],
   );
 

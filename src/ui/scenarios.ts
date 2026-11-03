@@ -9,6 +9,7 @@
 import type { ClientSheet } from "../lib/api/serialize";
 import type { Constraints } from "../lib/schemas";
 import { describeConstraints, normalise, sameConstraints } from "./limits";
+import { clip } from "./text";
 import { ARCHETYPE_LABEL, monthsRange, percentRange, type Archetype } from "./format";
 
 /** Most scenarios kept at once. */
@@ -111,7 +112,7 @@ export function removeScenario(list: readonly Scenario[], id: string): Scenario[
 
 /** Rename a scenario. A blank name is ignored; a long one is cut to MAX_NAME. */
 export function renameScenario(list: readonly Scenario[], id: string, raw: string): Scenario[] {
-  const name = raw.replace(/\s+/g, " ").trim().slice(0, MAX_NAME);
+  const name = clip(raw.replace(/\s+/g, " ").trim(), MAX_NAME);
   if (name === "") return [...list];
   return list.map((s) => (s.id === id ? { ...s, name } : s));
 }

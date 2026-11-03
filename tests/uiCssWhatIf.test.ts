@@ -103,9 +103,6 @@ const ALLOWLIST: Readonly<Record<string, string>> = {
   chat: "semantic hook on the chat panel; the card styling comes from .panel",
   tornado__row: "grid item; spacing comes from the .tornado gap",
   turn: "grid item; spacing comes from the .turns gap",
-  // Reported: a named grid cell with no rule of its own. Harmless today (placement comes from
-  // .applied__item), but if it ever needs its own alignment it must gain a rule.
-  applied__change: "grid cell; placement comes from the .applied__item columns",
 };
 
 const isDefined = (cls: string): boolean => new RegExp("\\." + cls + "(?![\\w-])").test(css);

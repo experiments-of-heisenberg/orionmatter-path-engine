@@ -92,11 +92,10 @@ describe("tornadoSummary rounding", () => {
     );
   });
 
-  it("a swing of exactly 1.0 names the limit with 'a swing of about 1 points'", () => {
-    // Note the plural "1 points": the summary rounds but never singularises. Cosmetic only.
+  it("a swing of exactly 1.0 says 'point', not 'points' (review fix)", () => {
     expect(tornadoSummary([rowWith(1.0)])).toBe(
       "Time limit matters most: from 12 months (none within your limits) to 48 months " +
-        "(74\u201392%, 47 of 55 engineers), a swing of about 1 points.",
+        "(74\u201392%, 47 of 55 engineers), a swing of about 1 point.",
     );
   });
 });

@@ -1271,6 +1271,9 @@ ul {
 .applied__name {
   font-weight: 650;
 }
+.applied__change {
+  color: var(--muted);
+}
 .applied__phrase {
   color: var(--muted);
   justify-self: end;
