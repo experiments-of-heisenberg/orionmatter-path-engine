@@ -14,7 +14,7 @@ export type CallSource = "agent" | "engine";
 export type AgentEvent =
   | {
       type: "stage";
-      stage: "interpreting" | "gathering" | "composing" | "auditing" | "revising" | "done";
+      stage: "interpreting" | "explaining" | "gathering" | "composing" | "auditing" | "revising" | "done";
       round?: number;
     }
   | { type: "tool_call"; id: string; name: string; args: unknown; by: CallSource }
