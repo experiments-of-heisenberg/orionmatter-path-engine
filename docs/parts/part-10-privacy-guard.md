@@ -122,7 +122,13 @@ The reasons, in order (contact, person, crowd, details), using the exact texts:
 - `Only {n} comparable engineer(s) in the data share everything you would share.` (crowd below 3)
 - `Only {n} comparable engineers share everything you would share; a crowd of {k} or more is safer.` (below k but not tiny)
 - `{n} detail(s) in your text could identify you or someone else.`
-- Low risk adds: `The crowd stays at {n} or more and nothing in the text stood out.`
+- Low risk adds one of three sentences, so it never claims more than was checked: with the model
+  check done, `The crowd stays at {n} or more and nothing in the text stood out.`; with no text,
+  `The crowd stays at {n} or more. No text was checked.`; with the model check not run, only
+  `The crowd stays at {n} or more.`
+- Whenever there is text and the model check did not run (it failed or `useModel` was false), a reason
+  says so, at any risk level: `The model check did not run, so names, employers and other details in your
+text were not checked; only contact details, exact dates and exact pay were.`
 
 ## The preview
 
@@ -195,6 +201,10 @@ What review found along the way, all fixed with mutation-checked regression test
   passed everything. `k` must now be a whole number of at least 1.
 - **Detector gaps:** numeric dates (`15/03/2023`, `03-15-2023`, `2023/03/15`) and lower-case currency codes
   were missed, and a reason read "A email address".
+- **A misleading "low" (found on re-reading the code):** a low risk said "nothing in the text stood out"
+  even when the model check never ran or there was no text. The wording now says what was checked.
+- **A try block that was too wide (same review):** a bug in the guard would have been reported as "the model
+  was unavailable". Only the model call is inside the try now.
 - **A pay figure swallowing a full stop** (found by my own test): the amount pattern now ends on a digit.
 
 ## Known limits

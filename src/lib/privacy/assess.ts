@@ -103,45 +103,52 @@ export async function assessPrivacy(deps: PrivacyDeps, input: PrivacyInput): Pro
   let textCheck: PrivacyAssessment["textCheck"] = text.length === 0 ? "skipped" : "code_only";
 
   // ---- MODEL (Muse Spark), then the GUARD ----
+  // Only the model call is inside the try: a failure of the model is a degraded answer, but a bug in
+  // the guard below must not be disguised as "the model was unavailable".
+  let proposals: PrivacyModelOutput | undefined;
   if (text.length > 0 && input.useModel !== false) {
     try {
       // The model sees the text with contact details already removed: code handles those.
-      const { data } = await chatStructured(
-        deps.client,
-        {
-          label: "privacy:review",
-          target: "spark",
-          reasoningEffort: deps.effort ?? "minimal",
-          maxCompletionTokens: 3000,
-          messages: [
-            { role: "system", content: PRIVACY_SYSTEM_PROMPT },
-            { role: "user", content: privacyUserMessage(redactPii(text).text) },
-          ],
-        },
-        PrivacyModelOutput,
-      );
-      textCheck = "done";
-      const generic = profileWords(input.profile);
-      const known = new Set(findings.map((f) => f.quote.toLowerCase()));
-      let discarded = 0;
-      for (const proposed of data.findings) {
-        const quote = proposed.quote.trim();
-        if (!phraseInText(quote, text)) {
-          discarded++;
-        } else if (generic.has(quote.toLowerCase())) {
-          notes.push(`Ignored "${quote.slice(0, 30)}": your profile already shares it.`);
-        } else if (!known.has(quote.toLowerCase())) {
-          known.add(quote.toLowerCase());
-          findings.push({ quote, category: proposed.category, reason: proposed.reason, source: "model" });
-        }
-      }
-      if (discarded > 0)
-        notes.push(`Discarded ${discarded} proposed item(s) quoting words that are not in your text.`);
+      proposals = (
+        await chatStructured(
+          deps.client,
+          {
+            label: "privacy:review",
+            target: "spark",
+            reasoningEffort: deps.effort ?? "minimal",
+            maxCompletionTokens: 3000,
+            messages: [
+              { role: "system", content: PRIVACY_SYSTEM_PROMPT },
+              { role: "user", content: privacyUserMessage(redactPii(text).text) },
+            ],
+          },
+          PrivacyModelOutput,
+        )
+      ).data;
     } catch (error) {
       notes.push(
         `The model check was unavailable (${error instanceof Error ? error.name : "error"}), so only code checks ran on your text.`,
       );
     }
+  }
+  if (proposals) {
+    textCheck = "done";
+    const generic = profileWords(input.profile);
+    const known = new Set(findings.map((f) => f.quote.toLowerCase()));
+    let discarded = 0;
+    for (const proposed of proposals.findings) {
+      const quote = proposed.quote.trim();
+      if (!phraseInText(quote, text)) {
+        discarded++;
+      } else if (generic.has(quote.toLowerCase())) {
+        notes.push(`Ignored "${quote.slice(0, 30)}": your profile already shares it.`);
+      } else if (!known.has(quote.toLowerCase())) {
+        known.add(quote.toLowerCase());
+        findings.push({ quote, category: proposed.category, reason: proposed.reason, source: "model" });
+      }
+    }
+    if (discarded > 0)
+      notes.push(`Discarded ${discarded} proposed item(s) quoting words that are not in your text.`);
   }
 
   // ---- VERDICT (code) ----
@@ -165,8 +172,19 @@ export async function assessPrivacy(deps: PrivacyDeps, input: PrivacyInput): Pro
       : !ladder.fullPasses || findings.length > 0
         ? "medium"
         : "low";
-  if (risk === "low")
-    reasons.push(`The crowd stays at ${fullSize} or more and nothing in the text stood out.`);
+  // Say exactly what was and was not checked: a "low" built on a check that did not run must not read as clean.
+  if (textCheck === "code_only") {
+    reasons.push(
+      "The model check did not run, so names, employers and other details in your text were not checked; only contact details, exact dates and exact pay were.",
+    );
+  }
+  if (risk === "low") {
+    reasons.push(
+      textCheck === "skipped"
+        ? `The crowd stays at ${fullSize} or more. No text was checked.`
+        : `The crowd stays at ${fullSize} or more${textCheck === "done" ? " and nothing in the text stood out" : ""}.`,
+    );
+  }
 
   return {
     risk,
