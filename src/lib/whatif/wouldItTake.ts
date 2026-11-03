@@ -48,6 +48,11 @@ export interface Relaxation {
   to: string;
   /** Size of the change: months added, bands dropped, or 1 for a switch. */
   steps: number;
+  /**
+   * The new value, for a program to apply (the display strings above are for people): months for
+   * maxMonths, a band or null ("no floor") for minCompBand, and false for the two switches.
+   */
+  value: number | string | false | null;
   /** What the person would then have. */
   metric: HeadlineMetric;
   /** A sentence written by code. */
@@ -123,8 +128,15 @@ export function whatWouldItTake(input: EngineInput, target: Target = DEFAULT_TAR
   if (meetsTarget(now, target)) return { target, current: now, alreadyMet: true, options: [] };
 
   const options: Relaxation[] = [];
-  const add = (knob: RelaxKnob, from: string, to: string, steps: number, metric: HeadlineMetric): void => {
-    options.push({ knob, from, to, steps, metric, ...describe(knob, from, to, metric) });
+  const add = (
+    knob: RelaxKnob,
+    from: string,
+    to: string,
+    steps: number,
+    metric: HeadlineMetric,
+    value: Relaxation["value"],
+  ): void => {
+    options.push({ knob, from, to, steps, value, metric, ...describe(knob, from, to, metric) });
   };
 
   if (current.maxMonths !== undefined) {
@@ -137,6 +149,7 @@ export function whatWouldItTake(input: EngineInput, target: Target = DEFAULT_TAR
           `${months} months`,
           months - current.maxMonths,
           metric,
+          months,
         );
         break;
       }
@@ -154,6 +167,7 @@ export function whatWouldItTake(input: EngineInput, target: Target = DEFAULT_TAR
           band < 0 ? "no floor" : (BANDS[band] as string),
           dropped,
           metric,
+          band < 0 ? null : (BANDS[band] as string),
         );
         break;
       }
@@ -163,7 +177,7 @@ export function whatWouldItTake(input: EngineInput, target: Target = DEFAULT_TAR
   for (const knob of ["remote", "noRelocation"] as const) {
     if (current[knob]) {
       const metric = measure({ [knob]: false });
-      if (meetsTarget(metric, target)) add(knob, "on", "off", 1, metric);
+      if (meetsTarget(metric, target)) add(knob, "on", "off", 1, metric, false);
     }
   }
 

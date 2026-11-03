@@ -1,11 +1,10 @@
 /**
  * PathApp.tsx: the screen. It asks the instant `explore` route for the numbers (no model, a few milliseconds)
- * and draws them: the map, three route cards, and the detail of the one you select. Compare and Why are tabs.
- * Parts 13 and 14 add What-if, the agent trace and the privacy panel around this same state.
+ * and draws them: the map, three route cards, and the detail of the one you select. What if, Compare and Why
+ * are tabs on the same state (see usePathState.ts). Part 14 adds the agent trace and the privacy panel.
  */
 "use client";
-import { useCallback, useEffect, useState } from "react";
-import { ApiClientError, postJson } from "../lib/api/client";
+import { useCallback, useState } from "react";
 import type { ExploreResult } from "../lib/api/handlers";
 import { ARCHETYPE_LABEL, summaryLine, type Archetype } from "../ui/format";
 import { axisMaxFor } from "../ui/mapLayout";
@@ -13,10 +12,13 @@ import { REGION_LABEL, ROLE_LABEL, SAMPLE_PERSON, type Person } from "../ui/samp
 import { Constellation } from "./Constellation";
 import { ComparePanel, RouteDetail, WhyPanel } from "./Panels";
 import { RouteCard } from "./RouteCard";
+import { usePathState } from "./usePathState";
+import { IDLE_BINDINGS, WhatIfPanel, type WhatIfBindings } from "./WhatIfPanel";
 
-export type Tab = "map" | "compare" | "why";
+export type Tab = "map" | "whatif" | "compare" | "why";
 const TABS: { id: Tab; label: string }[] = [
   { id: "map", label: "Map" },
+  { id: "whatif", label: "What if" },
   { id: "compare", label: "Compare" },
   { id: "why", label: "Why" },
 ];
@@ -33,6 +35,8 @@ export interface ViewProps {
   /** Routes hidden in the radar. Held by the parent so the choice survives a tab switch. */
   hidden?: ReadonlySet<Archetype>;
   onToggleRoute?: (archetype: Archetype) => void;
+  /** Everything the What if tab needs. Omitted for a static render, which shows the idle tab. */
+  whatIf?: WhatIfBindings;
 }
 
 /** The whole screen as a pure function of its props, so it can be rendered on the server and tested without a browser. */
@@ -50,6 +54,7 @@ export function PathView({
   onRetry,
   hidden = NONE,
   onToggleRoute = noop,
+  whatIf = IDLE_BINDINGS,
 }: ViewProps) {
   const route = data?.routes.find((r) => r.archetype === chosen);
   const axisMax = data ? axisMaxFor(data.routes, person.constraints.maxMonths) : 60;
@@ -168,6 +173,15 @@ export function PathView({
                 <RouteDetail route={route} maxMonths={maxMonths} />
               </>
             )}
+            {tab === "whatif" && (
+              <WhatIfPanel
+                person={person}
+                data={data}
+                selected={chosen}
+                onSelect={onSelect}
+                bindings={whatIf}
+              />
+            )}
             {tab === "compare" && (
               <ComparePanel sheet={data} selected={chosen} hidden={hidden} onToggle={onToggleRoute} />
             )}
@@ -187,11 +201,9 @@ export function PathView({
 }
 
 export function PathApp({ person = SAMPLE_PERSON }: { person?: Person }) {
-  const [data, setData] = useState<ExploreResult | undefined>();
-  const [error, setError] = useState<string | undefined>();
   const [tab, setTab] = useState<Tab>("map");
-  const [selected, setSelected] = useState<Archetype | undefined>();
   const [hidden, setHidden] = useState<ReadonlySet<Archetype>>(NONE);
+  const state = usePathState(person);
   const toggleRoute = useCallback((a: Archetype) => {
     setHidden((prev) => {
       const next = new Set(prev);
@@ -201,33 +213,19 @@ export function PathApp({ person = SAMPLE_PERSON }: { person?: Person }) {
     });
   }, []);
 
-  const load = useCallback(async () => {
-    setError(undefined);
-    try {
-      const result = await postJson<ExploreResult>("/api/explore", person);
-      setData(result);
-      setSelected((current) => current ?? result.ranking.recommended ?? "climb");
-    } catch (e) {
-      setError(e instanceof ApiClientError ? e.message : "Something went wrong. Please try again.");
-    }
-  }, [person]);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
-
   return (
     <PathView
-      person={person}
-      data={data}
-      error={error}
+      person={state.live}
+      data={state.data}
+      error={state.error}
       tab={tab}
-      selected={selected ?? "climb"}
+      selected={state.selected ?? "climb"}
       onTab={setTab}
-      onSelect={setSelected}
-      onRetry={() => void load()}
+      onSelect={state.select}
+      onRetry={state.retry}
       hidden={hidden}
       onToggleRoute={toggleRoute}
+      whatIf={state.bindings}
     />
   );
 }

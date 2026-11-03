@@ -57,6 +57,9 @@ export function handleExplore(body: PlanRequest): ExploreResult {
   };
 }
 
+/** What /api/whatif returns once a turn is done. */
+export type WhatIfResult = Awaited<ReturnType<typeof handleWhatIf>>;
+
 /** POST /api/whatif: interpret a sentence, recompute, diff, explain, and add the tornado for the new constraints. */
 export async function handleWhatIf(services: Services, body: WhatIfRequest, emit: Emit) {
   const run = await runWhatIf(
