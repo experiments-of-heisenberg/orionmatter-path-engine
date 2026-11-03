@@ -14,7 +14,7 @@
  */
 import { assemblePlan, gatherEvidence, PlanDraft, type EngineInput, type FactSheet } from "../engine";
 import { chatStructured, runToolLoop, type ModelClient, type ReasoningEffort } from "../model";
-import type { PlanResult } from "../schemas";
+import type { PlanResult, SkepticVerdict } from "../schemas";
 import { EvidenceLedger } from "../tools/ledger";
 import { summarizeEvidence } from "../engine";
 import { noEmit, type Emit } from "./events";
@@ -24,6 +24,7 @@ import {
   GATHER_SYSTEM_PROMPT,
   composeUserMessage,
   gatherUserMessage,
+  revisionUserMessage,
 } from "./plannerPrompts";
 
 export interface PlannerDeps {
@@ -154,4 +155,44 @@ export async function runPlanner(
     repaired: composed.repaired,
     ...(composed.repairReason ? { repairReason: composed.repairReason } : {}),
   };
+}
+
+/** Inputs for a revision. */
+export interface ReviseArgs {
+  sheet: FactSheet;
+  /** The draft the Skeptic rejected. */
+  draft: PlanDraft;
+  verdict: SkepticVerdict;
+  /** 1 for the first revision, 2 for the second. Used in labels. */
+  round: number;
+}
+
+/**
+ * Ask the Planner to fix a rejected draft.
+ *
+ * The conversation replays the original request, the model's rejected draft as its own
+ * previous answer, and the Skeptic's rejections. The fact sheet does not change: only the
+ * words are rewritten, so the evidence and numbers stay exactly the same.
+ */
+export async function revisePlan(
+  deps: PlannerDeps,
+  args: ReviseArgs,
+): Promise<{ draft: PlanDraft; repaired: boolean }> {
+  const { data, repaired } = await chatStructured(
+    deps.client,
+    {
+      label: `planner:revise:round${args.round}`,
+      target: "spark",
+      reasoningEffort: deps.reasoning?.compose ?? DEFAULT_COMPOSE_EFFORT,
+      maxCompletionTokens: 8000,
+      messages: [
+        { role: "system", content: COMPOSE_SYSTEM_PROMPT },
+        { role: "user", content: composeUserMessage(args.sheet) },
+        { role: "assistant", content: JSON.stringify(args.draft) },
+        { role: "user", content: revisionUserMessage(args.verdict) },
+      ],
+    },
+    PlanDraft,
+  );
+  return { draft: data, repaired };
 }

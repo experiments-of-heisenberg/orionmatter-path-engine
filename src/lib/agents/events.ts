@@ -6,6 +6,8 @@
  * means the same events can drive a UI, a log or a test assertion.
  */
 
+import type { Rejection } from "../schemas";
+
 /** Who made a tool call: the model (agent) or deterministic code filling a gap (engine). */
 export type CallSource = "agent" | "engine";
 
@@ -22,7 +24,9 @@ export type AgentEvent =
       /** Ledger evidence id, present when the call succeeded. Claims cite these. */
       evidenceId?: string;
     }
-  | { type: "note"; message: string };
+  | { type: "note"; message: string }
+  /** The Skeptic's verdict after an audit round (round 0 is the first plan). */
+  | { type: "verdict"; round: number; approved: boolean; rejections: Rejection[]; notes: string[] };
 
 /** Callback agents use to report progress. */
 export type Emit = (event: AgentEvent) => void;

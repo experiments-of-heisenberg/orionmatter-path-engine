@@ -191,9 +191,9 @@ describe("emitted events", () => {
       "tool_call",
       "tool_result",
     ]);
-    expect(events.map((event) => (event.type === "note" || event.type === "stage" ? "?" : event.id))).toEqual(
-      ["c1", "c1", "c2", "c2"],
-    );
+    expect(
+      events.map((event) => (event.type === "tool_call" || event.type === "tool_result" ? event.id : "?")),
+    ).toEqual(["c1", "c1", "c2", "c2"]);
   });
 
   it("a successful tool_result carries evidenceId, a summary and by agent", async () => {

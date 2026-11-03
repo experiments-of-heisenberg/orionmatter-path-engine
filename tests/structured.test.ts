@@ -104,3 +104,55 @@ describe("chatStructured", () => {
     expect((await chatStructured(client, request, Answer)).repaired).toBe(true);
   });
 });
+
+describe("chatStructured and stray-tail recovery", () => {
+  const Wrapper = z.object({ items: z.array(Answer) });
+  const glitched = '{"items": [{"level":"L5","years":7} %}'; // a complete item, then a missing bracket and junk
+
+  it("accepts a reply with a short stray tail, makes no repair call, and says it recovered", async () => {
+    const client = createMockClient([reply(glitched)]);
+    const out = await chatStructured(client, request, Wrapper);
+    expect(out.data.items).toEqual([{ level: "L5", years: 7 }]);
+    expect(out.recovered).toBe(true);
+    expect(out.repaired).toBe(false);
+    expect(client.requests).toHaveLength(1);
+  });
+
+  it("reports recovered: false for a clean reply", async () => {
+    const client = createMockClient([reply('{"items": []}')]);
+    expect((await chatStructured(client, request, Wrapper)).recovered).toBe(false);
+  });
+
+  it("never recovers a reply the provider says was cut off by the token limit: it repairs instead", async () => {
+    const client = createMockClient([
+      { text: glitched, finishReason: "length" },
+      reply('{"items": [{"level":"L5","years":7}]}'),
+    ]);
+    const out = await chatStructured(client, request, Wrapper);
+    expect(out.repaired).toBe(true);
+    expect(out.recovered).toBe(false);
+    expect(client.requests).toHaveLength(2);
+  });
+
+  it("still validates a recovered reply against the schema, so incomplete data is rejected", async () => {
+    // Recoverable syntax, but the item is missing a required field: schema validation must still fail it.
+    const client = createMockClient([
+      reply('{"items": [{"level":"L5"} %}'),
+      reply('{"items": [{"level":"L5","years":7}]}'),
+    ]);
+    const out = await chatStructured(client, request, Wrapper);
+    expect(out.repaired).toBe(true);
+    expect(out.repairReason).toContain("years");
+  });
+
+  it("tells the model WHERE its JSON broke when it asks for a repair", async () => {
+    const client = createMockClient([
+      reply('{"items": [{"level": "L5" "years": 7}]}'),
+      reply('{"items": []}'),
+    ]);
+    await chatStructured(client, request, Wrapper);
+    expect(JSON.stringify(client.requests[1]?.messages.at(-1))).toMatch(
+      /looks like JSON but is not valid: .* at character \d+/,
+    );
+  });
+});

@@ -2,7 +2,7 @@
  * Shared builders for engine and planner tests: a standard person and goal, and a function
  * that writes a valid model draft from the fact sheet found in a compose prompt.
  */
-import type { FactSheet } from "../../src/lib/engine";
+import { PlanDraft, type FactSheet } from "../../src/lib/engine";
 import { Constraints, Goal, Profile } from "../../src/lib/schemas";
 import type { EngineInput } from "../../src/lib/engine";
 import type { ChatRequest } from "../../src/lib/model";
@@ -26,6 +26,7 @@ type PromptFacts = {
     archetype: string;
     statsEvidenceId: string;
     n: number;
+    evidenceThin?: boolean;
     reachedRate: [number, number];
     monthsToGoal: [number, number] | null;
   }>;
@@ -45,7 +46,7 @@ export function draftFromRequest(request: ChatRequest, extra: Record<string, unk
   const facts = factsFromRequest(request);
   const routes = facts.routes.map((route) => ({
     archetype: route.archetype,
-    summary: `The ${route.archetype} route, based on ${route.n} comparable engineers.`,
+    summary: `The ${route.archetype} route, based on ${route.n} comparable engineers${route.evidenceThin ? " (limited evidence)" : ""}.`,
     steps: [
       {
         what: `First move on the ${route.archetype} route`,
@@ -87,3 +88,51 @@ export function draftFromRequest(request: ChatRequest, extra: Record<string, unk
 }
 
 export type { FactSheet };
+
+/** The JSON shape of a draft, loosely typed so tests can mutate it to introduce flaws. */
+export type DraftJson = {
+  routes: Array<{
+    archetype: string;
+    summary: string;
+    steps: Array<{
+      what: string;
+      monthWindow: [number, number];
+      whyItWorks: Array<{ text: string; evidenceIds: string[]; n: number; range?: [number, number] }>;
+      proofNeeded: string[];
+      gapClosers: string[];
+      companyMarkerIds: string[];
+    }>;
+  }>;
+  caveats: string[];
+};
+
+/** A valid draft (as JSON text) built from the request's fact sheet, then altered by `mutate`. */
+export function flawedDraft(request: ChatRequest, mutate: (draft: DraftJson) => void): string {
+  const draft = JSON.parse(draftFromRequest(request)) as DraftJson;
+  mutate(draft);
+  return JSON.stringify(draft);
+}
+
+/** A valid, parsed PlanDraft for a fact sheet, with no model involved. Used by verifier tests. */
+export function validDraftForSheet(sheet: FactSheet): PlanDraft {
+  const fakeRequest: ChatRequest = {
+    label: "t",
+    target: "spark",
+    messages: [
+      {
+        role: "user",
+        content: `<fact_sheet>\n${JSON.stringify({
+          routes: sheet.routes.map((r) => ({
+            archetype: r.archetype,
+            statsEvidenceId: r.statsEvidenceId,
+            n: r.n,
+            evidenceThin: r.evidenceThin,
+            reachedRate: r.reachedRate,
+            monthsToGoal: r.monthsToGoal,
+          })),
+        })}\n</fact_sheet>`,
+      },
+    ],
+  };
+  return PlanDraft.parse(JSON.parse(draftFromRequest(fakeRequest)));
+}

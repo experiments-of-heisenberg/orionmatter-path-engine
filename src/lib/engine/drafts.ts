@@ -21,7 +21,8 @@ export type RouteDraft = z.infer<typeof RouteDraft>;
 export const PlanDraft = z
   .object({
     routes: z.array(RouteDraft).length(3),
-    caveats: z.array(z.string().max(300)).max(4),
+    // Optional: code always adds the survivorship caveat, so a missing list is harmless.
+    caveats: z.array(z.string().max(300)).max(4).default([]),
   })
   .superRefine((draft, ctx) => {
     // Failing this check feeds the repair retry a clear message about what is missing.

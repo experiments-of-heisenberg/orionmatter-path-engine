@@ -9,13 +9,15 @@
  */
 import { z } from "zod";
 import { ModelParseError } from "./errors";
-import { extractJson } from "./json";
+import { parseModelJson } from "./json";
 import type { ChatMessage, ChatRequest, ChatResult, ModelClient } from "./types";
 
 export interface StructuredResult<T> {
   data: T;
   /** True when the first reply was invalid and the repair retry fixed it. */
   repaired: boolean;
+  /** True when the reply that produced `data` had a short stray tail dropped to make it parseable. */
+  recovered: boolean;
   /** Why the first reply was rejected (validation messages), present only when `repaired`. Contains no model text. */
   repairReason?: string;
   /** Result of the call that produced `data`. */
@@ -42,19 +44,20 @@ function schemaInstruction(schema: z.ZodType): ChatMessage {
 
 /** Try to turn a reply into validated data, describing any problem in plain text. */
 function validate<T>(
-  text: string,
+  result: ChatResult,
   schema: z.ZodType<T>,
-): { ok: true; data: T } | { ok: false; issues: string } {
-  let value: unknown;
+): { ok: true; data: T; recovered: boolean } | { ok: false; issues: string } {
+  let parsed;
   try {
-    value = extractJson(text);
+    // A reply cut off by the token limit is likely missing data: never paper over that.
+    parsed = parseModelJson(result.text, { recover: result.finishReason !== "length" });
   } catch (error) {
     return { ok: false, issues: error instanceof Error ? error.message : "could not parse JSON" };
   }
-  const parsed = schema.safeParse(value);
-  return parsed.success
-    ? { ok: true, data: parsed.data }
-    : { ok: false, issues: z.prettifyError(parsed.error) };
+  const checked = schema.safeParse(parsed.value);
+  return checked.success
+    ? { ok: true, data: checked.data, recovered: parsed.recovered }
+    : { ok: false, issues: z.prettifyError(checked.error) };
 }
 
 /**
@@ -77,11 +80,12 @@ export async function chatStructured<T>(
     : [...request.messages];
 
   const first = await client.chat({ ...request, messages });
-  const firstCheck = validate(first.text, schema);
+  const firstCheck = validate(first, schema);
   if (firstCheck.ok) {
     return {
       data: firstCheck.data,
       repaired: false,
+      recovered: firstCheck.recovered,
       result: first,
       totalTokens: first.usage.completionTokens,
     };
@@ -101,11 +105,12 @@ export async function chatStructured<T>(
     label: `${request.label}:repair`,
     messages: repairMessages,
   });
-  const secondCheck = validate(second.text, schema);
+  const secondCheck = validate(second, schema);
   if (secondCheck.ok) {
     return {
       data: secondCheck.data,
       repaired: true,
+      recovered: secondCheck.recovered,
       repairReason: firstCheck.issues,
       result: second,
       totalTokens: first.usage.completionTokens + second.usage.completionTokens,

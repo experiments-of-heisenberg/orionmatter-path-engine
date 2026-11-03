@@ -11,6 +11,7 @@
  */
 import { MARKERS } from "../tools/data";
 import type { FactSheet } from "../engine";
+import type { SkepticVerdict } from "../schemas";
 
 export const GATHER_SYSTEM_PROMPT = `You are the evidence-gathering step of a career route planner for engineers. You help one individual plan their own career; you never screen, rank or judge candidates for employers.
 
@@ -86,4 +87,28 @@ export function composeUserMessage(sheet: FactSheet): string {
 export function gatherUserMessage(sheetInput: FactSheet["input"]): string {
   const { goal, profile } = sheetInput;
   return `Gather evidence to plan a route to "${goal.label}" (level ${goal.targetLevel}) for an engineer in region ${profile.region}.`;
+}
+
+const ROUTE_NAMES = ["climb", "jump", "pivot"];
+
+/**
+ * The message that asks the Planner to fix a rejected plan.
+ *
+ * Each rejection says where the problem is, quotes the offending text and explains it, so
+ * the model can make a targeted fix instead of rewriting everything.
+ */
+export function revisionUserMessage(verdict: SkepticVerdict): string {
+  const lines = verdict.rejections.map((rejection, index) => {
+    const where =
+      rejection.routeIndex < 0
+        ? "the plan as a whole"
+        : `the ${ROUTE_NAMES[rejection.routeIndex] ?? "?"} route${rejection.stepIndex !== undefined ? `, step ${rejection.stepIndex + 1}` : ""}`;
+    return `${index + 1}. [${rejection.code}] In ${where}: "${rejection.claimText}"\n   Problem: ${rejection.reason}`;
+  });
+  return [
+    "The Skeptic rejected your plan. Fix EVERY problem below and return the COMPLETE corrected JSON, with all three routes.",
+    "Keep everything that was not criticised. Follow all the rules in the system prompt.",
+    "",
+    ...lines,
+  ].join("\n");
 }

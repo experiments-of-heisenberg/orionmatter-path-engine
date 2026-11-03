@@ -320,6 +320,24 @@ describe("PlanDraft validation", () => {
   });
 });
 
+describe("PlanDraft caveats", () => {
+  it("defaults to an empty list when the model omits caveats (code adds the real one)", () => {
+    const sheet = gatherEvidence(new EvidenceLedger(), input);
+    const step = {
+      what: "m",
+      monthWindow: [0, 1],
+      whyItWorks: [],
+      proofNeeded: [],
+      gapClosers: [],
+      companyMarkerIds: [],
+    };
+    const route = (archetype: string) => ({ archetype, summary: "s", steps: [step, step] });
+    const draft = PlanDraft.parse({ routes: [route("climb"), route("jump"), route("pivot")] });
+    expect(draft.caveats).toEqual([]);
+    expect(assemblePlan(draft, sheet).caveats).toHaveLength(1); // just the survivorship caveat
+  });
+});
+
 describe("summarizeEvidence", () => {
   it("describes each tool compactly for the trace", () => {
     const ledger = new EvidenceLedger();

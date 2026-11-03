@@ -135,16 +135,30 @@ export const PlanResult = z.object({
 export type PlanResult = z.infer<typeof PlanResult>;
 
 // The skeptic reviewer's verdict contract (used by later agent parts): approval plus rejections.
+/** Which layer of the Skeptic raised a rejection. */
+export const RejectionSource = z.enum(["verifier", "critic"]);
+
+/** One thing the Skeptic wants fixed. */
+export const Rejection = z.object({
+  /** Machine-readable problem code, e.g. "n_mismatch". The UI groups and colours by it. */
+  code: z.string(),
+  source: RejectionSource,
+  /** Index into plan.routes, or -1 for a problem with the plan as a whole. */
+  routeIndex: z.number().int(),
+  /** Index into the route's steps when the problem is inside one step. */
+  stepIndex: z.number().int().optional(),
+  /** The offending text, quoted so a person can find it ("(summary)" when it is the route summary). */
+  claimText: z.string(),
+  /** Plain-language explanation, written so the Planner can act on it. */
+  reason: z.string(),
+});
+/** Inferred `Rejection` type. */
+export type Rejection = z.infer<typeof Rejection>;
+
+/** The Skeptic's verdict on a plan. Approved means no rejections remain. */
 export const SkepticVerdict = z.object({
   approved: z.boolean(),
-  rejections: z.array(
-    z.object({
-      routeIndex: z.number(),
-      claimText: z.string(),
-      reason: z.string(),
-    }),
-  ),
+  rejections: z.array(Rejection),
   notes: z.array(z.string()),
 });
-/** Inferred `SkepticVerdict` type; rejections point at a route index and a claim. */
 export type SkepticVerdict = z.infer<typeof SkepticVerdict>;
