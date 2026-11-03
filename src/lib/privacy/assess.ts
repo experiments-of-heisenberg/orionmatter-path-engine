@@ -74,11 +74,13 @@ function profileWords(profile: Profile): Set<string> {
 /**
  * Assess how identifying a profile and an optional story are.
  *
- * @throws PrivacyInputError when the story is too long
+ * @throws PrivacyInputError when the story is too long or k is not a whole number of at least 1
  */
 export async function assessPrivacy(deps: PrivacyDeps, input: PrivacyInput): Promise<PrivacyAssessment> {
   const emit = deps.emit ?? noEmit;
   const k = input.k ?? DEFAULT_K;
+  if (!Number.isInteger(k) || k < 1)
+    throw new PrivacyInputError(`k must be a whole number of at least 1 (got ${k}).`);
   const text = input.text === undefined ? "" : clean(input.text);
   if (text.length > MAX_STORY_CHARS) {
     throw new PrivacyInputError(

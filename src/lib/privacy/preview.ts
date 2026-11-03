@@ -33,14 +33,30 @@ export function phraseRegex(phrase: string): RegExp {
 /**
  * Replace every finding in the text.
  *
- * @returns the generalised text; longer quotes are replaced first so "Acme Robotics" wins over "Acme"
+ * All matches are found on the ORIGINAL text in one pass and then spliced in, so a placeholder
+ * inserted for one finding can never be matched, split or corrupted by another ("Acme Corporation"
+ * then "company" must not produce "[a [a detail]]"). Longer quotes claim their words first, so
+ * "Acme Robotics" wins over "Acme"; a match that overlaps one already claimed is skipped.
  */
 export function generalise(text: string, findings: readonly PrivacyFinding[]): string {
-  let out = text;
+  const claimed: { start: number; end: number; placeholder: string }[] = [];
+  const overlaps = (start: number, end: number): boolean =>
+    claimed.some((c) => start < c.end && c.start < end);
   const ordered = [...findings].sort((a, b) => b.quote.length - a.quote.length);
   for (const finding of ordered) {
     if (finding.quote.trim().length === 0) continue;
-    out = out.replace(phraseRegex(finding.quote), PLACEHOLDERS[finding.category]);
+    for (const match of text.matchAll(phraseRegex(finding.quote))) {
+      const start = match.index;
+      const end = start + match[0].length;
+      if (!overlaps(start, end)) claimed.push({ start, end, placeholder: PLACEHOLDERS[finding.category] });
+    }
   }
-  return out;
+  claimed.sort((a, b) => a.start - b.start);
+  let out = "";
+  let cursor = 0;
+  for (const c of claimed) {
+    out += text.slice(cursor, c.start) + c.placeholder;
+    cursor = c.end;
+  }
+  return out + text.slice(cursor);
 }

@@ -61,25 +61,21 @@ describe("disclosureLadder exhaustive sweep", () => {
 });
 
 describe("disclosureLadder k extremes", () => {
-  it.each([0, 1])("k = %i: everything passes (stated)", (k) => {
-    const result = disclosureLadder({ profile, goal, k });
+  it("k = 1: any non-empty crowd passes, and an empty one does not", () => {
+    const result = disclosureLadder({ profile, goal, k: 1 });
     expect(result.rungs.map((r) => r.passes)).toEqual(result.rungs.map(() => true));
     expect(result.fullPasses).toBe(true);
     expect(result.dropToReachK).toEqual([]);
+    const empty = disclosureLadder({ profile, goal, companyType: "spaceship", k: 1 });
+    expect(empty.rungs.at(-1)).toMatchObject({ size: 0, passes: false });
   });
 
-  it("k = 0 passes even a crowd of zero (stated)", () => {
-    const result = disclosureLadder({ profile, goal, companyType: "spaceship", k: 0 });
-    expect(result.rungs.at(-1)).toMatchObject({ added: "company type", size: 0, passes: true });
-    expect(result.fullPasses).toBe(true);
-  });
-
-  it("a negative k passes everything (stated)", () => {
-    const result = disclosureLadder({ profile, goal, k: -5 });
-    expect(result.rungs.every((r) => r.passes)).toBe(true);
-    expect(result.fullPasses).toBe(true);
-    expect(result.dropToReachK).toEqual([]);
-  });
+  it.each([0, -5, 1.5, Number.NaN, Number.POSITIVE_INFINITY])(
+    "refuses k = %s, which is not a whole number of at least 1 (review finding)",
+    (k) => {
+      expect(() => disclosureLadder({ profile, goal, k })).toThrow(RangeError);
+    },
+  );
 
   it("k larger than the cohort: nothing passes and nothing is shareable", () => {
     const k = COHORT.length + 1;

@@ -34,9 +34,15 @@ export interface LadderResult {
   notes: string[];
 }
 
-/** Compute the ladder. */
+/**
+ * Compute the ladder.
+ *
+ * @throws RangeError unless k is a whole number of at least 1
+ */
 export function disclosureLadder(input: LadderInput): LadderResult {
   const k = input.k ?? DEFAULT_K;
+  if (!Number.isInteger(k) || k < 1)
+    throw new RangeError(`k must be a whole number of at least 1 (got ${k}).`);
   const { profile, goal } = input;
   const notes: string[] = [];
   const steps: { added: string; label: string; apply: (a: AnonAttrs) => AnonAttrs }[] = [

@@ -29,13 +29,11 @@ describe("detectIdentifiers dates", () => {
     expect(detectIdentifiers("Promoted in March 2023 ok")).toEqual([]);
   });
 
-  it("does NOT flag numeric slash or dash dates (false negatives, reported)", () => {
-    // Common UK ("15/03/2023") and US ("03-15-2023") numeric forms: no pattern matches them,
-    // so they pass through unflagged. Worth reporting: both are exact dates by the Guard's
-    // own definition. ISO-with-slashes ("2023/03/15") is missed for the same reason.
-    expect(detectIdentifiers("on 15/03/2023 ok")).toEqual([]);
-    expect(detectIdentifiers("on 03-15-2023 ok")).toEqual([]);
-    expect(detectIdentifiers("on 2023/03/15 ok")).toEqual([]);
+  it("flags numeric slash and dash dates in UK, US and year-first order (review finding)", () => {
+    expect(quotes("on 15/03/2023 ok")).toEqual(["15/03/2023"]);
+    expect(quotes("on 03-15-2023 ok")).toEqual(["03-15-2023"]);
+    expect(quotes("on 2023/03/15 ok")).toEqual(["2023/03/15"]);
+    expect(quotes("version 1.2.3 and ratio 3/4 and 12/2023")).toEqual([]); // not dates
   });
 
   it("keeps the full stop that ends a sentence outside the match", () => {

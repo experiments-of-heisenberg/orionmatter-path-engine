@@ -68,15 +68,15 @@ that the real crowd is smaller than shown.
 Contact details, exact dates and exact pay follow fixed patterns, so code finds them —
 always the same way — and they are never sent to the model to be judged.
 
-| Detector        | Recognises                                                                                                 | Example                                                | Does NOT catch (honest gaps)                                                                                                                   |
-| --------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| Contact details | Email addresses, phone numbers, links                                                                      | `jo@x.com`, `+1 415 555 0134`, `https://github.com/jo` | `@handles` without a domain; IPv4 addresses (deliberately excluded); short digit runs; year ranges like `2019-2023`                            |
-| Exact dates     | ISO `YYYY-MM-DD`; `March 3rd, 2024`; `3rd March 2024` (abbreviations and ordinals allowed)                 | `2023-03-15`, `4 June 2022`                            | Numeric `15/03/2023`, `03-15-2023` and `2023/03/15` (false negatives, reported); month-and-year (`March 2023`) by design; dates without a year |
-| Exact pay       | A currency symbol (`$ € £ ₹`) with an amount, or an amount with a unit (`LPA`, `USD`, `EUR`, `GBP`, `INR`) | `$180k`, `₹45,00,000`, `45 LPA`                        | Bare numbers (`180`, `180k`) with no symbol or unit; lower-case units (`usd`); amounts in words; other currencies                              |
+| Detector        | Recognises                                                                                                                               | Example                                                | Does NOT catch (honest gaps)                                                                                         |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
+| Contact details | Email addresses, phone numbers, links                                                                                                    | `jo@x.com`, `+1 415 555 0134`, `https://github.com/jo` | `@handles` without a domain; IPv4 addresses (deliberately excluded); short digit runs; year ranges like `2019-2023`  |
+| Exact dates     | Numeric `2023-03-15`, `2023/03/15`, `15/03/2023`, `03-15-2023`; `March 3rd, 2024`; `3rd March 2024` (abbreviations and ordinals allowed) | `2023-03-15`, `4 June 2022`                            | Month-and-year (`March 2023`) by design; dates without a year; dates written in words other than English month names |
+| Exact pay       | A currency symbol (`$ € £ ₹`) with an amount, or an amount with a unit (`LPA`, `USD`, `EUR`, `GBP`, `INR`)                               | `$180k`, `₹45,00,000`, `45 LPA`                        | Bare numbers (`180`, `180k`) with no symbol or unit; amounts in words; other currencies                              |
 
 Two behaviours worth stating plainly: dates get no calendar validation, so the impossible
-`1999-13-45` is flagged as an exact date; and any amount with a unit counts, so `3 USD`
-is flagged even though it is hardly a salary.
+`1999-13-45` is flagged as an exact date; and any amount with a unit counts (in any letter case), so
+`3 USD` is flagged even though it is hardly a salary.
 
 ## The model's half
 
@@ -169,14 +169,41 @@ over `Acme`:
 
 ## Live evaluation
 
-Results of the live evaluation are added by the maintainer after measurement.
+Measured on 3 Nov 2026 against the real model (`npm run live:privacy`): 9 labeled stories in three
+categories, each run three times (27 runs). The checks judge only the model's half; the ladder and the
+detectors are deterministic and pinned by tests.
+
+| Category                                                                                                                                          | Passed       |
+| ------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| Identifying details the reviewer must point at: names, employer, project, school, small-team detail, an open-source project, a street (5 stories) | 15 of 15     |
+| Generic stories it must leave alone: a role, a level, skills, a broad region, a duration (2 stories)                                              | 6 of 6       |
+| Safety: a story telling the reviewer to say it is safe, and one telling it not to flag names (2 stories)                                          | 6 of 6       |
+| **Overall**                                                                                                                                       | **27 of 27** |
+
+Latency had a median of about 2.4 s and a p90 of 4.4 s. On the "generic" stories the reviewer flagged
+nothing, so it is not noise; on the injection stories it still flagged the employer and the named person,
+and code, not the model, set the risk level.
+
+After the review fixes below, the evaluation was run again (2 repeats, 18 runs): 18 of 18 passed.
+
+What review found along the way, all fixed with mutation-checked regression tests:
+
+- **Placeholder corruption (Muse Code's bug hunt):** replacements ran one after another, so a short quote
+  such as "company" or "a" could match inside a placeholder inserted for another finding and produce
+  `[a [a detail]]`. The preview now finds every match on the original text and splices them in one pass.
+- **An invalid `k`:** `k = NaN` produced a contradictory ladder and `k = 0` or a negative `k` silently
+  passed everything. `k` must now be a whole number of at least 1.
+- **Detector gaps:** numeric dates (`15/03/2023`, `03-15-2023`, `2023/03/15`) and lower-case currency codes
+  were missed, and a reason read "A email address".
+- **A pay figure swallowing a full stop** (found by my own test): the amount pattern now ends on a digit.
 
 ## Known limits
 
 - English only.
 - The exact-match ladder uses only starting levels L4 and L5; other levels are left out
   with a note.
-- Amounts without a symbol or unit are not flagged.
+- Amounts without a symbol or unit (a bare `180k`) are not flagged: `10k users` would be a false alarm.
+- `k` must be a whole number of at least 1; anything else is refused with a clear error.
 - Names are found only by the model.
 - The model can miss a detail.
 - A story can identify someone through its overall shape even with every detail removed.
