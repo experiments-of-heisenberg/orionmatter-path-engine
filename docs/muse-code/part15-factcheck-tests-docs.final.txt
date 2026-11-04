@@ -1,0 +1,23 @@
+Done. `npm run check` passes (typecheck, lint, format, 1824 tests passed + 1 skipped, secret scan clean). No file under `src/`, `evals/`, `scripts/` or `next.config.ts` touched, nothing committed.
+
+**Files created (6, all new):**
+- [part15-factcheck.md](/agent/workspace/orionmatter-path-engine/docs/muse-code/part15-factcheck.md) — line-by-line fact-check of README.md and docs/evals.md
+- [smokeEdges.test.ts](/agent/workspace/orionmatter-path-engine/tests/smokeEdges.test.ts) — 9 tests
+- [ledgerIdsEdges.test.ts](/agent/workspace/orionmatter-path-engine/tests/ledgerIdsEdges.test.ts) — 5 tests
+- [demoTextsEdges.test.ts](/agent/workspace/orionmatter-path-engine/tests/demoTextsEdges.test.ts) — 7 tests
+- [demoOnlyEdges.test.ts](/agent/workspace/orionmatter-path-engine/tests/demoOnlyEdges.test.ts) — 3 tests
+- [part-15-offline-demo-evals-smoke.md](/agent/workspace/orionmatter-path-engine/docs/parts/part-15-offline-demo-evals-smoke.md) — the Part 15 guide, ending with the required single-sentence "Live evaluation" section
+
+**Fact-check: 6 wrong/overstated claims** (everything else checkable was confirmed, including all evals-table numbers against `docs/evidence/live/*.txt`, the 13 finding codes, 17 ADRs, 1800 tests, 15 commits/14 runs, 35+ indexed bugs):
+1. README "130 test files" — actually 131 (vitest: 131 files, 1800 passed, 1 skipped, measured before my 4 new files).
+2. README "Script and shot list: `docs/demo.md`" — the file does not exist; broken link.
+3. evals.md "9 to 28 cases each" — only the three labelled-case suites fit; client has 4 checks, planner 2 scenarios, whatif-run 7 turns, audit 6.
+4. evals.md "The two scenarios that needed no revision" — four needed none (2, 3, 5, 6); two needed one revision (1, 4).
+5. README diagram tools "findTwins, pathStats, skillStats, compBands, k-anonymity" — real ledger tools are findTwins, pathStats, skillStats, levelMap, compBands; levelMap omitted, k-anonymity is not a ledger tool.
+6. README "Muse Code ... for every part ... from the data layer onward" — at this commit runs cover parts 2–14 (+14b); Part 15 had no run yet (this run closes the gap).
+
+**Bugs and doubts in the code:**
+- The task spec said a model-supplied call with extra unknown keys "is refused and does not consume an id." The code does the opposite: no schema in `toolSchemas.ts`/`schemas.ts` is `.strict()`, so Zod strips unknown keys and the call succeeds with the same id as a clean call (verified empirically; my test pins this real behavior). Doubt for the maintainer: silent stripping means the Planner loop never learns it sent a junk key. If refusal was intended, the schemas need `.strict()`; if stripping is intended, the spec expectation was wrong.
+- `runSmoke` keeps a base-URL path prefix (`http://x/app` → every check 404s) rather than stripping or warning. Documented in a test; minor UX doubt, fails safe.
+- `isObject` in `scripts/lib/smoke.ts` accepts arrays, so an array health answer fails with "ok is not true" — fails safe, message slightly indirect. Not a bug.
+- Confirmed good behavior, now pinned by tests: equal ladder sizes pass, NaN sizes fail the shrink check (all NaN comparisons false), invalid JSON and closing-empty streams fail only their own check, non-Error rejections are recorded via `String(error)` and `runSmoke` never throws, `demo_only` never echoes label/key and is not retryable.
