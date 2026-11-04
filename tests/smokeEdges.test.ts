@@ -41,6 +41,21 @@ const json =
   () =>
     Response.json(body, { status });
 
+describe("smoke timings", () => {
+  it("a passing check reports how long it really took, not zero", async () => {
+    // Regression: the clock was read in the same object literal as the await, so every passing check showed 0 ms.
+    install();
+    const slow: Handler = async () => {
+      await new Promise((resolve) => setTimeout(resolve, 150));
+      return health();
+    };
+    const results = await runSmoke(BASE, { fetch: fakeFetch({ "/api/health": slow }) });
+    const timed = byName(results, "health");
+    expect(timed?.ok).toBe(true);
+    expect(timed?.ms).toBeGreaterThanOrEqual(140);
+  });
+});
+
 describe("smoke checks against odd servers", () => {
   it("a server whose JSON is invalid fails that check with the parse error, and nothing throws", async () => {
     install();

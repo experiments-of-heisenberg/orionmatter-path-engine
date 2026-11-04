@@ -71,7 +71,10 @@ export async function runSmoke(baseUrl: string, options: SmokeOptions = {}): Pro
     const started = Date.now();
     let result: SmokeResult;
     try {
-      result = { name, ok: true, ms: Date.now() - started, detail: await run() };
+      // The detail is awaited first: in an object literal the properties are evaluated in order, so reading the clock in the
+      // same literal as the await stopped it before the check had run and reported every passing check as 0 ms.
+      const detail = await run();
+      result = { name, ok: true, ms: Date.now() - started, detail };
     } catch (error) {
       result = {
         name,
