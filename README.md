@@ -57,7 +57,8 @@ flowchart LR
   end
   subgraph Code["Deterministic code"]
     ENG[Engine: facts, routes, ranking, diff]
-    TOOLS[Tools: findTwins, pathStats, skillStats, compBands, k-anonymity]
+    TOOLS[Tools: findTwins, pathStats, skillStats, levelMap, compBands]
+    KANON[k-anonymity ladder]
     LED[(Evidence ledger<br/>content-hash ids)]
     VER[Skeptic verifier: 13 checks]
     GUARD[Guards: quotes must be in the text, numbers must match the diff]
@@ -76,7 +77,8 @@ flowchart LR
   VER -->|objections, with the exact words| A3
   VER --> A4
   UI --> PR --> A5 --> GUARD
-  PR --> TOOLS
+  PR --> KANON
+  KANON --> COH
 ```
 
 1. **Tools compute, with receipts.** Every number comes from a tool run against the cohort and is recorded in an _evidence
@@ -101,7 +103,7 @@ overwrite a newer one.
 ## Built with Muse Code
 
 Muse Code (version 1.4.14, **Standard mode**, model `muse-spark-1.3`) was part of the development loop for every part of the
-project from the data layer onward, and its work is in the repository for anyone to audit:
+project from the data layer (Part 2) to the offline demo and docs (Part 15), and its work is in the repository for anyone to audit:
 
 - **What it did.** For each part, Muse Code wrote edge-case tests, ran a bug hunt over the new code, and wrote the part's guide
   in [`docs/parts/`](docs/parts/). Each run is recorded in [`docs/muse-code/`](docs/muse-code/): the exact prompt, its final
@@ -126,12 +128,12 @@ project from the data layer onward, and its work is in the repository for anyone
 
 ## How this maps to the judging criteria
 
-| Criterion               | Where to look                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Impact**              | A real decision (switch, retrain, wait) made with ranges and sample sizes instead of a confident guess; a privacy tool for the person who has to share their story to get an answer; a card they can post without being identified. See the **Why** tab and [`docs/parts/part-14-agent-story-screens.md`](docs/parts/part-14-agent-story-screens.md).                                                                                           |
-| **Use of Meta tooling** | Muse Spark through the Meta Model API is the only model: tool calling (Planner), structured JSON (interpreter, narrator, critic, privacy), vision (screenshot intake). Muse Code is in the loop (see above). [`docs/api-notes.md`](docs/api-notes.md) records verified API behaviour such as reasoning tokens counting against the budget.                                                                                                      |
-| **Technical depth**     | Agents that check each other (Planner, verifier, critic), a grounded narrator, an evidence ledger, k-anonymity, deterministic recomputation, streaming with cancellation and stale-answer guards, strict TypeScript, Zod at every boundary, typed errors, redacted logs, 1,800 tests including a simulated browser against the real routes, mutation-checked fixes, and 17 [ADRs](docs/adr/). Live results in [`docs/evals.md`](docs/evals.md). |
-| **Demo**                | The app opens on a sample engineer and has one-click examples on every tab. The Agent trace shows every Skeptic check (in the live audit run the Skeptic sent 2 of 6 plans back; those rejections are kept in [`docs/evidence/live/audit.txt`](docs/evidence/live/audit.txt)). An offline demo build replays recorded Muse Spark answers, so it runs with no key (see below). Script and shot list: [`docs/demo.md`](docs/demo.md).             |
+| Criterion               | Where to look                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Impact**              | A real decision (switch, retrain, wait) made with ranges and sample sizes instead of a confident guess; a privacy tool for the person who has to share their story to get an answer; a card they can post without being identified. See the **Why** tab and [`docs/parts/part-14-agent-story-screens.md`](docs/parts/part-14-agent-story-screens.md).                                                                                            |
+| **Use of Meta tooling** | Muse Spark through the Meta Model API is the only model: tool calling (Planner), structured JSON (interpreter, narrator, critic, privacy), vision (screenshot intake). Muse Code is in the loop (see above). [`docs/api-notes.md`](docs/api-notes.md) records verified API behaviour such as reasoning tokens counting against the budget.                                                                                                       |
+| **Technical depth**     | Agents that check each other (Planner, verifier, critic), a grounded narrator, an evidence ledger, k-anonymity, deterministic recomputation, streaming with cancellation and stale-answer guards, strict TypeScript, Zod at every boundary, typed errors, redacted logs, 1,800+ tests including a simulated browser against the real routes, mutation-checked fixes, and 17 [ADRs](docs/adr/). Live results in [`docs/evals.md`](docs/evals.md). |
+| **Demo**                | The app opens on a sample engineer and has one-click examples on every tab. The Agent trace shows every Skeptic check (in the live audit run the Skeptic sent 2 of 6 plans back; those rejections are kept in [`docs/evidence/live/audit.txt`](docs/evidence/live/audit.txt)). An offline demo build replays recorded Muse Spark answers, so it runs with no key (see below). Script and shot list: [`docs/demo.md`](docs/demo.md).              |
 
 ## Run it
 
@@ -147,7 +149,7 @@ not recorded is refused with a message that says so. The screen shows "Demo buil
 The recordings are in [`src/fixtures/`](src/fixtures/) and can be redone with `RECORD_FIXTURES=true npm run record:demo`.
 
 ```bash
-npm run check                       # types, lint, format, 1,800 tests, secret scan
+npm run check                       # types, lint, format, 1,800+ tests, secret scan
 npm run build && npm start          # production build
 npm run smoke -- http://localhost:3000 --plan   # end-to-end check of a running server
 npm run live:audit                  # real Planner + Skeptic on six scenarios (needs a key)
@@ -167,7 +169,7 @@ Configuration is in [`.env.example`](.env.example). The key is read on the serve
 | `evals`, `scripts`                                                                         | Labelled live evaluation cases; live checks, fixture recording, preview rendering, smoke test              |
 | `data`                                                                                     | The synthetic cohort and its generator inputs                                                              |
 | `docs`                                                                                     | A guide per part, ADRs, Muse Code evidence, live results                                                   |
-| `tests`                                                                                    | 130 test files                                                                                             |
+| `tests`                                                                                    | 130+ test files                                                                                            |
 
 ## Limits, stated plainly
 

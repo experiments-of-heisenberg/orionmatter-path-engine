@@ -36,13 +36,13 @@ and the reason, the Planner revised, and the second check approved. In another s
 a live run, kept in [`evidence/live/audit.txt`](evidence/live/audit.txt) and visible in the app's Agent trace.
 
 That is the design working as intended: the model writes, **code owns every number**, and a plan is only shown as approved
-when every figure in it matches the evidence. The two scenarios that needed no revision are not the interesting ones; these are.
+when every figure in it matches the evidence. The four scenarios that needed no revision are not the interesting ones; these two are.
 
 ## What this does not show
 
 Said plainly, because a number without its limits is the thing this project argues against:
 
-- **Small suites.** 9 to 28 cases each, written by us, one run each. There are no confidence intervals and no repeated
+- **Small suites.** The three labelled-case suites have 9 to 28 cases each (privacy 9, intake 18, interpreter 28); the others are 2 to 7 runs, scenarios or checks (planner 2, narrator turns 7, audit 6, client 4). All were written by us and run once. There are no confidence intervals and no repeated
   trials, so "28 of 28" means "no failures in these 28", not "never fails". A rate of 100% on a small suite is compatible with a real failure rate of several percent.
 - **The cohort is synthetic** (484 generated engineers, seed 1026). The routes' ranges show how the method behaves on this
   dataset. They are not evidence about real careers and the app says so on every screen.
