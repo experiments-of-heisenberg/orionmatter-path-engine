@@ -160,12 +160,20 @@ const FLOOR = new RegExp(
 const RANGE = new RegExp(String.raw`\bB([1-5])\s*(?:${DASHES}|to)\s*B([1-5])\b`, "g");
 // the key to the codes, which the words make unnecessary: "B1 is lowest, B5 highest."
 const BAND_KEY = /\s*B1 is (?:the )?lowest,? (?:and )?B5 (?:is )?(?:the )?highest\.?/gi;
+// "a B4 minimum", "a B4 pay floor": the model's way of saying a lowest pay
+const MINIMUM = /\b(?:an? )?B([1-5]) (?:pay )?(?:minimum|floor)\b/gi;
 const BAND = /\bB([1-5])\b/g;
 // what is left of "pay band" once the codes are gone
 const PAY_BAND_WORDS = /\b([Pp])ay bands?\b/g;
 const LEVEL = /\b(L[3-7]|EM[12])\b/g;
 // "senior backend engineer (L5)": the words before already say it, so the bracket goes
 const LEVEL_BRACKET = /\s*\((L[3-7]|EM[12])\)/g;
+
+/** "a minimum pay of ₹70 lakh (about $85k+)": what "a B4 minimum" means. The lowest band is no minimum at all. */
+function minimumPay(band: number, spec: RegionBands): string {
+  const low = edges(spec, band).low;
+  return low === undefined ? "no minimum pay" : `a minimum pay of ${amount(spec, low)}${dollars(spec, low)}`;
+}
 
 /** "a pay of at least ₹70 lakh (about $80k+)": what "band B4 or higher" means as money. The lowest band is no floor at all. */
 function atLeast(band: number, spec: RegionBands): string {
@@ -182,6 +190,7 @@ export function humanize(text: string, forRegion: string | undefined = region): 
   if (!spec) return text;
   return text
     .replace(BAND_KEY, "")
+    .replace(MINIMUM, (_m, band: string) => minimumPay(Number(band), spec))
     .replace(FLOOR, (_m, band: string) => atLeast(Number(band), spec))
     .replace(RANGE, (_m, a: string, b: string) => payWords(Number(a), Number(b), spec))
     .replace(BAND, (_m, band: string) => payWords(Number(band), Number(band), spec))

@@ -93,6 +93,17 @@ describe("in India", () => {
   });
 });
 
+describe("a minimum is a floor, not a range", () => {
+  it("rewrites the model's phrasings of a lowest pay", () => {
+    setDisplayRegion("IN-south");
+    expect(plain(humanize("After adding a B4 minimum, your climb route looks narrower"))).toBe(
+      "After adding a minimum pay of \u20b970 lakh (about $85k+), your climb route looks narrower",
+    );
+    expect(plain(humanize("with a B3 pay floor"))).toBe("with a minimum pay of \u20b940 lakh (about $45k+)");
+    expect(humanize("a B1 minimum")).toBe("no minimum pay");
+  });
+});
+
 describe("elsewhere", () => {
   it("dollars need no second figure", () => {
     setDisplayRegion("US-west");

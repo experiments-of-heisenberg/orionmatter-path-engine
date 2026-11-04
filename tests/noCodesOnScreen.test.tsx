@@ -119,6 +119,20 @@ describe("no level or pay-band code on any screen", () => {
     },
   );
 
+  it("a pay minimum reads as a floor in the applied chip and in the explanation, never as a range", async () => {
+    const view = await open();
+    await userEvent.click(screen.getByRole("tab", { name: "What if" }));
+    await userEvent.click(
+      await screen.findByRole("button", { name: humanize(WHATIF_EXAMPLES[1], "IN-south") }),
+    );
+    const applied = await screen.findByLabelText("Changes applied");
+    expect(applied.textContent).toContain("Minimum yearly pay");
+    expect(applied.textContent).toContain("\u20b970L+");
+    expect(applied.textContent).not.toContain("crore");
+    await screen.findByText(/Phrased by Muse Spark/);
+    expectNoCode(view.container, "after the pay minimum");
+  });
+
   it("the plan, its steps and its trace", async () => {
     const view = await open();
     await userEvent.click(screen.getByRole("tab", { name: "Plan" }));

@@ -12,7 +12,7 @@ import { useState } from "react";
 import type { Turn } from "../ui/chat";
 import { WHATIF_EXAMPLES, exampleMessage } from "../ui/demo";
 import { MAX_MESSAGE, checkMessage, pendingQuestion } from "../ui/chat";
-import { h, humanize } from "../ui/display";
+import { displayActive, floorLabel, h, humanize } from "../ui/display";
 
 /** Sentences to try, shown while the conversation is empty. */
 export const EXAMPLES = WHATIF_EXAMPLES;
@@ -52,9 +52,10 @@ function Answer({
           <ul className="applied" aria-label={turn.held ? "Changes understood" : "Changes applied"}>
             {reading.applied.map((a) => (
               <li key={`${a.field}-${a.phrase}`} className="applied__item">
-                <span className="applied__name">{a.label}</span>
+                <span className="applied__name">{h(a.label)}</span>
                 <span className="applied__change">
-                  {h(a.from)} <span aria-label="changed to">{"\u2192"}</span> {h(a.to)}
+                  {appliedValue(a.label, a.from)} <span aria-label="changed to">{"\u2192"}</span>{" "}
+                  {appliedValue(a.label, a.to)}
                 </span>
                 <q className="applied__phrase">{h(a.phrase)}</q>
               </li>
@@ -276,4 +277,11 @@ export function Chat({ turns, busy, draft, onDraft, onSend, onApplyHeld }: ChatP
 /** The words on an answer button. A bare band is the answer to "what is the lowest pay you want", so it reads as a floor. */
 function optionLabel(option: string): string {
   return /^B[1-5]$/.test(option) ? humanize(`${option} or higher`) : h(option);
+}
+
+/** A value in an applied-change chip. The pay limit is a minimum, so a band reads as a floor ("\u20b970L+"), not as a range. */
+function appliedValue(label: string, value: string): string {
+  if (/pay band/i.test(label) && /^B[1-5]$/.test(value) && displayActive())
+    return floorLabel(Number(value.slice(1)));
+  return h(value);
 }
