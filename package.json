@@ -30,7 +30,8 @@
     "live:intake": "tsx scripts/live-intake-check.ts",
     "live:privacy": "tsx scripts/live-privacy-check.ts",
     "record:demo": "tsx scripts/record-demo-fixtures.ts",
-    "smoke": "tsx scripts/smoke-e2e.ts"
+    "smoke": "tsx scripts/smoke-e2e.ts",
+    "docs:images": "tsx scripts/render-readme-images.ts"
   },
   "dependencies": {
     "geist": "1.9.0",

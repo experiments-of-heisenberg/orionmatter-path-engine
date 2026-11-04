@@ -12,6 +12,18 @@ through the **Meta Model API** to **Muse Spark** (`muse-spark-1.3`). Development
 > the number of engineers behind it. Nothing here is a promise, a prediction about you, or a way to screen anyone else: it
 > is a planning tool for one person at a time.
 
+|                                                |               |
+| ---------------------------------------------- | ------------- |
+| Live app                                       | `<LIVE_URL>`  |
+| Demo app (no key, recorded Muse Spark answers) | `<DEMO_URL>`  |
+| Video                                          | `<VIDEO_URL>` |
+
+![The constellation map for the sample engineer, with the steps of the approved plan numbered on the climb route](docs/images/map.svg)
+
+![The shareable trail card: only the details that keep the person in a crowd of at least ten](docs/images/trail-card.svg)
+
+_Both pictures are drawn by the app's own components from the recorded demo data (`npm run docs:images`), not mocked up._
+
 ## Why this exists
 
 Career advice from a chatbot is fluent and unaccountable: it can say "Staff in 18 months" and nothing checks it. A
@@ -155,7 +167,7 @@ npm run smoke -- http://localhost:3000 --plan   # end-to-end check of a running 
 npm run live:audit                  # real Planner + Skeptic on six scenarios (needs a key)
 ```
 
-Configuration is in [`.env.example`](.env.example). The key is read on the server only and never reaches the browser or the logs.
+Deploying (a live project and a demo project from one repo): [`docs/deploy.md`](docs/deploy.md). Demo video script: [`docs/demo.md`](docs/demo.md). Submission checklist and text: [`docs/submission.md`](docs/submission.md). Configuration is in [`.env.example`](.env.example). The key is read on the server only and never reaches the browser or the logs.
 
 ## Repository tour
 
