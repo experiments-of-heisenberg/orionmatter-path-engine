@@ -109,3 +109,17 @@ describe("the pictures in the README are what the app draws", () => {
     }
   });
 });
+
+describe("the Muse Code claims are the recorded evidence", () => {
+  it("the README's number of recorded runs is the number of prompts kept", () => {
+    const runs = readdirSync("docs/muse-code").filter((f) => f.endsWith(".prompt.md")).length;
+    expect(read("README.md")).toContain(`(${runs} recorded runs)`);
+  });
+  it("every recorded run has its final message and its session export", () => {
+    for (const prompt of readdirSync("docs/muse-code").filter((f) => f.endsWith(".prompt.md"))) {
+      const name = prompt.replace(/\.prompt\.md$/, "");
+      expect(existsSync(`docs/muse-code/${name}.final.txt`), name).toBe(true);
+      expect(existsSync(`docs/muse-code/${name}.session.json.gz`), name).toBe(true);
+    }
+  });
+});

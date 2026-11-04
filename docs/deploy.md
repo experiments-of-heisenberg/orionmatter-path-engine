@@ -2,14 +2,14 @@
 
 Two ways to run the same code, and the recommendation is to deploy **both**:
 
-|             | Live                                                                 | Demo                                                                      |
-| ----------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| What it is  | Calls Muse Spark through the Meta Model API                          | Replays recorded Muse Spark answers; never calls the model                |
-| Needs a key | Yes (`MODEL_API_KEY`)                                                | No                                                                        |
-| Costs       | A few cents per plan; the key's budget                               | Nothing                                                                   |
-| Can do      | Anything a visitor types                                             | The one-click examples only (anything else is refused in words)           |
-| Screen says | nothing extra                                                        | "Demo build: replaying recorded Muse Spark answers"                       |
-| Use it for  | The video, the main link, judges who want to type their own sentence | The safety-net link: always fast, never rate-limited, never out of budget |
+|             | Live                                                                 | Demo                                                                            |
+| ----------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| What it is  | Calls Muse Spark through the Meta Model API                          | Replays recorded Muse Spark answers; never calls the model                      |
+| Needs a key | Yes (`MODEL_API_KEY`)                                                | No                                                                              |
+| Costs       | A few cents per plan; the key's budget                               | Nothing                                                                         |
+| Can do      | Anything a visitor types                                             | The one-click examples only (anything else is refused in words)                 |
+| Screen says | nothing extra                                                        | "Demo build: replaying recorded Muse Spark answers"                             |
+| Use it for  | The video, the main link, judges who want to type their own sentence | The safety-net link: always fast, never out of budget, never waiting on a model |
 
 Why both: a judge who opens the live link while the model is slow, or after the key's budget is gone, still sees a working
 product on the demo link. Use two Vercel projects from the same repo (below).
@@ -28,12 +28,12 @@ product on the demo link. Use two Vercel projects from the same repo (below).
 2. **Settings, General, Node.js Version:** choose 22.x (the repo requires 20 or newer; CI uses 22).
 3. **Settings, Environment Variables** (Production and Preview):
 
-   | Name                    | Value    | Note                                                                                              |
-   | ----------------------- | -------- | ------------------------------------------------------------------------------------------------- |
-   | `MODEL_API_KEY`         | your key | required in live mode; without it every route fails at start-up and `/api/health` will not answer |
-   | `RATE_LIMIT_PER_MINUTE` | `12`     | model routes per visitor per minute per server instance; the plan route gets a third of it        |
-   | `MAX_CONCURRENT_RUNS`   | `6`      | model runs at once per instance                                                                   |
-   | `LOG_LEVEL`             | `info`   | logs never contain request content or the key                                                     |
+   | Name                    | Value    | Note                                                                                          |
+   | ----------------------- | -------- | --------------------------------------------------------------------------------------------- |
+   | `MODEL_API_KEY`         | your key | required in live mode; without it model routes return an error, and `/api/health` answers 500 |
+   | `RATE_LIMIT_PER_MINUTE` | `12`     | model routes per visitor per minute per server instance; the plan route gets a third of it    |
+   | `MAX_CONCURRENT_RUNS`   | `6`      | model runs at once per instance                                                               |
+   | `LOG_LEVEL`             | `info`   | logs never contain request content or the key                                                 |
 
    Do **not** set `USE_FIXTURES` here.
 

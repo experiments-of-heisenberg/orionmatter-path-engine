@@ -115,7 +115,7 @@ overwrite a newer one.
 ## Built with Muse Code
 
 Muse Code (version 1.4.14, **Standard mode**, model `muse-spark-1.3`) was part of the development loop for every part of the
-project from the data layer (Part 2) to the offline demo and docs (Part 15), and its work is in the repository for anyone to audit:
+project from the data layer (Part 2) to the final documents (Part 16), and its work is in the repository for anyone to audit:
 
 - **What it did.** For each part, Muse Code wrote edge-case tests, ran a bug hunt over the new code, and wrote the part's guide
   in [`docs/parts/`](docs/parts/). Each run is recorded in [`docs/muse-code/`](docs/muse-code/): the exact prompt, its final
@@ -123,8 +123,9 @@ project from the data layer (Part 2) to the offline demo and docs (Part 15), and
   [`docs/muse-code/README.md`](docs/muse-code/README.md) lists what each run found.
 - **How the loop worked.** The core of a part was written first and committed. Muse Code was then given the committed code
   and told to change **only tests and docs**. Each run was checked afterwards: the session log shows the standard model, `git status`
-  shows no source file touched, and `npm run check` passes. Its work is committed with an `Assisted-by: Muse Code` trailer
-  (15 commits so far, over 14 recorded runs).
+  shows no source file touched, and `npm run check` passes. (One early exception, disclosed in its commit message: the Part 2 run edited
+  comments in five files under `src/lib/`.) Its work is committed with an `Assisted-by: Muse Code` trailer
+  (16 recorded runs).
 - **What came of it.** Its bug hunts found **more than 35 real bugs** in the code written before them, each one fixed with a regression test
   that was confirmed by reverting the fix and watching the test fail. Examples: an email address inside a link that mangled the
   output, a truncated PNG that skipped the size check, the browser client that could not be bundled for the browser, a
@@ -140,12 +141,12 @@ project from the data layer (Part 2) to the offline demo and docs (Part 15), and
 
 ## How this maps to the judging criteria
 
-| Criterion               | Where to look                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Impact**              | A real decision (switch, retrain, wait) made with ranges and sample sizes instead of a confident guess; a privacy tool for the person who has to share their story to get an answer; a card they can post without being identified. See the **Why** tab and [`docs/parts/part-14-agent-story-screens.md`](docs/parts/part-14-agent-story-screens.md).                                                                                            |
-| **Use of Meta tooling** | Muse Spark through the Meta Model API is the only model: tool calling (Planner), structured JSON (interpreter, narrator, critic, privacy), vision (screenshot intake). Muse Code is in the loop (see above). [`docs/api-notes.md`](docs/api-notes.md) records verified API behaviour such as reasoning tokens counting against the budget.                                                                                                       |
-| **Technical depth**     | Agents that check each other (Planner, verifier, critic), a grounded narrator, an evidence ledger, k-anonymity, deterministic recomputation, streaming with cancellation and stale-answer guards, strict TypeScript, Zod at every boundary, typed errors, redacted logs, 1,800+ tests including a simulated browser against the real routes, mutation-checked fixes, and 17 [ADRs](docs/adr/). Live results in [`docs/evals.md`](docs/evals.md). |
-| **Demo**                | The app opens on a sample engineer and has one-click examples on every tab. The Agent trace shows every Skeptic check (in the live audit run the Skeptic sent 2 of 6 plans back; those rejections are kept in [`docs/evidence/live/audit.txt`](docs/evidence/live/audit.txt)). An offline demo build replays recorded Muse Spark answers, so it runs with no key (see below). Script and shot list: [`docs/demo.md`](docs/demo.md).              |
+| Criterion               | Where to look                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Impact**              | A real decision (switch, retrain, wait) made with ranges and sample sizes instead of a confident guess; a privacy tool for the person who has to share their story to get an answer; a card they can post without being identified. See the **Why** tab and [`docs/parts/part-14-agent-story-screens.md`](docs/parts/part-14-agent-story-screens.md).                                                                                                                 |
+| **Use of Meta tooling** | Muse Spark through the Meta Model API is the only model: tool calling (Planner), structured JSON (interpreter, narrator, critic, privacy), vision (screenshot intake). Muse Code is in the loop (see above). [`docs/api-notes.md`](docs/api-notes.md) records verified API behaviour such as reasoning tokens counting against the budget.                                                                                                                            |
+| **Technical depth**     | Agents that check each other (Planner, verifier, critic), a grounded narrator, an evidence ledger, k-anonymity, deterministic recomputation, streaming with cancellation and stale-answer guards, strict TypeScript, Zod at every boundary, typed errors, redacted logs, 1,800+ tests including a simulated browser against the real routes, mutation-checked fixes, and 18 [ADRs](docs/adr/). Live results in [`docs/evals.md`](docs/evals.md).                      |
+| **Demo**                | The app opens on a sample engineer and has one-click examples on the Your story, What if and Privacy screens. The Agent trace shows every Skeptic check (in the live audit run the Skeptic sent 2 of 6 plans back; those rejections are kept in [`docs/evidence/live/audit.txt`](docs/evidence/live/audit.txt)). An offline demo build replays recorded Muse Spark answers, so it runs with no key (see below). Script and shot list: [`docs/demo.md`](docs/demo.md). |
 
 ## Run it
 

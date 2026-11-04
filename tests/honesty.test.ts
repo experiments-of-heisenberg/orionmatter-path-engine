@@ -23,12 +23,12 @@ const SCREENS = files("src", (f) => /\.(tsx?|css)$/.test(f) && !f.includes("/lib
 const JUDGE_DOCS = ["README.md", "docs/deploy.md", "docs/evals.md", "docs/submission.md"];
 
 const BANNED: [string, RegExp][] = [
-  ["on-device processing", /on-device/i],
+  ["on-device processing", /on[- ]?device/i],
   ["open weights", /open[- ]weights?/i],
   ["private by default", /private by default/i],
   ["prediction", /\bpredict(s|ion|ions|ing)?\b/i],
   ["a promise of an outcome", /\bwill (reach|become|get|make it)\b/i],
-  ["a guarantee", /\bguarantee(s)?\b/i],
+  ["a guarantee", /\bguarantee[sd]?\b/i],
   ["screening people", /screen(s|ing)? (job )?candidates/i],
   ["real data", /\breal (career |engineer )?data\b/i],
   ["accuracy", /\b(highly |very )?accurate\b/i],
@@ -74,6 +74,10 @@ describe("nothing a person reads overclaims", () => {
       ["This is not a guarantee.", 0],
       ["It never predicts anything.", 0],
       ["Built on real data from engineers.", 1],
+      ["Guaranteed results.", 1],
+      ["Everything runs OnDevice.", 1],
+      ["It runs on device.", 1],
+      ["Nothing is guaranteed.", 0],
     ] as const) {
       writeFileSync(dir, text);
       expect(violations(dir), text).toHaveLength(expected);
