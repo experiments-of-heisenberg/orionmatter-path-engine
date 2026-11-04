@@ -1,0 +1,15 @@
+{
+  "key": "aa1d0e1439e9bd5b9385d46d56be8a2e03f4c64b0bb3707d9a43ad33dfb2d7ec",
+  "label": "whatif:narrate",
+  "result": {
+    "text": "{\"headline\": \"Your suggested first route shifted from the climb route to the jump route\", \"points\": [{\"text\": \"You now have a different first route to look at, moving from the climb route to the jump route.\", \"factIds\": [\"f1\"]}, {\"text\": \"On the climb route for you, no comparable engineers reached the goal within your limits, whereas 47 of 55 did before, with the fastest at 30 months.\", \"factIds\": [\"f2\"]}, {\"text\": \"On the pivot route for you, no comparable engineers reached the goal within your limits, whereas 19 of 30 did before, with the fastest at 38 months.\", \"factIds\": [\"f5\"]}, {\"text\": \"On the jump route, comparable engineers reached the goal at 43-67% compared with 56-78% before (n=65), and the ranges still overlap so this may be noise, plus 12% reached the goal but outside your limits.\", \"factIds\": [\"f3\", \"f4\"]}]}",
+    "toolCalls": [],
+    "finishReason": "stop",
+    "usage": {
+      "promptTokens": 750,
+      "completionTokens": 856,
+      "reasoningTokens": 629
+    },
+    "model": "muse-spark-1.3"
+  }
+}

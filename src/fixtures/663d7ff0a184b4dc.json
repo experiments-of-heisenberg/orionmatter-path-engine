@@ -1,0 +1,21 @@
+{
+  "key": "663d7ff0a184b4dc976936e9e4fbc2a8838f4b12d199c399fa12ecf760f35250",
+  "label": "planner:gather:turn3",
+  "result": {
+    "text": "Path stats complete — now pulling the L6 compensation band for your region.",
+    "toolCalls": [
+      {
+        "id": "call_6f900981-b33f-43f1-bbdf-24dde7fefbb9",
+        "name": "compBands",
+        "arguments": "{\"level\":\"L6\",\"region\":\"IN-south\"}"
+      }
+    ],
+    "finishReason": "tool_calls",
+    "usage": {
+      "promptTokens": 2002,
+      "completionTokens": 110,
+      "reasoningTokens": 19
+    },
+    "model": "muse-spark-1.3"
+  }
+}

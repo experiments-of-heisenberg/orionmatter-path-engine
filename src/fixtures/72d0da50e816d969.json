@@ -1,0 +1,15 @@
+{
+  "key": "72d0da50e816d969dac5206d02549958f776074f1b437885f80dd205ba1e4a19",
+  "label": "whatif:interpret",
+  "result": {
+    "text": "{\"changes\": [{\"field\": \"noRelocation\", \"value\": true, \"phrase\": \"I won't relocate\"}], \"unsupported\": [], \"contradictions\": [], \"clarification\": null}",
+    "toolCalls": [],
+    "finishReason": "stop",
+    "usage": {
+      "promptTokens": 1681,
+      "completionTokens": 164,
+      "reasoningTokens": 115
+    },
+    "model": "muse-spark-1.3"
+  }
+}

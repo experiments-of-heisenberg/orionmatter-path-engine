@@ -1,0 +1,15 @@
+{
+  "key": "c6105278c79a94ab392eca50fe03d02a0a9b5dc9f6a73e99763868532f7efd90",
+  "label": "whatif:interpret",
+  "result": {
+    "text": "{\"changes\": [{\"field\": \"minCompBand\", \"value\": \"B4\", \"phrase\": \"pay band B4 or higher\"}], \"unsupported\": [], \"contradictions\": [], \"clarification\": null}",
+    "toolCalls": [],
+    "finishReason": "stop",
+    "usage": {
+      "promptTokens": 1684,
+      "completionTokens": 115,
+      "reasoningTokens": 61
+    },
+    "model": "muse-spark-1.3"
+  }
+}

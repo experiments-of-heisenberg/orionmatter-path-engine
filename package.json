@@ -28,7 +28,9 @@
     "live:whatif": "tsx scripts/live-whatif-check.ts",
     "live:whatif-run": "tsx scripts/live-whatif-run.ts",
     "live:intake": "tsx scripts/live-intake-check.ts",
-    "live:privacy": "tsx scripts/live-privacy-check.ts"
+    "live:privacy": "tsx scripts/live-privacy-check.ts",
+    "record:demo": "tsx scripts/record-demo-fixtures.ts",
+    "smoke": "tsx scripts/smoke-e2e.ts"
   },
   "dependencies": {
     "geist": "1.9.0",

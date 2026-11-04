@@ -1,0 +1,36 @@
+{
+  "key": "c1eeef2eecda7863be909a991fd442263b3ad5226419e5be73a4a2ee851c4828",
+  "label": "planner:gather:turn2",
+  "result": {
+    "text": "Found the comparable cohort — now collecting route stats and regional bands.",
+    "toolCalls": [
+      {
+        "id": "call_b402a46c-028e-42ed-98c3-96760238cd44",
+        "name": "pathStats",
+        "arguments": "{\"archetype\":\"climb\",\"twinsEvidenceId\":\"ev_b114cdee\"}"
+      },
+      {
+        "id": "call_ec259739-4107-44a0-b295-b9b07b985857",
+        "name": "pathStats",
+        "arguments": "{\"archetype\":\"jump\",\"twinsEvidenceId\":\"ev_b114cdee\"}"
+      },
+      {
+        "id": "call_6a9b699e-8a11-4c6a-a2d3-38f97b13fb11",
+        "name": "pathStats",
+        "arguments": "{\"archetype\":\"pivot\",\"twinsEvidenceId\":\"ev_b114cdee\"}"
+      },
+      {
+        "id": "call_ab529e2b-9424-4624-9dc0-027c12b6b5f5",
+        "name": "compBands",
+        "arguments": "{\"level\":\"L6\",\"region\":\"IN-south\"}"
+      }
+    ],
+    "finishReason": "tool_calls",
+    "usage": {
+      "promptTokens": 1177,
+      "completionTokens": 390,
+      "reasoningTokens": 93
+    },
+    "model": "muse-spark-1.3"
+  }
+}

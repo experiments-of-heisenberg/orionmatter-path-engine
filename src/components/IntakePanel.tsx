@@ -8,6 +8,7 @@
  * of the app uses.
  */
 import { useRef, useState } from "react";
+import { DEMO_STORY } from "../ui/demo";
 import type { REQUIRED_WORDS } from "../ui/intake";
 import {
   MAX_INTAKE,
@@ -63,6 +64,16 @@ export function IntakePanel({ b }: { b: IntakeBindings }) {
           aria-describedby={b.problem ? "intake-problem" : undefined}
           onChange={(e) => b.onText(e.target.value)}
         />
+        <p className="intake__example">
+          <button
+            type="button"
+            className="button button--quiet"
+            disabled={reading}
+            onClick={() => b.onText(DEMO_STORY)}
+          >
+            Use an example story
+          </button>
+        </p>
         <div className="intake__upload">
           <div className="notice" id="crop-warning">
             <p>

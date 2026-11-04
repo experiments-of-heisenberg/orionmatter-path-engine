@@ -1,0 +1,15 @@
+{
+  "key": "03cf2152cac219165f42c6ba7d92e23e2be2dc798dcf0dd11eb68069cecb5017",
+  "label": "whatif:narrate",
+  "result": {
+    "text": "{\"headline\": \"With a 24-month limit, you might look at the jump route first instead of the climb route.\", \"points\": [{\"text\": \"You could consider the jump route first instead of the climb route, as no comparable engineers reached the goal on the climb route within your limits, while 47 of 55 did before, with the fastest taking 30 months.\", \"factIds\": [\"f1\", \"f2\"]}, {\"text\": \"On the pivot route, no comparable engineers reached the goal within your limits, while 19 of 30 did before, with the fastest taking 38 months.\", \"factIds\": [\"f5\"]}, {\"text\": \"On the jump route, among comparable engineers, the share who reached the goal moved from 56-78% to 43-67% (n=65), but the ranges still overlap so we cannot tell and this may be noise, and 12% of comparable engineers reached the goal but outside your limits.\", \"factIds\": [\"f3\", \"f4\"]}]}",
+    "toolCalls": [],
+    "finishReason": "stop",
+    "usage": {
+      "promptTokens": 716,
+      "completionTokens": 1088,
+      "reasoningTokens": 864
+    },
+    "model": "muse-spark-1.3"
+  }
+}

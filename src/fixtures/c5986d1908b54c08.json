@@ -1,0 +1,15 @@
+{
+  "key": "c5986d1908b54c08e4af363c13ea04ff8689a2bd15bd6bb42a8edb55273716d9",
+  "label": "whatif:narrate",
+  "result": {
+    "text": "{\"headline\": \"Adding a B4 minimum pay band made your climb route look a little narrower.\", \"points\": [{\"text\": \"On your climb route, comparable engineers reached the goal at 74-92% before and 62-84% after (n=55); the ranges still overlap so this may be noise and we cannot tell.\", \"factIds\": [\"f1\"]}, {\"text\": \"On your climb route, 11% of comparable engineers reached the goal but outside your limits.\", \"factIds\": [\"f2\"]}]}",
+    "toolCalls": [],
+    "finishReason": "stop",
+    "usage": {
+      "promptTokens": 618,
+      "completionTokens": 624,
+      "reasoningTokens": 504
+    },
+    "model": "muse-spark-1.3"
+  }
+}

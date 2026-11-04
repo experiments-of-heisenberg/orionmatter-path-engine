@@ -1,0 +1,15 @@
+{
+  "key": "1d1d5c54b088db474a0c623e740a95b79abae98cb70f2466923873cd9a78e26f",
+  "label": "whatif:narrate",
+  "result": {
+    "text": "{\"headline\": \"Adding rust leaves your plan with no clear difference on climb, jump, or pivot routes.\", \"points\": [{\"text\": \"For you on the climb route, comparable engineers who proved rust reached 55-95% (n=12) versus 73-93% (n=43) without it, and the ranges overlap so we cannot tell a difference, with limited evidence.\", \"factIds\": [\"f1\"]}, {\"text\": \"For you on the jump route, comparable engineers who proved rust reached 51-85% (n=24) versus 51-78% (n=41) without it, and the ranges overlap so we cannot tell a difference.\", \"factIds\": [\"f2\"]}, {\"text\": \"For you on the pivot route, comparable engineers who proved rust reached 16-75% (n=7) versus 49-84% (n=23) without it, and the ranges overlap so we cannot tell a difference, with limited evidence.\", \"factIds\": [\"f3\"]}]}",
+    "toolCalls": [],
+    "finishReason": "stop",
+    "usage": {
+      "promptTokens": 707,
+      "completionTokens": 751,
+      "reasoningTokens": 526
+    },
+    "model": "muse-spark-1.3"
+  }
+}

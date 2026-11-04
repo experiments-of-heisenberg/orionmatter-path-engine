@@ -1,0 +1,21 @@
+{
+  "key": "15ecfa8e87f2c4942e56b6a7c6aa85dc696943ca20f9e62a8f7c9e5bcb968dd0",
+  "label": "planner:gather:turn1",
+  "result": {
+    "text": "Gathering cohort evidence for your L6 route — pulling comparable paths and comp.",
+    "toolCalls": [
+      {
+        "id": "call_c5558cff-06b5-4b32-9cd5-16ddc2366924",
+        "name": "findTwins",
+        "arguments": "{}"
+      }
+    ],
+    "finishReason": "tool_calls",
+    "usage": {
+      "promptTokens": 1061,
+      "completionTokens": 154,
+      "reasoningTokens": 92
+    },
+    "model": "muse-spark-1.3"
+  }
+}

@@ -10,15 +10,11 @@
 "use client";
 import { useState } from "react";
 import type { Turn } from "../ui/chat";
+import { WHATIF_EXAMPLES, exampleMessage } from "../ui/demo";
 import { MAX_MESSAGE, checkMessage, pendingQuestion } from "../ui/chat";
 
 /** Sentences to try, shown while the conversation is empty. */
-export const EXAMPLES = [
-  "What if I won\u2019t relocate?",
-  "I need pay band B4 or higher",
-  "What if I want to get there within 2 years?",
-  "What if I learn Rust?",
-] as const;
+export const EXAMPLES = WHATIF_EXAMPLES;
 
 export interface ChatProps {
   turns: readonly Turn[];
@@ -193,7 +189,7 @@ export function Chat({ turns, busy, draft, onDraft, onSend, onApplyHeld }: ChatP
                 type="button"
                 className="choice"
                 disabled={busy}
-                onClick={() => onSend(e.replace(/[\u2019]/g, "'"))}
+                onClick={() => onSend(exampleMessage(e))}
               >
                 {e}
               </button>

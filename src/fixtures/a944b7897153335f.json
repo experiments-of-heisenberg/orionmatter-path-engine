@@ -1,0 +1,15 @@
+{
+  "key": "a944b7897153335f0af3cc70f900df701ad181e90176d2b16fefa99665d188ee",
+  "label": "whatif:interpret",
+  "result": {
+    "text": "{\"changes\": [{\"field\": \"skills\", \"action\": \"add\", \"value\": [\"rust\"], \"phrase\": \"learn Rust\"}], \"unsupported\": [], \"contradictions\": [], \"clarification\": null}",
+    "toolCalls": [],
+    "finishReason": "stop",
+    "usage": {
+      "promptTokens": 1681,
+      "completionTokens": 148,
+      "reasoningTokens": 95
+    },
+    "model": "muse-spark-1.3"
+  }
+}

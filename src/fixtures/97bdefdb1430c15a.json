@@ -1,0 +1,15 @@
+{
+  "key": "97bdefdb1430c15a231527c42429ba535f74be5b441d0f5dbd99321eda77c77e",
+  "label": "intake:text",
+  "result": {
+    "text": "{\"roleFamily\":{\"value\":\"backend\",\"quote\":\"senior backend engineer (L5)\"},\"level\":{\"value\":\"L5\",\"quote\":\"senior backend engineer (L5)\"},\"company\":null,\"title\":{\"value\":\"senior backend engineer\",\"quote\":\"I'm a senior backend engineer (L5)\"},\"yearsExperience\":{\"value\":7,\"quote\":\"7 years of experience\"},\"region\":{\"value\":\"IN-south\",\"quote\":\"based in IN-south\"},\"compBand\":null,\"stack\":[\"Go\",\"Kubernetes\"],\"milestones\":[],\"goal\":{\"targetLevel\":\"L6\",\"label\":\"Staff Engineer\",\"quote\":\"I'd like to become a Staff Engineer (L6).\"}}",
+    "toolCalls": [],
+    "finishReason": "stop",
+    "usage": {
+      "promptTokens": 1313,
+      "completionTokens": 514,
+      "reasoningTokens": 374
+    },
+    "model": "muse-spark-1.3"
+  }
+}

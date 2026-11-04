@@ -7,8 +7,9 @@
  * numbers do not match the recorded result. This is what makes "every number traces
  * to a tool, not to model memory" enforceable by code rather than by trust.
  */
-import { randomBytes } from "node:crypto";
+import { createHash } from "node:crypto";
 import { z } from "zod";
+import { stableStringify } from "../stable";
 import { compBands } from "./compBands";
 import { findTwins } from "./findTwins";
 import { levelMap } from "./levelMap";
@@ -49,19 +50,27 @@ const HANDLERS: { [N in ToolName]: (args: ToolArgs<N>) => ToolResults[N] } = {
 };
 
 export interface LedgerOptions {
-  /** Id generator; injectable so tests can produce deterministic evidence ids. */
+  /** Id generator; injectable so tests can produce their own evidence ids. Without it ids come from the call's content. */
   newId?: () => string;
 }
 
-/** Default id: "ev_" plus 8 hex chars of randomness. */
-const defaultNewId = () => `ev_${randomBytes(4).toString("hex")}`;
+/**
+ * Default id: "ev_" plus 8 hex chars of a hash of the tool and its arguments.
+ *
+ * The same question always gets the same id, so a run can be repeated exactly (recorded answers replay, tests are
+ * stable), while a model still cannot guess the id of a lookup it never made: it would have to know the arguments.
+ * A repeat of the very same call gets a suffix ("_2") so every call is still its own record.
+ */
+function contentId(tool: string, args: unknown): string {
+  return `ev_${createHash("sha256").update(stableStringify({ tool, args })).digest("hex").slice(0, 8)}`;
+}
 
 export class EvidenceLedger {
   private readonly records = new Map<string, AnyEvidence>();
-  private readonly newId: () => string;
+  private readonly newId: (() => string) | undefined;
 
   constructor(options: LedgerOptions = {}) {
-    this.newId = options.newId ?? defaultNewId;
+    this.newId = options.newId;
   }
 
   /**
@@ -70,7 +79,7 @@ export class EvidenceLedger {
    */
   call<N extends ToolName>(tool: N, args: ToolArgs<N>): Evidence<N> {
     const result = HANDLERS[tool](args);
-    const evidence = { evidenceId: this.uniqueId(), tool, args, result } as Evidence<N>;
+    const evidence = { evidenceId: this.uniqueId(tool, args), tool, args, result } as Evidence<N>;
     this.records.set(evidence.evidenceId, evidence as AnyEvidence);
     return evidence;
   }
@@ -116,9 +125,15 @@ export class EvidenceLedger {
   }
 
   /** Generate an id that is guaranteed not to collide within this ledger. */
-  private uniqueId(): string {
-    let id = this.newId();
-    while (this.records.has(id)) id = this.newId();
+  private uniqueId(tool: string, args: unknown): string {
+    if (this.newId) {
+      let id = this.newId();
+      while (this.records.has(id)) id = this.newId();
+      return id;
+    }
+    const base = contentId(tool, args);
+    let id = base;
+    for (let n = 2; this.records.has(id); n++) id = `${base}_${n}`;
     return id;
   }
 }

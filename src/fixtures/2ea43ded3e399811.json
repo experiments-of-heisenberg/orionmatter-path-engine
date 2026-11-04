@@ -1,0 +1,15 @@
+{
+  "key": "2ea43ded3e399811e7f352d436b58b7bb6a90969be667006a6601d73a0b73541",
+  "label": "whatif:narrate",
+  "result": {
+    "text": "{\"headline\": \"With no relocation, your comparison group got smaller and the jump pay band looks a bit wider.\", \"points\": [{\"text\": \"You now have 99 comparable engineers in the data, down from 150 before.\", \"factIds\": [\"f1\"]}, {\"text\": \"On the jump route, comparable engineers reached the goal at 56-78% before and 48-76% now (n=43); ranges overlap so we cannot tell and this may be noise.\", \"factIds\": [\"f2\"]}, {\"text\": \"On the jump route, comparable engineers reached pay band B5 before and B4-B5 now.\", \"factIds\": [\"f3\"]}, {\"text\": \"On the pivot route, comparable engineers reached the goal at 46-78% before and 48-85% now (n=20); ranges overlap so we cannot tell and this may be noise.\", \"factIds\": [\"f4\"]}]}",
+    "toolCalls": [],
+    "finishReason": "stop",
+    "usage": {
+      "promptTokens": 674,
+      "completionTokens": 606,
+      "reasoningTokens": 400
+    },
+    "model": "muse-spark-1.3"
+  }
+}

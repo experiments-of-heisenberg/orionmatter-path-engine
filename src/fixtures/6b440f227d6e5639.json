@@ -1,0 +1,15 @@
+{
+  "key": "6b440f227d6e5639f392537848777dd07ded94fd3bb5bd96840082352fe4506d",
+  "label": "skeptic:critic",
+  "result": {
+    "text": "{\"issues\": [], \"notes\": []}",
+    "toolCalls": [],
+    "finishReason": "stop",
+    "usage": {
+      "promptTokens": 1315,
+      "completionTokens": 509,
+      "reasoningTokens": 491
+    },
+    "model": "muse-spark-1.3"
+  }
+}

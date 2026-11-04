@@ -1718,6 +1718,12 @@ ul {
   display: grid;
   gap: 22px;
 }
+.intake__example {
+  margin-top: 8px;
+}
+.intake__example {
+  margin-top: 8px;
+}
 .intake__upload {
   display: grid;
   gap: 8px;

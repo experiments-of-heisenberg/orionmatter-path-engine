@@ -1,0 +1,15 @@
+{
+  "key": "b9a538a61686201dc63727155d9116e8ac20bac73963c3f3ce65e7e96aa49a8a",
+  "label": "planner:gather:turn4",
+  "result": {
+    "text": "EVIDENCE COMPLETE",
+    "toolCalls": [],
+    "finishReason": "stop",
+    "usage": {
+      "promptTokens": 2151,
+      "completionTokens": 65,
+      "reasoningTokens": 51
+    },
+    "model": "muse-spark-1.3"
+  }
+}

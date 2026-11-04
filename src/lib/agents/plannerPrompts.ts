@@ -86,8 +86,10 @@ export function composeUserMessage(sheet: FactSheet): string {
 
 /** Build the user message for the gather phase. */
 export function gatherUserMessage(sheetInput: FactSheet["input"]): string {
-  const { goal, profile } = sheetInput;
-  return `Gather evidence to plan a route to "${goal.label}" (level ${goal.targetLevel}) for an engineer in region ${profile.region}.`;
+  const { goal, profile, constraints } = sheetInput;
+  // The limits are applied to every lookup by code. They are stated here as well so the model knows what it is gathering
+  // for, and so two people with different limits never share one request (which matters when answers are recorded and replayed).
+  return `Gather evidence to plan a route to "${goal.label}" (level ${goal.targetLevel}) for an engineer in region ${profile.region}. Their limits, already applied to every lookup: <constraints>${JSON.stringify(constraints)}</constraints>`;
 }
 
 const ROUTE_NAMES = ["climb", "jump", "pivot"];

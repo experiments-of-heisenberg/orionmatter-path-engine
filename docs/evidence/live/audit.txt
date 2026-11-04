@@ -1,0 +1,48 @@
+
+=== 1. backend L5 to Staff
+APPROVED in 46s | revisions 1 | engine filled in: nothing
+  audit 0 (first plan): 3 rejection(s)
+    [verifier/n_mismatch] climb: The claim says n=55, but the cited evidence has n=53. Copy the sample size exactly.
+      text: "Twins reaching Staff typically reported pay from B4 to B5"
+    [verifier/n_mismatch] jump: The claim says n=65, but the cited evidence has n=53. Copy the sample size exactly.
+      text: "Twins reaching Staff typically reported pay from B5 to B5"
+    [verifier/n_mismatch] pivot: The claim says n=30, but the cited evidence has n=53. Copy the sample size exactly.
+      text: "Twins reaching Staff typically reported pay from B5 to B5"
+    note: Critic skipped: fix the mechanical problems first.
+  audit 1 (after revision 1): approved
+
+=== 2. backend L5 to Staff, remote and no relocation
+APPROVED in 23s | revisions 0 | engine filled in: nothing
+  audit 0 (first plan): approved
+
+=== 3. ml L5 to Staff (thin pivot)
+APPROVED in 40s | revisions 0 | engine filled in: nothing
+  audit 0 (first plan): approved
+
+=== 4. embedded L4 to Staff (thin pivot)
+APPROVED in 34s | revisions 1 | engine filled in: nothing
+  audit 0 (first plan): 6 rejection(s)
+    [verifier/n_mismatch] climb: The claim says n=14, but the cited evidence has n=53. Copy the sample size exactly.
+      text: "Pay band from B4 to B5 observed, limited evidence"
+    [verifier/range_unsupported] climb: The range [34, 38] matches neither the months-to-goal nor the success-rate range of the cited evidence. Copy a range exactly.
+      text: "Pay band from B4 to B5 observed, limited evidence"
+    [verifier/n_mismatch] jump: The claim says n=12, but the cited evidence has n=53. Copy the sample size exactly.
+      text: "Pay band from B4 to B5 observed, limited evidence"
+    [verifier/range_unsupported] jump: The range [18, 22] matches neither the months-to-goal nor the success-rate range of the cited evidence. Copy a range exactly.
+      text: "Pay band from B4 to B5 observed, limited evidence"
+    [verifier/n_mismatch] pivot: The claim says n=6, but the cited evidence has n=53. Copy the sample size exactly.
+      text: "Pay band from B4 to B5 observed, limited evidence"
+    note: Critic skipped: fix the mechanical problems first.
+  audit 1 (after revision 1): approved
+
+=== 5. backend L5 to Engineering Manager
+APPROVED in 30s | revisions 0 | engine filled in: nothing
+  audit 0 (first plan): approved
+    note: climb: Route presents steps and timelines with no downside, risk or trade-off stated
+    note: jump: Route presents steps and timelines with no downside, risk or trade-off stated
+
+=== 6. sre L4 to Staff, low risk, wants Rust
+APPROVED in 28s | revisions 0 | engine filled in: skillStats:climb:rust, skillStats:jump:rust, skillStats:pivot:rust
+  audit 0 (first plan): approved
+
+Summary: 6 scenario(s), 2 needed revision, 0 unresolved or failed.

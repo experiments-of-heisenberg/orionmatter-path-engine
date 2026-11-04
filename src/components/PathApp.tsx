@@ -58,6 +58,8 @@ export interface ViewProps {
   intake?: IntakeBindings;
   /** True while the person shown is the built-in sample, not someone who confirmed their own story. */
   isSample?: boolean;
+  /** "fixtures" when the server replays recorded answers instead of calling the model; said on screen when it does. */
+  serverMode?: "live" | "fixtures";
 }
 
 /** The whole screen as a pure function of its props, so it can be rendered on the server and tested without a browser. */
@@ -81,6 +83,7 @@ export function PathView({
   privacy = IDLE_PRIVACY,
   intake = IDLE_INTAKE,
   isSample = false,
+  serverMode,
 }: ViewProps) {
   const route = data?.routes.find((r) => r.archetype === chosen);
   const axisMax = data ? axisMaxFor(data.routes, person.constraints.maxMonths) : 60;
@@ -110,6 +113,9 @@ export function PathView({
             <li>{person.profile.level}</li>
             <li>{person.profile.yearsExperience} years</li>
             <li>{REGION_LABEL[person.profile.region] ?? person.profile.region}</li>
+            {serverMode === "fixtures" && (
+              <li className="chip--quiet">Demo build: replaying recorded Muse Spark answers</li>
+            )}
             {isSample && <li className="chip--quiet">Sample engineer</li>}
             <li className="chip--quiet">Synthetic cohort of 484 engineers</li>
           </ul>
@@ -272,6 +278,7 @@ function PathSession({
   intake,
   privacyDraft,
   focusTitle,
+  serverMode,
 }: {
   person: Person;
   isSample: boolean;
@@ -280,6 +287,7 @@ function PathSession({
   privacyDraft: { value: string; set: (text: string) => void };
   /** True when the session was just rebuilt for a confirmed person: the page title takes focus. */
   focusTitle: boolean;
+  serverMode: "live" | "fixtures" | undefined;
 }) {
   // The old screen (and the Confirm button that was pressed) is gone, so focus would fall to the page. Put it on the title.
   useEffect(() => {
@@ -315,8 +323,29 @@ function PathSession({
       privacy={state.privacy}
       intake={intake}
       isSample={isSample}
+      {...(serverMode ? { serverMode } : {})}
     />
   );
+}
+
+/**
+ * Ask the server once whether it is replaying recorded answers. If the question fails the screen simply does not say
+ * anything: the banner is a courtesy, never a gate.
+ */
+function useServerMode(): "live" | "fixtures" | undefined {
+  const [mode, setMode] = useState<"live" | "fixtures" | undefined>();
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch("/api/health", { signal: controller.signal })
+      .then((response) => (response.ok ? (response.json() as Promise<unknown>) : undefined))
+      .then((body) => {
+        const value = typeof body === "object" && body !== null && "mode" in body ? body.mode : undefined;
+        if (value === "live" || value === "fixtures") setMode(value);
+      })
+      .catch(() => undefined);
+    return () => controller.abort();
+  }, []);
+  return mode;
 }
 
 /**
@@ -338,6 +367,7 @@ export function PathApp({ person = SAMPLE_PERSON }: { person?: Person }) {
   // What the person typed to check before sharing is theirs, not the sample's, so it outlives the session.
   const [draft, setDraft] = useState("");
   const privacyDraft = useMemo(() => ({ value: draft, set: setDraft }), [draft]);
+  const serverMode = useServerMode();
   return (
     <PathSession
       key={session.key}
@@ -346,6 +376,7 @@ export function PathApp({ person = SAMPLE_PERSON }: { person?: Person }) {
       intake={intake}
       privacyDraft={privacyDraft}
       focusTitle={session.key > 0}
+      serverMode={serverMode}
     />
   );
 }

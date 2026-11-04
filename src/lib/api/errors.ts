@@ -32,6 +32,7 @@ export type ApiErrorCode =
   | "model_unavailable"
   | "model_unreadable"
   | "not_configured"
+  | "demo_only"
   | "client_closed"
   | "internal";
 
@@ -121,7 +122,15 @@ export function toApiError(error: unknown): ApiError {
       retryAfter: 2,
     });
   }
-  if (error instanceof ModelConfigError || error instanceof FixtureMissError) {
+  if (error instanceof FixtureMissError) {
+    // The server is replaying recorded answers and this request is not one of them. Say that, not "misconfigured".
+    return new ApiError(
+      "demo_only",
+      422,
+      "This demo replays recorded Muse Spark answers, and that one was not recorded. Use one of the example buttons, or run the app with your own key.",
+    );
+  }
+  if (error instanceof ModelConfigError) {
     return new ApiError("not_configured", 503, "The model is not configured on this server.");
   }
   if (

@@ -1,0 +1,61 @@
+
+=== "What if I need to reach it within 2 years?"  (8166 ms, model, 5 facts)
+status: applied; applied: Time limit not set -> 24 months
+headline: Your first route to look at shifted from the climb route to the jump route under your new limit.
+  - Your first route to look at is now the jump route instead of the climb route. On the climb route, no comparable engineers reached the goal within your limits, while 47 of 55 did before, with the fastest at 30 months.  [f1,f2]
+  - On the pivot route, no comparable engineers reached the goal within your limits, while 19 of 30 did before, with the fastest at 38 months.  [f5]
+  - On the jump route, comparable engineers reaching the goal moved from 56-78% to 43-67% (n=65), and the ranges still overlap, so this may be noise. Also, 12% of comparable engineers reached the goal but outside your limits.  [f3,f4]
+
+=== "I only want to consider roles that pay B5 or above"  (9863 ms, model, 8 facts)
+status: applied; applied: Minimum pay band not set -> B5
+headline: Your first route to look at changed from the climb route to the jump route.
+  - Your first route to look at changed from the climb route to the jump route.  [f1]
+  - For you on the climb route, comparable engineers who reached the goal moved from 74-92% to 19-42% (n=55), with ranges that no longer overlap, so this is a real change in the evidence.  [f2]
+  - On the climb route for you, comparable engineers reached B4-B5 before and B5 now, and 56% of comparable engineers reached the goal but outside your limits.  [f3,f4]
+  - On the jump route for you, comparable engineers who reached the goal moved from 56-78% to 42-65% (n=65), which may be noise, and 14% of comparable engineers reached the goal but outside your limits.  [f5,f6]
+
+=== "what if I learn Rust and Go?"  (10437 ms, model, 4 facts)
+status: applied; applied: Skills to add none -> rust, go
+headline: Adding rust and go left things looking about the same, with no clear difference.
+  - You added rust: comparable engineers on the climb route who proved rust reached 55-95% (n=12) versus 73-93% (n=43); the ranges overlap, so we cannot tell a difference, with limited evidence.  [f1]
+  - You added rust: comparable engineers on the jump route who proved rust reached 51-85% (n=24) versus 51-78% (n=41); the ranges overlap, so we cannot tell a difference.  [f2]
+  - You added rust: comparable engineers on the pivot route who proved rust reached 16-75% (n=7) versus 49-84% (n=23); the ranges overlap, so we cannot tell a difference, with limited evidence.  [f3]
+  - You added go too, and the cohort has no evidence about go, so it cannot change any figure here.  [f4]
+
+=== "remote only please"  (8244 ms, model, 5 facts)
+status: applied; applied: Remote only off -> on
+headline: Turning remote-only on narrowed your comparable group and widened pay and outcome ranges.
+  - You now have 88 comparable engineers to compare with, down from 150.  [f1]
+  - For twins who took the jump route, 45-75% reached the goal out of 36, compared with 56-78% before, and the overlap means this may be noise.  [f2]
+  - On that jump route, comparable engineers reached pay band B4-B5, compared with B5 before.  [f3]
+  - For twins on the pivot route, 49-88% reached the goal out of 18, compared with 46-78% before, and this may be noise.  [f4]
+  - Your pivot route now includes a promotion stall risk for you to keep in mind.  [f5]
+
+=== "within 3 years, and I want to play it safe"  (9382 ms, model, 5 facts)
+status: applied; applied: Time limit not set -> 36 months; Risk tolerance medium -> low
+headline: Your suggested starting point shifted from the climb route to the jump route under your new limits.
+  - Your first route to look at is now the jump route instead of the climb route.  [f1]
+  - On the climb route, 28-53% of comparable engineers reached the goal within your limits (n=55), down from 74-92% before, and the ranges no longer overlap, so this looks like a real change in the evidence.  [f2]
+  - On the pivot route, no comparable engineers reached the goal within your limits, while 19 of 30 did before, and the fastest there took 38 months.  [f5]
+  - On the climb route, the typical time to the goal for comparable engineers was 32-35 months, compared with 34-40 months before.  [f3]
+  - On the climb route, 45% of comparable engineers reached the goal but outside your limits.  [f4]
+
+=== "what if I wanted it within a year?"  (12173 ms, model, 4 facts)
+status: applied; applied: Time limit not set -> 12 months
+headline: With your tighter limit, no route has comparable engineers to recommend.
+  - You now have no route with any comparable engineer who met your limits, so none can be recommended.  [f1]
+  - On the climb route, no comparable engineers reached the goal within your limits, while 47 of 55 did before, and the fastest there took 30 months.  [f2]
+  - On the jump route, no comparable engineers reached the goal within your limits, while 44 of 65 did before, and the fastest there took 14 months.  [f3]
+  - On the pivot route, no comparable engineers reached the goal within your limits, while 19 of 30 did before, and the fastest there took 38 months.  [f4]
+  note: Narration rejected (1 problem(s)); asking once for a fix.
+
+=== "forget the time limit"  (6072 ms, model, 4 facts)
+status: applied; applied: Time limit 24 months -> not set
+headline: Your suggested starting point shifted from the jump route to the climb route.
+  - Your first route to look at changed from the jump route to the climb route.  [f1]
+  - For you on the climb route, 47 of 55 comparable engineers reached the goal, typically in 34-40 months.  [f2]
+  - For you on the pivot route, 19 of 30 comparable engineers reached the goal, typically in 42-49 months.  [f4]
+  - For you on the jump route, the share of comparable engineers reaching the goal moved from 43-67% to 56-78% (n=65), but the ranges still overlap so this may be noise.  [f3]
+
+narration source: model 7, template 0; first attempt rejected 1
+full turn latency: median 9382 ms, p90 12173 ms, max 12173 ms

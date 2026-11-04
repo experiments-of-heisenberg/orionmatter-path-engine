@@ -1,0 +1,15 @@
+{
+  "key": "a488849614409f6158ce15ee300176cb10d80df5fa1e1758ea84985dade6de59",
+  "label": "whatif:interpret",
+  "result": {
+    "text": "{\"changes\": [{\"field\": \"maxMonths\", \"value\": 24, \"phrase\": \"within 2 years\"}], \"unsupported\": [], \"contradictions\": [], \"clarification\": null}",
+    "toolCalls": [],
+    "finishReason": "stop",
+    "usage": {
+      "promptTokens": 1687,
+      "completionTokens": 144,
+      "reasoningTokens": 94
+    },
+    "model": "muse-spark-1.3"
+  }
+}

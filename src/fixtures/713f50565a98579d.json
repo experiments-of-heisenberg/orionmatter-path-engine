@@ -1,0 +1,21 @@
+{
+  "key": "713f50565a98579da38e68e6315a3ffcf7b36b627cd89556ff974e8cbe67cc79",
+  "label": "planner:gather:turn1",
+  "result": {
+    "text": "I'll start gathering twin cohort evidence for your Staff Engineer route.",
+    "toolCalls": [
+      {
+        "id": "call_c1e48327-5801-4197-895e-77213079e48e",
+        "name": "findTwins",
+        "arguments": "{}"
+      }
+    ],
+    "finishReason": "tool_calls",
+    "usage": {
+      "promptTokens": 1064,
+      "completionTokens": 135,
+      "reasoningTokens": 77
+    },
+    "model": "muse-spark-1.3"
+  }
+}

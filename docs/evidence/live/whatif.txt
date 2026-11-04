@@ -1,0 +1,40 @@
+PASS  no-relocation                   1539ms
+PASS  remote-only                     1426ms
+PASS  pay-floor                       1845ms
+PASS  two-years                       1651ms
+PASS  eighteen-months                 1307ms
+PASS  risk-averse                     1779ms
+PASS  risk-seeking                    1883ms
+PASS  learn-rust                      1795ms
+PASS  two-skills                      1580ms
+PASS  several-at-once                 1734ms
+PASS  remote-and-no-reloc             1883ms
+PASS  undo-relocation                 2039ms
+PASS  forget-skill                    3202ms
+PASS  drop-pay-floor                  1418ms
+PASS  four-day-week                   1985ms
+PASS  no-on-call                      1661ms
+PASS  visa                            1689ms
+PASS  mixed-supported-unsupported     1234ms
+PASS  more-money                      1716ms
+PASS  as-soon-as-possible             2095ms
+PASS  vague-plus-clear                1814ms
+PASS  remote-vs-onsite                3027ms
+PASS  no-reloc-vs-relocate            1748ms
+PASS  hello                           1214ms
+PASS  thanks                           909ms
+PASS  answer-to-question              1680ms
+PASS  out-of-range                    1697ms
+PASS  injection                       3939ms
+
+By category:
+  clear          11/11
+  relative       3/3
+  unsupported    4/4
+  vague          3/3
+  contradiction  2/2
+  chitchat       2/2
+  multi-turn     1/1
+  safety         2/2
+
+Overall: 28/28 passed | latency median 1734ms, p90 3027ms, max 3939ms

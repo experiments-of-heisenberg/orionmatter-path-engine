@@ -1,0 +1,36 @@
+{
+  "key": "8a0e6f4bbbe8933e9fc3750ccb6387caec4bcce57f1a93ef5e3f3e36f2ec1b4c",
+  "label": "planner:gather:turn2",
+  "result": {
+    "text": "Twin cohort found. Now I'll pull path options and compensation.",
+    "toolCalls": [
+      {
+        "id": "call_18f5edb2-388a-4a40-8f34-7ab859887989",
+        "name": "pathStats",
+        "arguments": "{\"archetype\":\"climb\",\"twinsEvidenceId\":\"ev_91552e4e\"}"
+      },
+      {
+        "id": "call_3d383fec-56c3-49cb-ab05-310355c468b7",
+        "name": "pathStats",
+        "arguments": "{\"archetype\":\"jump\",\"twinsEvidenceId\":\"ev_91552e4e\"}"
+      },
+      {
+        "id": "call_ed0200fc-e837-4d70-af4e-395d6a107e48",
+        "name": "pathStats",
+        "arguments": "{\"archetype\":\"pivot\",\"twinsEvidenceId\":\"ev_91552e4e\"}"
+      },
+      {
+        "id": "call_d8ba3f0c-006a-421a-b683-7d42e6a2227a",
+        "name": "compBands",
+        "arguments": "{\"level\":\"L6\",\"region\":\"IN-south\"}"
+      }
+    ],
+    "finishReason": "tool_calls",
+    "usage": {
+      "promptTokens": 1173,
+      "completionTokens": 368,
+      "reasoningTokens": 66
+    },
+    "model": "muse-spark-1.3"
+  }
+}

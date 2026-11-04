@@ -4,6 +4,9 @@ const config: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   typescript: { ignoreBuildErrors: false },
+  // The offline demo reads recorded model answers from disk at run time. Next only ships files it can see being
+  // imported, so say outright that every API route needs the fixtures folder (without this a deployed demo build finds none).
+  outputFileTracingIncludes: { "/api/**/*": ["./src/fixtures/**/*"] },
   headers() {
     return Promise.resolve([
       {

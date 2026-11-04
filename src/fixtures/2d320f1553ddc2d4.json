@@ -1,0 +1,21 @@
+{
+  "key": "2d320f1553ddc2d4671fb840d8be9c3d2781d28572fe644d5aaba184670b584a",
+  "label": "planner:gather:turn1",
+  "result": {
+    "text": "Gathering cohort evidence for your Staff route — starting with comparable engineers.",
+    "toolCalls": [
+      {
+        "id": "call_7c866fb2-20bd-4056-aabf-dc8d56e42fb5",
+        "name": "findTwins",
+        "arguments": "{}"
+      }
+    ],
+    "finishReason": "tool_calls",
+    "usage": {
+      "promptTokens": 1066,
+      "completionTokens": 136,
+      "reasoningTokens": 76
+    },
+    "model": "muse-spark-1.3"
+  }
+}

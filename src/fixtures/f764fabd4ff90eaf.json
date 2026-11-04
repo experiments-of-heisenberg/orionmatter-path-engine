@@ -1,0 +1,15 @@
+{
+  "key": "f764fabd4ff90eaf67228804e43e35dbef4a2c5a7799fe6f7bfe6b80e01cb98b",
+  "label": "planner:compose:repair",
+  "result": {
+    "text": "{\"routes\":[{\"archetype\":\"climb\",\"summary\":\"No comparable engineer reached the goal that way within your limits; cautious steps only.\",\"steps\":[{\"what\":\"Lead cross-team backend initiative at current scope\",\"monthWindow\":[0,0],\"whyItWorks\":[{\"text\":\"Among 55 twins, 0% to 7% reached the goal within your limits\",\"evidenceIds\":[\"ev_0272e42e\"],\"n\":55,\"range\":[0,0.07]}],\"proofNeeded\":[\"design doc\"],\"gapClosers\":[\"mentor junior engineers\"],\"companyMarkerIds\":[]},{\"what\":\"Seek staff scope review with manager\",\"monthWindow\":[0,0],\"whyItWorks\":[{\"text\":\"Twins in this path often reached the goal but outside your limits\",\"evidenceIds\":[\"ev_0272e42e\"],\"n\":55}],\"proofNeeded\":[\"scope feedback\"],\"gapClosers\":[\"request promotion checklist\"],\"companyMarkerIds\":[]}]},{\"archetype\":\"jump\",\"summary\":\"One external move; twins who reached it within your limits typically took 17 to 22 months.\",\"steps\":[{\"what\":\"Close gaps in cross-team-lead, rust, kubernetes\",\"monthWindow\":[0,8],\"whyItWorks\":[{\"text\":\"Twins who reached it within your limits typically took 17 to 22 months\",\"evidenceIds\":[\"ev_f4e1c3e5\"],\"n\":65,\"range\":[17,22]}],\"proofNeeded\":[\"rust sample\"],\"gapClosers\":[\"ship rust microservice\"],\"companyMarkerIds\":[]},{\"what\":\"Move to better-fit team with staff scope\",\"monthWindow\":[8,14],\"whyItWorks\":[{\"text\":\"Among 65 twins, 43% to 67% reached the goal within your limits\",\"evidenceIds\":[\"ev_f4e1c3e5\"],\"n\":65,\"range\":[0.43,0.67]}],\"proofNeeded\":[\"offer scope\"],\"gapClosers\":[\"interview prep\"],\"companyMarkerIds\":[\"m_fintech\",\"m_robotics\"]}]},{\"archetype\":\"pivot\",\"summary\":\"No comparable engineer reached the goal that way within your limits; cautious exploration only.\",\"steps\":[{\"what\":\"Explore adjacent domain via small project\",\"monthWindow\":[0,0],\"whyItWorks\":[{\"text\":\"Among 30 twins, 0% to 11% reached the goal within your limits\",\"evidenceIds\":[\"ev_e8c9b485\"],\"n\":30,\"range\":[0,0.11]}],\"proofNeeded\":[\"prototype\"],\"gapClosers\":[\"complete course module\"],\"companyMarkerIds\":[]},{\"what\":\"Assess transferability toward staff scope\",\"monthWindow\":[0,0],\"whyItWorks\":[{\"text\":\"Twins in this path often reached the goal but outside your limits\",\"evidenceIds\":[\"ev_e8c9b485\"],\"n\":30}],\"proofNeeded\":[\"gap review\"],\"gapClosers\":[\"map skills\"],\"companyMarkerIds\":[]}]}],\"caveats\":[]}",
+    "toolCalls": [],
+    "finishReason": "stop",
+    "usage": {
+      "promptTokens": 2402,
+      "completionTokens": 719,
+      "reasoningTokens": 121
+    },
+    "model": "muse-spark-1.3"
+  }
+}

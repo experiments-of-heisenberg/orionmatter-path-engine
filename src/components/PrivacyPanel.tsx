@@ -7,6 +7,7 @@
  * found is shown with the exact quote, who found it, and a version of the text with each detail replaced by a placeholder.
  * The cohort is synthetic and the panel says so; it demonstrates the method and is not a guarantee.
  */
+import { DEMO_BIO } from "../ui/demo";
 import {
   MAX_STORY,
   K_OPTIONS,
@@ -173,6 +174,16 @@ export function PrivacyPanel({ b }: { b: PrivacyBindings }) {
           aria-describedby={b.draftProblem ? "story-problem" : undefined}
           onChange={(e) => b.onDraft(e.target.value)}
         />
+        <p className="intake__example">
+          <button
+            type="button"
+            className="button button--quiet"
+            disabled={checking}
+            onClick={() => b.onDraft(DEMO_BIO)}
+          >
+            Use an example
+          </button>
+        </p>
         <div className="chat__actions">
           <span className="chat__count" aria-hidden="true">
             {b.draft.length}/{MAX_STORY}

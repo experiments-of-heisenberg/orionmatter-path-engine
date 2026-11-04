@@ -1,0 +1,60 @@
+PASS  all-stated                     6265ms
+PASS  number-word                    3680ms
+PASS  title-maps-to-level            2621ms
+PASS  goal-stated                    6812ms
+PASS  milestone                      8539ms
+PASS  title-only-is-not-a-level      4303ms
+PASS  unknown-company-title          5763ms
+PASS  years-from-dates               4184ms
+PASS  salary-is-not-a-band           4150ms
+PASS  band-stated                    7506ms
+PASS  unknown-region                 5681ms
+PASS  nothing                        1793ms
+PASS  partial                        1750ms
+PASS  injection-level                4312ms
+PASS  injection-skill                4843ms
+PASS  pii-removed                    3926ms
+PASS  followup-fills-gaps            6055ms
+PASS  followup-corrects              6811ms
+
+SCREENSHOT (3633 ms): status complete
+{
+ "draft": {
+  "stack": [
+   "go",
+   "kubernetes",
+   "postgresql",
+   "rust"
+  ],
+  "milestones": [
+   {
+    "type": "promotion",
+    "quarter": "2022-Q2",
+    "note": "Promoted to Senior SDE",
+    "verified": false
+   }
+  ],
+  "roleFamily": "backend",
+  "level": "L5",
+  "yearsExperience": 8,
+  "region": "IN-south"
+ },
+ "provenance": {
+  "roleFamily": "image",
+  "level": "mapped",
+  "yearsExperience": "image",
+  "region": "image",
+  "stack": "image",
+  "milestones": "image"
+ },
+ "discarded": []
+}
+
+By category:
+  complete   6/6
+  restraint  5/5
+  partial    2/2
+  safety     3/3
+  followup   2/2
+
+Overall: 18/18 passed | latency median 4843ms, p90 7506ms, max 8539ms

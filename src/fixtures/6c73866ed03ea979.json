@@ -1,0 +1,15 @@
+{
+  "key": "6c73866ed03ea979814734ad3a7d9865834eb0170b37e07f96f3af7c962486f8",
+  "label": "privacy:review",
+  "result": {
+    "text": "{\"findings\": [{\"quote\": \"Acme Robotics\", \"category\": \"employer\", \"reason\": \"Named company narrows identity to its employees.\"}, {\"quote\": \"Orion arm project\", \"category\": \"project_or_product\", \"reason\": \"Named project is searchable to a small group.\"}, {\"quote\": \"March 2023\", \"category\": \"exact_date\", \"reason\": \"Specific join month can be matched to records.\"}, {\"quote\": \"4200000 rupees\", \"category\": \"exact_compensation\", \"reason\": \"Exact pay figure is highly identifying.\"}]}",
+    "toolCalls": [],
+    "finishReason": "stop",
+    "usage": {
+      "promptTokens": 628,
+      "completionTokens": 308,
+      "reasoningTokens": 176
+    },
+    "model": "muse-spark-1.3"
+  }
+}

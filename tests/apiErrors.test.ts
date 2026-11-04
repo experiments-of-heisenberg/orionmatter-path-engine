@@ -66,7 +66,10 @@ describe("toApiError", () => {
 
   it("maps missing configuration to 503 not_configured", () => {
     expect(toApiError(new ModelConfigError("no key"))).toMatchObject({ code: "not_configured", status: 503 });
-    expect(toApiError(new FixtureMissError("label", "key")).code).toBe("not_configured");
+    expect(toApiError(new FixtureMissError("label", "key"))).toMatchObject({
+      code: "demo_only",
+      status: 422,
+    });
   });
 
   it("maps a closed client to client_closed", () => {
