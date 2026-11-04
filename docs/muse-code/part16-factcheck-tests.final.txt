@@ -1,0 +1,23 @@
+Done. `npm run check` passes (140 files, 1946 passed, 1 skipped, secrets clean).
+
+**Files created (4, new only):**
+- [part16-factcheck.md](/agent/workspace/orionmatter-path-engine/docs/muse-code/part16-factcheck.md) — fact-check with Confirmed / Wrong or overstated / Cannot be checked
+- [honestyEdges.test.ts](/agent/workspace/orionmatter-path-engine/tests/honestyEdges.test.ts) — 33 tests: 30-string probe of a re-implemented banned-phrase checker plus a report-only privacy/security word scan
+- [imagesEdges.test.ts](/agent/workspace/orionmatter-path-engine/tests/imagesEdges.test.ts) — 7 tests: SVG parse, size/viewBox/aria-label, unique ids, 2 step markers, Climb/Jump/Pivot labels
+- [docsEdges.test.ts](/agent/workspace/orionmatter-path-engine/tests/docsEdges.test.ts) — 8 tests: bash-block commands resolve, env vars exist, placeholders consistent
+
+**Wrong or overstated (8):**
+1. README "15 commits so far, over 14 recorded runs" — 16 prompt files and 16 `Assisted-by` commits exist.
+2. README "Each run is recorded… with a redacted session export" — the part16 run has no `.session.json.gz`.
+3. README "change only tests and docs… no source file touched" — Part 2 commit `aade90f` edited 5 files under `src/lib/` (comments only, disclosed in the message).
+4. README "one-click examples on every tab" — example buttons exist only on Your story, What if, Privacy; Map/Plan/Compare/Share/Why have none.
+5. deploy.md "`/api/health` will not answer" without a key — it answers 500 (the doc's own troubleshooting table says so).
+6. deploy.md demo is "never rate-limited" — deterministic routes go through the `light` limiter, so floods can still 429.
+7. README "Part 2 … to … (Part 15)" — stale; a Part 16 run is already recorded.
+8. demo.md shot list misnumbered ("4. … 2. The Share card" — last item should be 5).
+
+**Privacy/security doubts (4 hits, all benign):** "passes locally" (deploy.md), two "private window" browser mentions (submission.md), and "private by default" inside demo.md's "What not to say" list (a denial). No `stored/we store/encrypted/anonymous/HIPAA/GDPR` hits anywhere.
+
+**Bugs found:** the committed honesty checker misses three overclaim spellings the task named — "Guaranteed" (`/\bguarantee(s)?\b/` lacks the -d form), "OnDevice" and "on device" (`/on-device/` requires the hyphen). My edge test documents this with literal copies of the committed patterns (passing, report-only); I did not touch `tests/honesty.test.ts` since only new files were allowed.
+
+Note: `README.md` and `docs/submission.md` show as modified in `git status`, but those edits pre-date this session — I created files only and left them untouched.
