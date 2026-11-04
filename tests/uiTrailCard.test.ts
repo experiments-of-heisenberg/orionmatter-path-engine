@@ -17,7 +17,7 @@ const sheet = exploreFor().data;
 describe("what is shown follows the privacy ladder", () => {
   it("at k=10 for the sample person every detail passes: role, level, goal and region, with the crowd they leave", async () => {
     const model = trailCardModel(SAMPLE_PERSON, sheet, await assessed());
-    expect(model.shown).toEqual(["Backend", "L5", "Goal: Staff Engineer", "South India"]);
+    expect(model.shown).toEqual(["Backend", "Senior Engineer", "Goal: Staff Engineer", "South India"]);
     expect(model.withheld).toEqual([]);
     expect(model.crowd).toBe(11);
     expect(model.title).toBe("My route to Staff Engineer");
@@ -26,7 +26,7 @@ describe("what is shown follows the privacy ladder", () => {
 
   it("at k=70 the goal and the region fall below the crowd: they are withheld, named as withheld, and the title stops naming the goal", async () => {
     const model = trailCardModel(SAMPLE_PERSON, sheet, await assessed({ k: 70 }));
-    expect(model.shown).toEqual(["Backend", "L5"]);
+    expect(model.shown).toEqual(["Backend", "Senior Engineer"]);
     expect(model.withheld).toEqual([
       "Goal: Staff Engineer (withheld to keep you in a crowd of 70 or more)",
       "South India (withheld to keep you in a crowd of 70 or more)",
@@ -46,7 +46,7 @@ describe("what is shown follows the privacy ladder", () => {
 
   it("a company type that drops the crowd below k is withheld like any other detail", async () => {
     const model = trailCardModel(SAMPLE_PERSON, sheet, await assessed({ companyType: "robotics", k: 10 }));
-    expect(model.shown).toEqual(["Backend", "L5", "Goal: Staff Engineer", "South India"]);
+    expect(model.shown).toEqual(["Backend", "Senior Engineer", "Goal: Staff Engineer", "South India"]);
     expect(model.withheld).toEqual(["robotics (withheld to keep you in a crowd of 10 or more)"]);
   });
 
@@ -117,7 +117,7 @@ describe("the words", () => {
     const limited = exploreFor({ maxMonths: 36 });
     const text = cardText(trailCardModel(limited.person, limited.data, await assessed()));
     expect(text.split("\n")[0]).toBe("My route to Staff Engineer");
-    expect(text).toContain("Backend \u00b7 L5 \u00b7 Goal: Staff Engineer \u00b7 South India");
+    expect(text).toContain("Backend \u00b7 Senior Engineer \u00b7 Goal: Staff Engineer \u00b7 South India");
     expect(text).toContain("Within 36 months");
     expect(text).toMatch(/Jump \(start here\): 18\u201323 months\. \d+\u2013\d+% \u00b7 65 engineers/);
     expect(text).toContain("Synthetic cohort of 484 engineers. Ranges, not promises.");

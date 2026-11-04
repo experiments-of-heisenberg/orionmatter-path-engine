@@ -203,7 +203,7 @@ describe("the sample banner", () => {
     const sample = view(IDLE_INTAKE, true, "map");
     expect(sample).toContain("You are looking at a sample engineer.");
     expect(sample).toContain("Enter your own story");
-    expect(sample).toContain("Sample engineer</li>");
+    expect(sample).toContain("Sample engineer</span>");
     const own = view(IDLE_INTAKE, false, "map");
     expect(own).not.toContain("sample engineer");
     expect(own).not.toContain("Sample engineer");

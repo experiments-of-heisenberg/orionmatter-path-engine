@@ -1858,3 +1858,40 @@ ul {
     transition: none !important;
   }
 }
+
+/* ---------- quieter first screen ---------- */
+.hero__note {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 14px;
+  margin-top: 10px;
+  font-size: 0.8rem;
+  color: var(--faint);
+}
+.hero__note span + span::before {
+  content: "\00b7";
+  margin-right: 14px;
+}
+.constellation__howto summary {
+  cursor: pointer;
+  font-size: 0.78rem;
+  color: #8e9bbd;
+  list-style: none;
+}
+.constellation__howto summary::-webkit-details-marker {
+  display: none;
+}
+.constellation__howto summary::after {
+  content: " \25be";
+}
+.constellation__howto[open] summary {
+  margin-bottom: 6px;
+}
+.deltas__more {
+  margin-top: 8px;
+}
+.deltas__more summary {
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--muted);
+}

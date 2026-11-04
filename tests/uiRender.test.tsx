@@ -38,7 +38,13 @@ describe("the page", () => {
   it("names the goal, says who the person is, and labels the data as synthetic", () => {
     expect(html).toContain("<h1");
     expect(html).toContain("Your route to Staff Engineer");
-    for (const chip of ["Backend", "L5", "7 years", "South India", "Synthetic cohort of 484 engineers"])
+    for (const chip of [
+      "Backend",
+      "Senior Engineer",
+      "7 years",
+      "South India",
+      "Synthetic cohort of 484 engineers",
+    ])
       expect(html).toContain(chip);
     expect(html).toContain("The cohort is synthetic");
   });
@@ -90,7 +96,9 @@ describe("the page", () => {
 
   it("gives every range bar and meter a text equivalent", () => {
     expect(html).toContain('aria-label="Typical time 34\u201340 months on a scale from 0 to 60 months"');
-    expect(html).toContain('aria-label="Success range 74\u201392% on a scale from 0 to 100 percent"');
+    // one bar per card (the time range); the share who made it is said in words, not drawn a second time
+    expect(html).not.toContain('aria-label="Success range');
+    expect(html).toContain("<strong>74\u201392%</strong> reached it");
   });
 
   it("shows the selected route in detail, with a text summary of the chart and of the outcome bar", () => {

@@ -4,7 +4,6 @@ import type { ClientRoute, ClientSheet } from "../lib/api/serialize";
 import { RADAR_BASIS } from "../lib/engine/radar";
 import {
   ARCHETYPE_LABEL,
-  bandRange,
   engineersText,
   monthsRange,
   percentRange,
@@ -17,6 +16,7 @@ import { ROUTE_COLORS } from "../ui/palette";
 import { RADAR_AXES } from "../ui/radar";
 import { DistributionChart, OutcomeBar } from "./Charts";
 import { RadarChart } from "./RadarChart";
+import { bandWords, displayActive, h } from "../ui/display";
 
 /** The "outside your limits" note is a share of the outcome bar, not a risk to watch out for. */
 const isRealRisk = (risk: string): boolean => !risk.includes("outside your limits");
@@ -33,7 +33,7 @@ export function RouteDetail({ route, maxMonths }: { route: ClientRoute; maxMonth
       <h2 id="detail-title" className="panel__title">
         <span className="route-dot" /> {ARCHETYPE_LABEL[route.archetype]} in detail
       </h2>
-      <p className="panel__lede">{summaryLine(route)}</p>
+      <p className="panel__lede">{h(summaryLine(route))}</p>
       {status === "no_data" ? null : (
         <div className="detail-grid">
           <div>
@@ -194,9 +194,9 @@ export function ComparePanel({
                 ))}
               </tr>
               <tr>
-                <th scope="row">Pay band</th>
+                <th scope="row">{displayActive() ? "Yearly pay" : "Pay band"}</th>
                 {sheet.routes.map((r) => (
-                  <td key={r.archetype}>{bandRange(r.compBandRange)}</td>
+                  <td key={r.archetype}>{bandWords(r.compBandRange)}</td>
                 ))}
               </tr>
               <tr>
@@ -240,7 +240,7 @@ export function WhyPanel({ sheet }: { sheet: ClientSheet }) {
       <div className="why-grid">
         <div>
           <h3 className="panel__sub">Why this order</h3>
-          <p>{sheet.ranking.basis}</p>
+          <p>{h(sheet.ranking.basis)}</p>
           <h3 className="panel__sub">What a range means</h3>
           <p>
             Success is a 95% range for the share of comparable engineers who reached the goal, and time is the

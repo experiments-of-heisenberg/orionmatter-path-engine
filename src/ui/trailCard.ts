@@ -12,6 +12,7 @@ import type { ClientSheet } from "../lib/api/serialize";
 import type { PrivacyAssessment } from "../lib/privacy";
 import { ARCHETYPE_LABEL, monthsRange, percentRange, routeStatus, type Archetype } from "./format";
 import { type Person, REGION_LABEL, ROLE_LABEL } from "./sample";
+import { levelTitle } from "./display";
 
 export const CARD_WIDTH = 1200;
 export const CARD_HEIGHT = 630;
@@ -54,7 +55,7 @@ function detailFor(rung: { added: string; label: string }, person: Person): stri
     case "role":
       return ROLE_LABEL[person.profile.roleFamily];
     case "level":
-      return person.profile.level;
+      return levelTitle(person.profile.level);
     case "goal":
       return `Goal: ${person.goal.label}`;
     case "region":

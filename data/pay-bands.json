@@ -1,0 +1,17 @@
+{
+  "_note": "Indicative market pay for each band, per region, as total yearly pay (base plus bonus plus stock) at technology employers. The synthetic cohort stores only the order of bands (B1 lowest to B5 highest within a region), not salaries; these ranges are rounded from public 2026 salary surveys so a band reads as money. They are orientation, not data from the cohort, and they vary a lot by employer and city.",
+  "_sources": [
+    "India: Levels.fyi Bengaluru figures as summarised by Intervue, hrcalcy and thecloudvibe, 2026 (entry median about 19 lakh, senior median about 56 lakh with a middle half of 39 to 80 lakh, big-tech staff about 1.4 to 2.2 crore)",
+    "United States: Levels.fyi US medians as summarised by Devico and Wrok, 2025 to 2026 (entry about 155k, senior about 313k, staff about 458k, national median 192k to 195k)",
+    "Europe: EuroTopTech compensation report, November 2026 (entry 48k, mid 63k, senior 88k, staff 120k euro, staff middle half 90k to 180k)",
+    "Southeast Asia: Levels.fyi and NodeFlair figures as summarised by SG Bulletin and Talenlio, 2026; ranges differ several-fold between Singapore and Jakarta or Ho Chi Minh City"
+  ],
+  "rates": { "usdPerEur": 1.1, "usdPerInr": 0.0118 },
+  "regions": {
+    "IN-south": { "currency": "INR", "unit": "lakh", "cuts": [20, 40, 70, 120] },
+    "US-east": { "currency": "USD", "unit": "k", "cuts": [150, 250, 350, 500] },
+    "US-west": { "currency": "USD", "unit": "k", "cuts": [150, 250, 350, 500] },
+    "EU-west": { "currency": "EUR", "unit": "k", "cuts": [55, 80, 110, 160] },
+    "SEA": { "currency": "USD", "unit": "k", "cuts": [20, 45, 80, 140] }
+  }
+}

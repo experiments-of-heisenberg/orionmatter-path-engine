@@ -12,6 +12,7 @@ import { ARCHETYPE_LABEL, type Archetype } from "../ui/format";
 import { planHeadline, planIsStale, routeOf, windowText, type PlanState } from "../ui/plan";
 import { currentStage } from "../ui/trace";
 import { TracePanel } from "./TracePanel";
+import { h } from "../ui/display";
 
 export interface PlanPanelProps {
   plan: PlanState;
@@ -33,7 +34,7 @@ function RouteSteps({ result, archetype }: { result: ClientPlanRun; archetype: A
   if (!route) return null;
   return (
     <div className="plan-route">
-      <p className="panel__lede">{route.summary}</p>
+      <p className="panel__lede">{h(route.summary)}</p>
       {route.evidenceThin && (
         <p className="notice">Limited evidence: few comparable engineers stand behind this route.</p>
       )}
@@ -46,7 +47,7 @@ function RouteSteps({ result, archetype }: { result: ClientPlanRun; archetype: A
               </span>
               <h3 className="plan-stepcard__what">
                 <span className="sr-only">Step {index + 1}: </span>
-                {step.what}
+                {h(step.what)}
               </h3>
               <span className="tag tag--gray">{windowText(step.monthWindow)}</span>
             </div>
@@ -54,7 +55,7 @@ function RouteSteps({ result, archetype }: { result: ClientPlanRun; archetype: A
               <ul className="plan-claims">
                 {step.whyItWorks.map((claim) => (
                   <li key={claim.text}>
-                    {claim.text}{" "}
+                    {h(claim.text)}{" "}
                     <span className="plan-claims__meta">
                       Based on {claim.n} engineer{claim.n === 1 ? "" : "s"}.
                     </span>{" "}
@@ -151,7 +152,7 @@ export function PlanPanel({ plan, current, selected, onSelect, onBuild }: PlanPa
             <h3 className="panel__sub">What this plan cannot tell you</h3>
             <ul className="plan__caveats">
               {result.plan.caveats.map((c) => (
-                <li key={c}>{c}</li>
+                <li key={c}>{h(c)}</li>
               ))}
             </ul>
           </>

@@ -28,6 +28,7 @@ import {
   withSkillAdded,
   withSkillRemoved,
 } from "../ui/limits";
+import { displayActive, floorLabel } from "../ui/display";
 
 export interface ControlsProps {
   constraints: Constraints;
@@ -131,19 +132,19 @@ export function Controls({ constraints: c, onChange, onReset, canReset }: Contro
 
       <div className="control" role="group" aria-labelledby="band-label">
         <p className="control__label" id="band-label">
-          Lowest pay band you would accept
+          {displayActive() ? "Lowest yearly pay you would accept" : "Lowest pay band you would accept"}
         </p>
         <div className="choices">
           <Choice pressed={c.minCompBand === undefined} onClick={() => onChange(withMinBand(c, undefined))}>
             Any
           </Choice>
-          {BAND_OPTIONS.map((band) => (
+          {BAND_OPTIONS.filter((band) => !(displayActive() && band === "B1")).map((band) => (
             <Choice
               key={band}
               pressed={c.minCompBand === band}
               onClick={() => onChange(withMinBand(c, band))}
             >
-              {band}
+              {floorLabel(Number(band.slice(1)))}
             </Choice>
           ))}
         </div>

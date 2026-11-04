@@ -14,7 +14,7 @@ import type { Turn } from "../ui/chat";
 import { deltaChips } from "../ui/delta";
 import { ARCHETYPE_LABEL, summaryLine, type Archetype } from "../ui/format";
 import { axisMaxFor } from "../ui/mapLayout";
-import { ROLE_LABEL, type Person } from "../ui/sample";
+import { type Person } from "../ui/sample";
 import type { Scenario } from "../ui/scenarios";
 import { Chat } from "./Chat";
 import { Constellation } from "./Constellation";
@@ -22,6 +22,7 @@ import { Controls } from "./Controls";
 import { DeltaChips, TornadoPanel, WhatItTakePanel } from "./Insights";
 import { RouteCard } from "./RouteCard";
 import { Scenarios } from "./Scenarios";
+import { h, levelTitle } from "../ui/display";
 
 /** Everything the What if tab needs from the app, besides the person and the numbers. */
 export interface WhatIfBindings {
@@ -98,7 +99,7 @@ export function WhatIfPanel({ person, data, selected, onSelect, bindings: b, pla
         selected={selected}
         onSelect={onSelect}
         goalLabel={person.goal.label}
-        youLabel={`${ROLE_LABEL[person.profile.roleFamily]} \u00b7 ${person.profile.level}`}
+        youLabel={levelTitle(person.profile.level)}
         {...(planSteps ? { planSteps } : {})}
       />
       {route && (
@@ -109,7 +110,7 @@ export function WhatIfPanel({ person, data, selected, onSelect, bindings: b, pla
       {data.conflicts.length > 0 && (
         <div className="notice" role="status">
           {data.conflicts.map((c) => (
-            <p key={c.message}>{c.message}</p>
+            <p key={c.message}>{h(c.message)}</p>
           ))}
         </div>
       )}

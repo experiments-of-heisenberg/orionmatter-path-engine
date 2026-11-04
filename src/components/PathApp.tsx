@@ -21,6 +21,8 @@ import { usePathState } from "./usePathState";
 import { IDLE_INTAKE, useIntake, type IntakeBindings } from "./useIntake";
 import { IDLE_PRIVACY, type PrivacyBindings } from "./usePrivacy";
 import { IDLE_BINDINGS, WhatIfPanel, type WhatIfBindings } from "./WhatIfPanel";
+import { levelTitle } from "../ui/display";
+import { useDisplayRegion } from "./useDisplayRegion";
 
 export type Tab = "you" | "map" | "whatif" | "plan" | "compare" | "privacy" | "share" | "why";
 /** The tabs, in order. */
@@ -85,11 +87,13 @@ export function PathView({
   isSample = false,
   serverMode,
 }: ViewProps) {
+  // Words, not codes: tell the display module whose money to speak for as this screen renders (and switch it off on unmount).
+  useDisplayRegion(person.profile.region);
   const route = data?.routes.find((r) => r.archetype === chosen);
   const axisMax = data ? axisMaxFor(data.routes, person.constraints.maxMonths) : 60;
   const maxMonths = person.constraints.maxMonths;
   const mapSteps = stepsForMap(plan, person.constraints, chosen, data?.constraints);
-  const youLabel = `${ROLE_LABEL[person.profile.roleFamily]} · ${person.profile.level}`;
+  const youLabel = levelTitle(person.profile.level);
   return (
     <div className="app">
       <header className="hero">
@@ -110,15 +114,15 @@ export function PathView({
           </h1>
           <ul className="hero__chips" aria-label="About you">
             <li>{ROLE_LABEL[person.profile.roleFamily]}</li>
-            <li>{person.profile.level}</li>
+            <li>{levelTitle(person.profile.level)}</li>
             <li>{person.profile.yearsExperience} years</li>
             <li>{REGION_LABEL[person.profile.region] ?? person.profile.region}</li>
-            {serverMode === "fixtures" && (
-              <li className="chip--quiet">Demo build: replaying recorded Muse Spark answers</li>
-            )}
-            {isSample && <li className="chip--quiet">Sample engineer</li>}
-            <li className="chip--quiet">Synthetic cohort of 484 engineers</li>
           </ul>
+          <p className="hero__note">
+            {serverMode === "fixtures" && <span>Demo build: replaying recorded Muse Spark answers</span>}
+            {isSample && <span>Sample engineer</span>}
+            <span>Synthetic cohort of 484 engineers</span>
+          </p>
         </div>
       </header>
 
@@ -264,7 +268,9 @@ export function PathView({
       <footer className="footer">
         <p>
           Every range shows how many comparable engineers stand behind it. The cohort is synthetic, the
-          numbers come from code, and nothing here is a promise.
+          numbers come from code, and nothing here is a promise. Pay is shown as an indicative market range
+          (total yearly pay at technology employers), not as data from the cohort, which only knows the order
+          of the pay bands.
         </p>
       </footer>
     </div>

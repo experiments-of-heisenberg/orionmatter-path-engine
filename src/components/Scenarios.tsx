@@ -15,6 +15,7 @@ import {
   leader,
   type Scenario,
 } from "../ui/scenarios";
+import { h } from "../ui/display";
 
 export interface ScenariosProps {
   scenarios: readonly Scenario[];
@@ -103,8 +104,8 @@ export function Scenarios({ scenarios, notice, onSave, onOpen, onRemove, onRenam
                         )}
                       </div>
                     </th>
-                    <td>{constraintsText(s.constraints)}</td>
-                    <td>{headlineText(s.headline)}</td>
+                    <td>{h(constraintsText(s.constraints))}</td>
+                    <td>{h(headlineText(s.headline))}</td>
                     <td className="scenarios__actions">
                       <button type="button" className="button button--quiet" onClick={() => onOpen(s.id)}>
                         Open

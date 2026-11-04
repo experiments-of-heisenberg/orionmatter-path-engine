@@ -36,7 +36,7 @@ describe("odd ladders", () => {
     );
     expect(model.shown).toEqual(["Backend"]);
     expect(model.withheld).toEqual([
-      "L5 (withheld to keep you in a crowd of 10 or more)",
+      "Senior Engineer (withheld to keep you in a crowd of 10 or more)",
       "Goal: Staff Engineer (withheld to keep you in a crowd of 10 or more)",
     ]);
     expect(model.crowd).toBe(197);
@@ -75,7 +75,7 @@ describe("odd ladders", () => {
 
   it("k 1 shows every detail; a k beyond the server's range withholds everything", async () => {
     const small = trailCardModel(SAMPLE_PERSON, sheet, await assessed({ k: 1 }));
-    expect(small.shown).toEqual(["Backend", "L5", "Goal: Staff Engineer", "South India"]);
+    expect(small.shown).toEqual(["Backend", "Senior Engineer", "Goal: Staff Engineer", "South India"]);
     const huge = trailCardModel(
       SAMPLE_PERSON,
       sheet,

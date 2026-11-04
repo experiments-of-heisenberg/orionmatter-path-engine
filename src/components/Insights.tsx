@@ -13,6 +13,7 @@ import type { Relaxation, Tornado, WhatItTake } from "../lib/whatif";
 import { ARCHETYPE_LABEL, percentRange } from "../ui/format";
 import type { DeltaChip, Tone } from "../ui/delta";
 import { tornadoRows, tornadoSummary } from "../ui/tornadoLayout";
+import { h } from "../ui/display";
 
 const TONE_MARK: Record<Tone, string> = {
   better: "\u25b2",
@@ -21,6 +22,21 @@ const TONE_MARK: Record<Tone, string> = {
   neutral: "\u25cf",
 };
 const TONE_WORD: Record<Tone, string> = { better: "Better", worse: "Worse", mixed: "Mixed", neutral: "Note" };
+
+/** The changes shown at once; the rest sit behind "Show more" so a big move does not bury the page. */
+const DELTAS_SHOWN = 3;
+
+function DeltaItem({ chip }: { chip: DeltaChip }) {
+  return (
+    <li className={`delta delta--${chip.tone}`}>
+      <span className="delta__mark" aria-hidden="true">
+        {TONE_MARK[chip.tone]}
+      </span>
+      <span className="sr-only">{TONE_WORD[chip.tone]}: </span>
+      {h(chip.text)}
+    </li>
+  );
+}
 
 /** What changed since the starting point. */
 export function DeltaChips({ chips, startingPoint }: { chips: readonly DeltaChip[]; startingPoint: string }) {
@@ -34,16 +50,22 @@ export function DeltaChips({ chips, startingPoint }: { chips: readonly DeltaChip
         <p className="deltas__none">Nothing has moved enough to report yet. Try a limit.</p>
       ) : (
         <ul className="deltas__list" aria-live="polite">
-          {chips.map((chip) => (
-            <li key={chip.id} className={`delta delta--${chip.tone}`}>
-              <span className="delta__mark" aria-hidden="true">
-                {TONE_MARK[chip.tone]}
-              </span>
-              <span className="sr-only">{TONE_WORD[chip.tone]}: </span>
-              {chip.text}
-            </li>
+          {chips.slice(0, DELTAS_SHOWN).map((chip) => (
+            <DeltaItem key={chip.id} chip={chip} />
           ))}
         </ul>
+      )}
+      {chips.length > DELTAS_SHOWN && (
+        <details className="deltas__more">
+          <summary>
+            Show {chips.length - DELTAS_SHOWN} more change{chips.length - DELTAS_SHOWN === 1 ? "" : "s"}
+          </summary>
+          <ul className="deltas__list">
+            {chips.slice(DELTAS_SHOWN).map((chip) => (
+              <DeltaItem key={chip.id} chip={chip} />
+            ))}
+          </ul>
+        </details>
       )}
     </section>
   );
@@ -65,12 +87,12 @@ export function TornadoPanel({ tornado }: { tornado: Tornado }) {
           ? ` Right now: ${ARCHETYPE_LABEL[base.route]}, ${percentRange(base.rate)} of ${base.n} engineers.`
           : " Right now no route has anyone who met your limits."}
       </p>
-      <p className="sr-only">{tornadoSummary(rows)}</p>
+      <p className="sr-only">{h(tornadoSummary(rows))}</p>
       <ul className="tornado">
         {rows.map((row) => (
           <li key={row.knob} className="tornado__row">
             <div className="tornado__head">
-              <span className="tornado__label">{row.label}</span>
+              <span className="tornado__label">{h(row.label)}</span>
               <span className="tornado__swing">
                 {row.swing < 1 ? "no effect" : `swing ${Math.round(row.swing)} points`}
               </span>
@@ -86,10 +108,10 @@ export function TornadoPanel({ tornado }: { tornado: Tornado }) {
             </div>
             <div className="tornado__ends">
               <span>
-                <strong>Worst:</strong> {row.worst.label}, {row.worst.text}
+                <strong>Worst:</strong> {h(row.worst.label)}, {h(row.worst.text)}
               </span>
               <span>
-                <strong>Best:</strong> {row.best.label}, {row.best.text}
+                <strong>Best:</strong> {h(row.best.label)}, {h(row.best.text)}
               </span>
             </div>
             <details className="tornado__all">
@@ -97,8 +119,8 @@ export function TornadoPanel({ tornado }: { tornado: Tornado }) {
               <ul>
                 {row.options.map((o) => (
                   <li key={o.label}>
-                    {o.label}
-                    {o.current ? " (yours now)" : ""}: {o.text}
+                    {h(o.label)}
+                    {o.current ? " (yours now)" : ""}: {h(o.text)}
                   </li>
                 ))}
               </ul>
@@ -135,7 +157,7 @@ export function WhatItTakePanel({
           needs to give.
         </p>
       ) : data.options.length === 0 ? (
-        <p className="panel__lede">{data.note}</p>
+        <p className="panel__lede">{data.note === undefined ? undefined : h(data.note)}</p>
       ) : (
         <>
           <p className="panel__lede">
@@ -146,7 +168,7 @@ export function WhatItTakePanel({
           <ul className="take">
             {data.options.map((o) => (
               <li key={o.knob} className="take__card">
-                <p className="take__text">{o.text}</p>
+                <p className="take__text">{h(o.text)}</p>
                 <button type="button" className="button" onClick={() => onApply(o)}>
                   Try this
                 </button>

@@ -290,20 +290,23 @@ export function Constellation(props: Props) {
     <div className="constellation">
       <div className="constellation__head">
         <span className="constellation__title">Your routes to {props.goalLabel}</span>
-        <ul className="constellation__legend" aria-label="How to read the map">
-          <li>
-            <span className="legend-dot legend-dot--line" /> Distance is months from today
-          </li>
-          <li>
-            <span className="legend-dot legend-dot--band" /> Soft band is the typical window
-          </li>
-          <li>
-            <span className="legend-dot legend-dot--star" /> Bigger star means more engineers made it
-          </li>
-          <li>
-            <span className="legend-dot legend-dot--hollow" /> Hollow and dashed means limited evidence
-          </li>
-        </ul>
+        <details className="constellation__howto">
+          <summary>How to read this map</summary>
+          <ul className="constellation__legend" aria-label="How to read the map">
+            <li>
+              <span className="legend-dot legend-dot--line" /> Distance is months from today
+            </li>
+            <li>
+              <span className="legend-dot legend-dot--band" /> Soft band is the typical window
+            </li>
+            <li>
+              <span className="legend-dot legend-dot--star" /> Bigger star means more engineers made it
+            </li>
+            <li>
+              <span className="legend-dot legend-dot--hollow" /> Hollow and dashed means limited evidence
+            </li>
+          </ul>
+        </details>
       </div>
       <div className="constellation__body constellation__body--desktop">
         <MapSvg {...props} layout={desktop} compact={false} />

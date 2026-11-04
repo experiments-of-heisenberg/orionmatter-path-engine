@@ -4,5 +4,10 @@
  * costs nothing when the screen is ready and removes the deadline as a source of flakes.
  */
 import { configure } from "@testing-library/react";
+import { afterEach } from "vitest";
+import { setDisplayRegion } from "../src/ui/display";
 
 configure({ asyncUtilTimeout: 5000 });
+
+// A screen sets the display region while it renders; a test must never inherit the previous test's.
+afterEach(() => setDisplayRegion(undefined));

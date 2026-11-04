@@ -13,6 +13,7 @@ import type { Person } from "../ui/sample";
 import { cardFileName, cardText, trailCardModel } from "../ui/trailCard";
 import { TrailCard } from "./TrailCard";
 import type { PrivacyBindings } from "./usePrivacy";
+import { h } from "../ui/display";
 
 export function SharePanel({
   person,
@@ -83,7 +84,7 @@ export function SharePanel({
             <div className="share__what">
               <p>
                 <strong>On the card:</strong>{" "}
-                {model.shown.length > 0 ? model.shown.join(", ") : "none of your personal details"}
+                {model.shown.length > 0 ? h(model.shown.join(", ")) : "none of your personal details"}
                 {model.crowd !== null ? `. Together they match ${model.crowd} comparable engineers.` : "."}
               </p>
               {model.withheld.length > 0 && (
@@ -121,7 +122,7 @@ export function SharePanel({
             )}
             <details className="share__text">
               <summary>The card as text</summary>
-              <pre>{cardText(model)}</pre>
+              <pre>{h(cardText(model))}</pre>
             </details>
           </>
         )}

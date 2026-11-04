@@ -186,7 +186,7 @@ describe("the other controls", () => {
   it("a pay band and a switch change the request and the pressed state", async () => {
     install();
     await open();
-    await userEvent.click(screen.getByRole("button", { name: "B4" }));
+    await userEvent.click(screen.getByRole("button", { name: "\u20b970L+" }));
     await userEvent.click(screen.getByRole("switch", { name: /No relocation/ }));
     await waitFor(() =>
       expect(exploreCalls().at(-1)?.body["constraints"]).toMatchObject({
@@ -194,7 +194,7 @@ describe("the other controls", () => {
         noRelocation: true,
       }),
     );
-    expect(screen.getByRole("button", { name: "B4" }).getAttribute("aria-pressed")).toBe("true");
+    expect(screen.getByRole("button", { name: "\u20b970L+" }).getAttribute("aria-pressed")).toBe("true");
     expect(screen.getByRole("switch", { name: /No relocation/ }).getAttribute("aria-checked")).toBe("true");
     await userEvent.click(screen.getByRole("button", { name: "Any" }));
     await waitFor(() =>
@@ -262,13 +262,16 @@ describe("the chat", () => {
     await userEvent.type(screen.getByLabelText("What would you like to change?"), "I want more money");
     await userEvent.click(screen.getByRole("button", { name: "Ask" }));
     const group = await screen.findByRole("group", { name: "A question about your request" });
-    await userEvent.click(within(group).getByRole("button", { name: "B4" }));
+    // the buttons say what the band is worth, as a floor; what is sent is still the code the interpreter reads
+    await userEvent.click(within(group).getByRole("button", { name: /at least \u20b970 lakh/ }));
     await waitFor(() => expect(calls.filter((c) => c.path === "/api/whatif")).toHaveLength(2));
     expect(calls.filter((c) => c.path === "/api/whatif")[1]?.body).toMatchObject({
       message: "B4",
       history: [{ question: "Which minimum pay band do you want?", answer: "B4" }],
     });
-    await waitFor(() => expect(screen.getByRole("button", { name: "B4", pressed: true })).toBeTruthy());
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "\u20b970L+", pressed: true })).toBeTruthy(),
+    );
     // the question has been answered, so its buttons are gone from the earlier turn
     expect(screen.queryByRole("group", { name: "A question about your request" })).toBeNull();
   });

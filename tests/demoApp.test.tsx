@@ -16,6 +16,7 @@ import { PathApp } from "../src/components/PathApp";
 import { parseEnv } from "../src/lib/env";
 import { FileFixtureStore, createModelClient } from "../src/lib/model";
 import { WHATIF_EXAMPLES } from "../src/ui/demo";
+import { humanize } from "../src/ui/display";
 import { installServices, resetServices } from "./helpers/api";
 
 const routes: Record<string, (request: Request) => Response | Promise<Response>> = {
@@ -96,7 +97,8 @@ describe("the demo build", () => {
     async (example) => {
       await open();
       await userEvent.click(screen.getByRole("tab", { name: "What if" }));
-      await userEvent.click(await screen.findByRole("button", { name: example }));
+      // the button says what the example means in money; the sentence sent (and recorded) is still the one with the code
+      await userEvent.click(await screen.findByRole("button", { name: humanize(example, "IN-south") }));
       await screen.findByLabelText("Changes applied");
       expect(screen.queryByRole("alert")).toBeNull();
       await screen.findByText(/Phrased by Muse Spark/);

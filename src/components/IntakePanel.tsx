@@ -25,6 +25,7 @@ import {
 } from "../ui/intake";
 import { REGION_LABEL, ROLE_LABEL } from "../ui/sample";
 import type { IntakeBindings } from "./useIntake";
+import { levelTitle } from "../ui/display";
 
 function Source({ b, keys }: { b: IntakeBindings; keys: string }) {
   if (!b.result) return null;
@@ -245,7 +246,7 @@ export function IntakePanel({ b }: { b: IntakeBindings }) {
               <option value="">{"Choose\u2026"}</option>
               {LEVEL_OPTIONS.map((l) => (
                 <option key={l} value={l}>
-                  {l}
+                  {levelTitle(l)}
                 </option>
               ))}
             </select>
@@ -300,7 +301,7 @@ export function IntakePanel({ b }: { b: IntakeBindings }) {
               <option value="">{"Choose\u2026"}</option>
               {LEVEL_OPTIONS.map((l) => (
                 <option key={l} value={l}>
-                  {l} ({GOAL_LABEL[l]})
+                  {GOAL_LABEL[l]}
                 </option>
               ))}
             </select>

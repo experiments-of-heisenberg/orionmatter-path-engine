@@ -15,7 +15,8 @@ import { PlanRequest, PrivacyRequest } from "../../src/lib/api/schemas";
 import type { Services } from "../../src/lib/api/services";
 import { parseEnv } from "../../src/lib/env";
 import { FileFixtureStore, createModelClient } from "../../src/lib/model";
-import { SAMPLE_PERSON, ROLE_LABEL } from "../../src/ui/sample";
+import { levelTitle } from "../../src/ui/display";
+import { SAMPLE_PERSON } from "../../src/ui/sample";
 import { trailCardModel } from "../../src/ui/trailCard";
 
 const FONT = "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
@@ -55,7 +56,7 @@ export async function renderMapSvg(): Promise<string> {
       selected="climb"
       onSelect={() => undefined}
       goalLabel={person.goal.label}
-      youLabel={`${ROLE_LABEL[person.profile.roleFamily]} \u00b7 ${person.profile.level}`}
+      youLabel={levelTitle(person.profile.level)}
       {...(climb ? { planSteps: { archetype: "climb" as const, steps: climb.steps } } : {})}
     />,
   );

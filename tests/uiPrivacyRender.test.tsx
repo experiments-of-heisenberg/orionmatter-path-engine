@@ -64,7 +64,7 @@ describe("the ladder", () => {
     for (const text of ["197 engineers", "93 engineers", "68 engineers", "11 engineers"])
       expect(html).toContain(text);
     expect(count(html, "Crowd of 10+")).toBe(4);
-    expect(html).toContain("Sharing backend, L5 leaves 93 comparable engineers who match.");
+    expect(html).toContain("Sharing backend, Senior Engineer leaves 93 comparable engineers who match.");
     expect(html).toContain("Sharing all of it still leaves a crowd of at least 10.");
     expect(html).toContain("synthetic cohort of 484 generated career histories");
     expect(count(html, 'class="ladder__k"')).toBe(4);

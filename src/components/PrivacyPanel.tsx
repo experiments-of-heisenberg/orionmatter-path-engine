@@ -21,6 +21,7 @@ import {
   textCheckWords,
 } from "../ui/privacy";
 import type { PrivacyBindings } from "./usePrivacy";
+import { h } from "../ui/display";
 
 export function LadderChart({ rows, k }: { rows: ReturnType<typeof ladderRows>; k: number }) {
   const kx =
@@ -56,7 +57,7 @@ export function LadderChart({ rows, k }: { rows: ReturnType<typeof ladderRows>; 
             />
             <span className="ladder__k" style={{ left: `${kx * 100}%` }} />
           </div>
-          <p className="ladder__sentence">{row.sentence}</p>
+          <p className="ladder__sentence">{h(row.sentence)}</p>
         </li>
       ))}
     </ol>
@@ -134,13 +135,13 @@ export function PrivacyPanel({ b }: { b: PrivacyBindings }) {
         {ladder && (
           <>
             <LadderChart rows={ladderRows(ladder.ladder)} k={ladder.k} />
-            <p className="privacy__summary">{shareSummary(ladder)}</p>
+            <p className="privacy__summary">{h(shareSummary(ladder))}</p>
             {ladder.notes.map((n) => (
               <p key={n} className="notice">
                 {n}
               </p>
             ))}
-            <p className="panel__fine">{ladder.basis}</p>
+            <p className="panel__fine">{h(ladder.basis)}</p>
           </>
         )}
       </section>
@@ -225,7 +226,7 @@ export function PrivacyPanel({ b }: { b: PrivacyBindings }) {
             </p>
             <ul className="privacy__reasons">
               {done.result.reasons.map((r) => (
-                <li key={r}>{r}</li>
+                <li key={r}>{h(r)}</li>
               ))}
             </ul>
             <p className="panel__fine">{textCheckWords(done.result.textCheck)}</p>
@@ -235,7 +236,7 @@ export function PrivacyPanel({ b }: { b: PrivacyBindings }) {
                 <ul className="privacy__findings">
                   {g.items.map((f, i) => (
                     <li key={`${f.quote}-${i}`}>
-                      <q>{f.quote}</q> <span className="privacy__why">{f.reason}</span>{" "}
+                      <q>{f.quote}</q> <span className="privacy__why">{h(f.reason)}</span>{" "}
                       <span className="tag tag--gray">{sourceWords(f)}</span>
                     </li>
                   ))}

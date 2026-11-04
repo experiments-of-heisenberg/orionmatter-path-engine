@@ -3,7 +3,6 @@ import type { ClientRoute } from "../lib/api/serialize";
 import {
   ARCHETYPE_BLURB,
   ARCHETYPE_LABEL,
-  bandRange,
   engineersText,
   monthsRange,
   percentRange,
@@ -11,7 +10,8 @@ import {
   statusBadge,
 } from "../ui/format";
 import { ROUTE_COLORS } from "../ui/palette";
-import { RangeBar, SuccessMeter } from "./Charts";
+import { RangeBar } from "./Charts";
+import { bandWords, displayActive } from "../ui/display";
 
 interface Props {
   route: ClientRoute;
@@ -73,11 +73,6 @@ export function RouteCard({ route, axisMax, selected, recommended, onSelect }: P
           <p className="route-card__stat">
             <strong>{percentRange(route.reachedRate)}</strong> reached it
           </p>
-          <SuccessMeter
-            range={route.reachedRate}
-            color={color}
-            label={`Success range ${percentRange(route.reachedRate)} on a scale from 0 to 100 percent`}
-          />
         </>
       )}
 
@@ -91,8 +86,8 @@ export function RouteCard({ route, axisMax, selected, recommended, onSelect }: P
         </div>
         {!empty && (
           <div>
-            <dt>Pay band reached</dt>
-            <dd>{bandRange(route.compBandRange)}</dd>
+            <dt>{displayActive() ? "Yearly pay once there" : "Pay band reached"}</dt>
+            <dd>{bandWords(route.compBandRange)}</dd>
           </div>
         )}
       </dl>

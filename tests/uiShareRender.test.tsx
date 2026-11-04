@@ -50,7 +50,7 @@ describe("the Share tab", () => {
   });
   it("with the count: the card, what is on it, the crowd it leaves, that nothing is uploaded, and three ways to save", () => {
     const html = view({ ladder: { phase: "done", result: ladder10 } });
-    expect(html).toContain("Backend, L5, Goal: Staff Engineer, South India");
+    expect(html).toContain("Backend, Senior Engineer, Goal: Staff Engineer, South India");
     expect(html).toContain("Together they match 11 comparable engineers.");
     expect(html).toContain("nothing is uploaded");
     expect(html).toContain(

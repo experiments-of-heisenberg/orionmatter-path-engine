@@ -12,6 +12,7 @@ import { useState } from "react";
 import type { Turn } from "../ui/chat";
 import { WHATIF_EXAMPLES, exampleMessage } from "../ui/demo";
 import { MAX_MESSAGE, checkMessage, pendingQuestion } from "../ui/chat";
+import { h, humanize } from "../ui/display";
 
 /** Sentences to try, shown while the conversation is empty. */
 export const EXAMPLES = WHATIF_EXAMPLES;
@@ -53,9 +54,9 @@ function Answer({
               <li key={`${a.field}-${a.phrase}`} className="applied__item">
                 <span className="applied__name">{a.label}</span>
                 <span className="applied__change">
-                  {a.from} <span aria-label="changed to">{"\u2192"}</span> {a.to}
+                  {h(a.from)} <span aria-label="changed to">{"\u2192"}</span> {h(a.to)}
                 </span>
-                <q className="applied__phrase">{a.phrase}</q>
+                <q className="applied__phrase">{h(a.phrase)}</q>
               </li>
             ))}
           </ul>
@@ -67,7 +68,7 @@ function Answer({
           <ul className="issues">
             {reading.refused.map((r) => (
               <li key={`${r.field}-${r.phrase}`}>
-                <q>{r.phrase}</q>: {r.reason}
+                <q>{h(r.phrase)}</q>: {h(r.reason)}
               </li>
             ))}
           </ul>
@@ -79,7 +80,7 @@ function Answer({
           <ul className="issues">
             {reading.unsupported.map((u) => (
               <li key={u.phrase}>
-                <q>{u.phrase}</q>: {u.reason}
+                <q>{h(u.phrase)}</q>: {h(u.reason)}
               </li>
             ))}
           </ul>
@@ -88,7 +89,7 @@ function Answer({
       {reading.conflicts.length > 0 && (
         <ul className="issues issues--warn" aria-label="Things to know">
           {reading.conflicts.map((c) => (
-            <li key={c.message}>{c.message}</li>
+            <li key={c.message}>{h(c.message)}</li>
           ))}
         </ul>
       )}
@@ -107,12 +108,12 @@ function Answer({
       )}
       {question && (
         <div className="question" role="group" aria-label="A question about your request">
-          <p className="question__text">{question.question}</p>
+          <p className="question__text">{h(question.question)}</p>
           {question.options.length > 0 && (
             <div className="choices">
               {question.options.map((option) => (
                 <button key={option} type="button" className="choice" onClick={() => onSend(option)}>
-                  {option}
+                  {optionLabel(option)}
                 </button>
               ))}
             </div>
@@ -127,10 +128,10 @@ function Answer({
       )}
       {diff.facts.length > 0 && (
         <div className="narration">
-          <p className="narration__headline">{narration.headline}</p>
+          <p className="narration__headline">{h(narration.headline)}</p>
           <ul className="narration__points">
             {narration.points.map((p) => (
-              <li key={p.text}>{p.text}</li>
+              <li key={p.text}>{h(p.text)}</li>
             ))}
           </ul>
           <p className="narration__source">
@@ -143,7 +144,7 @@ function Answer({
             <ul>
               {diff.facts.map((f) => (
                 <li key={f.id}>
-                  {f.text}
+                  {h(f.text)}
                   {f.thin ? " Limited evidence." : ""}
                 </li>
               ))}
@@ -191,7 +192,7 @@ export function Chat({ turns, busy, draft, onDraft, onSend, onApplyHeld }: ChatP
                 disabled={busy}
                 onClick={() => onSend(exampleMessage(e))}
               >
-                {e}
+                {h(e)}
               </button>
             </li>
           ))}
@@ -203,7 +204,7 @@ export function Chat({ turns, busy, draft, onDraft, onSend, onApplyHeld }: ChatP
           <li key={turn.id} className="turn">
             <p className="turn__you">
               <span className="sr-only">You asked: </span>
-              {turn.message}
+              {h(turn.message)}
             </p>
             {turn.status === "working" && (
               <p className="turn__working" role="status">
@@ -235,7 +236,7 @@ export function Chat({ turns, busy, draft, onDraft, onSend, onApplyHeld }: ChatP
         }}
       >
         <label htmlFor="chat-input" className="sr-only">
-          {open ? open.question : "What would you like to change?"}
+          {open ? h(open.question) : "What would you like to change?"}
         </label>
         <textarea
           id="chat-input"
@@ -270,4 +271,9 @@ export function Chat({ turns, busy, draft, onDraft, onSend, onApplyHeld }: ChatP
       </form>
     </section>
   );
+}
+
+/** The words on an answer button. A bare band is the answer to "what is the lowest pay you want", so it reads as a floor. */
+function optionLabel(option: string): string {
+  return /^B[1-5]$/.test(option) ? humanize(`${option} or higher`) : h(option);
 }

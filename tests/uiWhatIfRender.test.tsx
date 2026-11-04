@@ -85,8 +85,8 @@ describe("the limits panel", () => {
     expect(html).toMatch(/<input id="limit-slider"[^>]*type="range"[^>]*min="6"[^>]*max="73"[^>]*value="24"/);
     expect(html).toContain('aria-valuetext="24 months"');
     expect(html).toMatch(/<output[^>]*>24 months<\/output>/);
-    expect(html).toMatch(/aria-pressed="true"[^>]*>B4<\/button>/);
-    expect(html).toMatch(/aria-pressed="false"[^>]*>B5<\/button>/);
+    expect(html).toMatch(/aria-pressed="true"[^>]*>\u20b970L\+<\/button>/);
+    expect(html).toMatch(/aria-pressed="false"[^>]*>\u20b91\.2 Cr\+<\/button>/);
     expect(html).toMatch(/role="switch" aria-checked="true"[^>]*>(?:(?!<\/button>)[\s\S])*No relocation/);
     expect(html).toMatch(/role="switch" aria-checked="false"[^>]*>(?:(?!<\/button>)[\s\S])*Remote only/);
     expect(html).toMatch(/aria-pressed="true"[^>]*>Medium<\/button>/);
@@ -158,10 +158,13 @@ describe("the chat", () => {
   it("an open question: shown as a group with its options, and the box is labelled with the question", () => {
     const html = view({}, { turns: conversation() });
     expect(html).toContain('role="group" aria-label="A question about your request"');
-    for (const option of ["B3", "B4", "B5"])
-      expect(html).toMatch(new RegExp(`class="choice"[^>]*>${option}</button>`));
+    // a bare band answers "what is the lowest pay you want", so each button is a floor in rupees (the sample person is in India)
+    for (const floor of ["\u20b940 lakh", "\u20b970 lakh", "\u20b91\\.2 crore"])
+      expect(html).toMatch(
+        new RegExp(`class="choice"[^>]*>a pay of at least ${floor.replace("\u20b9", "\u20b9")}`),
+      );
     expect(html).toContain(
-      '<label for="chat-input" class="sr-only">Which minimum pay band do you want? B1 is lowest, B5 highest.</label>',
+      '<label for="chat-input" class="sr-only">Which minimum yearly pay do you want?</label>',
     );
     expect(html).toContain('placeholder="Type your answer');
   });

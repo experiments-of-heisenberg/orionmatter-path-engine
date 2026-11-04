@@ -6,6 +6,7 @@
  * events the run streamed. Every state is also said in words ("Running", "Failed", "approved"), never by colour alone.
  */
 import { groupRejections, verdictHeadline, traceSummary, type Trace, type TraceItem } from "../ui/trace";
+import { h } from "../ui/display";
 
 const STATUS_WORD = { running: "Running", ok: "Done", error: "Failed" } as const;
 
@@ -34,7 +35,7 @@ function Item({ item, active }: { item: TraceItem; active: boolean }) {
           </p>
           {(item.summary || item.evidenceId) && (
             <p className="trace__summary">
-              {item.summary}
+              {item.summary ? h(item.summary) : undefined}
               {item.evidenceId && (
                 <>
                   {" "}
@@ -47,7 +48,7 @@ function Item({ item, active }: { item: TraceItem; active: boolean }) {
         </li>
       );
     case "note":
-      return <li className="trace__note">{item.message}</li>;
+      return <li className="trace__note">{h(item.message)}</li>;
     case "verdict":
       return (
         <li className={`trace__verdict trace__verdict--${item.approved ? "approved" : "rejected"}`}>
@@ -60,8 +61,8 @@ function Item({ item, active }: { item: TraceItem; active: boolean }) {
               <ul>
                 {group.items.map((r, i) => (
                   <li key={`${r.routeIndex}-${r.stepIndex ?? "x"}-${i}`}>
-                    <q>{r.claimText.length > 140 ? `${r.claimText.slice(0, 137)}\u2026` : r.claimText}</q>
-                    <span className="trace__reason"> {r.reason}</span>
+                    <q>{h(r.claimText.length > 140 ? `${r.claimText.slice(0, 137)}\u2026` : r.claimText)}</q>
+                    <span className="trace__reason"> {h(r.reason)}</span>
                   </li>
                 ))}
               </ul>
@@ -70,7 +71,7 @@ function Item({ item, active }: { item: TraceItem; active: boolean }) {
           {item.notes.length > 0 && (
             <ul className="trace__notes">
               {item.notes.map((n) => (
-                <li key={n}>{n}</li>
+                <li key={n}>{h(n)}</li>
               ))}
             </ul>
           )}

@@ -265,7 +265,7 @@ describe("confirming", () => {
     const alert = await screen.findByRole("alert", { name: "Fix these first" });
     expect(within(alert).getAllByRole("listitem")).toHaveLength(3);
     expect(screen.getByRole("tab", { name: "Your story" }).getAttribute("aria-selected")).toBe("true");
-    expect(screen.getByText(/sample/i, { selector: ".chip--quiet" })).toBeTruthy();
+    expect(screen.getByText(/sample/i, { selector: ".hero__note span" })).toBeTruthy();
   });
 
   it("works with no reading at all: filling the form by hand is enough", async () => {

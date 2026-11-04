@@ -80,7 +80,7 @@ describe("a pay floor with no time limit", () => {
     expect(html).not.toContain("Your limit");
     expect(count(html, '<article class="route-card')).toBe(3);
     for (const name of ["Climb", "Jump", "Pivot"]) expect(html).toContain(`>${name}</button>`);
-    expect(html).toContain("Pay band reached");
+    expect(html).toContain("Yearly pay once there");
   });
 });
 
