@@ -20,7 +20,7 @@ const files = (dir: string, keep: (f: string) => boolean): string[] =>
   });
 
 const SCREENS = files("src", (f) => /\.(tsx?|css)$/.test(f) && !f.includes("/lib/"));
-const JUDGE_DOCS = ["README.md", "docs/deploy.md", "docs/evals.md", "docs/submission.md"];
+const JUDGE_DOCS = ["README.md", "docs/deploy.md", "docs/evals.md", "docs/submission.md", "docs/testing.md"];
 
 const BANNED: [string, RegExp][] = [
   ["on-device processing", /on[- ]?device/i],

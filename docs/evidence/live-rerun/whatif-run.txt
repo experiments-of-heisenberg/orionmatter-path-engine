@@ -1,0 +1,60 @@
+
+=== "What if I need to reach it within 2 years?"  (19462 ms, model, 5 facts)
+status: applied; applied: Time limit not set -> 24 months
+headline: Your starting route shifted from climb to jump after your limits changed.
+  - You now look at the jump route first instead of the climb route, where no comparable engineers reached the goal within your limits, while 47 of 55 did before with the fastest in 30 months.  [f1,f2]
+  - On the pivot route, no comparable engineers reached the goal within your limits, while 19 of 30 did before with the fastest in 38 months.  [f5]
+  - On the jump route, comparable engineers reaching the goal moved from 56-78% to 43-67% with n=65, and the ranges still overlap so this may be noise, while 12% reached the goal but outside your limits.  [f3,f4]
+  note: Narration rejected (1 problem(s)); asking once for a fix.
+
+=== "I only want to consider roles that pay B5 or above"  (12673 ms, model, 8 facts)
+status: applied; applied: Minimum pay band not set -> B5
+headline: Your first route to look at shifted from the climb route to the jump route.
+  - You might start with the jump route now, since it replaced the climb route as the first route to look at.  [f1]
+  - On the climb route, comparable engineers reached the goal moved from 74-92% to 19-42% (n=55), with ranges that no longer overlap, so this is a real change in the evidence. Pay band reached moved from B4-B5 to B5.  [f2,f3]
+  - On the climb route, 56% of comparable engineers reached the goal but outside your limits, while on the jump route that figure is 14%.  [f4,f6]
+  - On the jump route, comparable engineers reached the goal moved from 56-78% to 42-65% (n=65), and the ranges still overlap, so this may be noise.  [f5]
+  - On the pivot route, comparable engineers reached the goal moved from 46-78% to 36-70% (n=30), and the ranges still overlap, so this may be noise. There, 10% of comparable engineers reached the goal but outside your limits.  [f7,f8]
+
+=== "what if I learn Rust and Go?"  (8411 ms, model, 4 facts)
+status: applied; applied: Skills to add none -> rust, go
+headline: Adding rust and go showed no clear difference for your routes in this data.
+  - You added rust on the climb route, where comparable engineers who proved rust reached 55-95% (n=12) versus 73-93% (n=43) without it; the ranges overlap, so we cannot tell a difference with limited evidence.  [f1]
+  - You added rust on the jump route, where comparable engineers who proved rust reached 51-85% (n=24) versus 51-78% (n=41) without it; the ranges overlap, so we cannot tell a difference.  [f2]
+  - You added rust on the pivot route, where comparable engineers who proved rust reached 16-75% (n=7) versus 49-84% (n=23) without it; the ranges overlap, so we cannot tell a difference with limited evidence.  [f3]
+  - You also added go, and the cohort has no evidence about "go", so it cannot change any figure here.  [f4]
+
+=== "remote only please"  (7889 ms, model, 5 facts)
+status: applied; applied: Remote only off -> on
+headline: Turning remote-only on narrowed your comparison group and shifted pay bands and risks.
+  - You now have a smaller comparison group, with comparable engineers changing from 150 to 88.  [f1]
+  - On the jump route, comparable engineers reached pay band B5 before, and B4-B5 with remote-only on.  [f3]
+  - On the jump route, comparable engineers reached the goal at 56-78% before and 45-75% (n=36) after, and on the pivot route at 46-78% before and 49-88% (n=18) after; the ranges still overlap so we cannot tell and this may be noise.  [f2,f4]
+  - On the pivot route, you now see promotion stall listed as a risk.  [f5]
+
+=== "within 3 years, and I want to play it safe"  (8597 ms, model, 5 facts)
+status: applied; applied: Time limit not set -> 36 months; Risk tolerance medium -> low
+headline: Your first route to look at switched from the climb route to the jump route.
+  - For you, the first route to look at changed from the climb route to the jump route.  [f1]
+  - On the climb route, comparable engineers reached the goal at 74-92% before and 28-53% now (n=55), and the ranges no longer overlap, so this looks like a real change in the evidence.  [f2]
+  - On the pivot route, no comparable engineer reached the goal within your limits (19 of 30 did before), and the fastest there took 38 months.  [f5]
+  - On the climb route, comparable engineers reached the goal in a typical time of 34-40 months before and 32-35 months now, and 45% of comparable engineers reached the goal but outside your limits.  [f3,f4]
+
+=== "what if I wanted it within a year?"  (10084 ms, model, 4 facts)
+status: applied; applied: Time limit not set -> 12 months
+headline: With your new limits, no route has comparable engineers who met them.
+  - You added limits that leave no route with comparable engineers who met your limits, so no option is recommended.  [f1]
+  - For you on the climb route, 47 of 55 comparable engineers reached the goal before, but none within your limits, and the fastest took 30 months.  [f2]
+  - For you on the jump route, 44 of 65 comparable engineers reached the goal before, but none within your limits, and the fastest took 14 months.  [f3]
+  - For you on the pivot route, 19 of 30 comparable engineers reached the goal before, but none within your limits, and the fastest took 38 months.  [f4]
+
+=== "forget the time limit"  (8702 ms, model, 4 facts)
+status: applied; applied: Time limit 24 months -> not set
+headline: Your first route to look at switched from the jump route to the climb route.
+  - For you, the first route to look at changed from the jump route to the climb route.  [f1]
+  - For you to consider, on the climb route 47 of 55 comparable engineers reached the goal, typically in 34-40 months.  [f2]
+  - For you to consider, on the pivot route 19 of 30 comparable engineers reached the goal, typically in 42-49 months.  [f4]
+  - For you, on the jump route the share who reached the goal moved from 43-67% to 56-78% (n=65), and the ranges still overlap, so this may be noise.  [f3]
+
+narration source: model 7, template 0; first attempt rejected 1
+full turn latency: median 8702 ms, p90 19462 ms, max 19462 ms

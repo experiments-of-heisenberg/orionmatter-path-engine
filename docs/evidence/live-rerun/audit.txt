@@ -1,0 +1,48 @@
+
+=== 1. backend L5 to Staff
+APPROVED in 27s | revisions 0 | engine filled in: nothing
+  audit 0 (first plan): approved
+
+=== 2. backend L5 to Staff, remote and no relocation
+APPROVED in 28s | revisions 0 | engine filled in: nothing
+  audit 0 (first plan): approved
+
+=== 3. ml L5 to Staff (thin pivot)
+APPROVED in 42s | revisions 1 | engine filled in: nothing
+  audit 0 (first plan): 2 rejection(s)
+    [verifier/n_mismatch] climb: The claim says n=20, but the cited evidence has n=53. Copy the sample size exactly.
+      text: "Pay for twins in this path clustered in B4-B4 band range"
+    [verifier/range_unsupported] climb: The range [35, 41] matches neither the months-to-goal nor the success-rate range of the cited evidence. Copy a range exactly.
+      text: "Pay for twins in this path clustered in B4-B4 band range"
+    note: Critic skipped: fix the mechanical problems first.
+  audit 1 (after revision 1): approved
+
+=== 4. embedded L4 to Staff (thin pivot)
+APPROVED in 26s | revisions 0 | engine filled in: nothing
+  audit 0 (first plan): approved
+
+=== 5. backend L5 to Engineering Manager
+APPROVED in 35s | revisions 1 | engine filled in: nothing
+  audit 0 (first plan): 4 rejection(s)
+    [verifier/n_mismatch] climb: The claim says n=25, but the cited evidence has n=5. Copy the sample size exactly.
+      text: "Pay for twins who reached it typically ranged from B3 to B4"
+    [verifier/range_unsupported] climb: The range [35, 42] matches neither the months-to-goal nor the success-rate range of the cited evidence. Copy a range exactly.
+      text: "Pay for twins who reached it typically ranged from B3 to B4"
+    [verifier/n_mismatch] jump: The claim says n=22, but the cited evidence has n=5. Copy the sample size exactly.
+      text: "Pay for twins who reached it typically ranged from B5 to B5"
+    [verifier/range_unsupported] jump: The range [18, 24] matches neither the months-to-goal nor the success-rate range of the cited evidence. Copy a range exactly.
+      text: "Pay for twins who reached it typically ranged from B5 to B5"
+    note: Critic skipped: fix the mechanical problems first.
+  audit 1 (after revision 1): approved
+
+=== 6. sre L4 to Staff, low risk, wants Rust
+APPROVED in 41s | revisions 1 | engine filled in: skillStats:climb:rust, skillStats:jump:rust, skillStats:pivot:rust
+  audit 0 (first plan): 2 rejection(s)
+    [verifier/n_mismatch] climb: The claim says n=14, but the cited evidence has n=53. Copy the sample size exactly.
+      text: "pay for twins reaching via this path typically in B4 to B5 bands, limited evidence"
+    [verifier/n_mismatch] jump: The claim says n=12, but the cited evidence has n=53. Copy the sample size exactly.
+      text: "pay for twins reaching via this path typically in B5 to B5 bands, limited evidence"
+    note: Critic skipped: fix the mechanical problems first.
+  audit 1 (after revision 1): approved
+
+Summary: 6 scenario(s), 3 needed revision, 0 unresolved or failed.

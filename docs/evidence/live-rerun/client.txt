@@ -1,0 +1,13 @@
+{"time":"2026-11-04T15:34:29.281Z","level":"warn","message":"model.escalate_budget","label":"live:escalation:spark","from":200,"to":400}
+{"time":"2026-11-04T15:34:30.776Z","level":"info","message":"model.call","label":"live:escalation:spark","target":"spark","model":"muse-spark-1.3","latencyMs":4484,"attempts":2,"finishReason":"stop","promptTokens":15,"completionTokens":122,"reasoningTokens":112}
+{"time":"2026-11-04T15:34:34.429Z","level":"info","message":"model.call","label":"live:structured:spark","target":"spark","model":"muse-spark-1.3","latencyMs":3650,"attempts":1,"finishReason":"stop","promptTokens":138,"completionTokens":275,"reasoningTokens":250}
+{"time":"2026-11-04T15:34:37.205Z","level":"info","message":"model.call","label":"live:tools:spark:turn1","target":"spark","model":"muse-spark-1.3","latencyMs":2767,"attempts":1,"finishReason":"tool_calls","promptTokens":1130,"completionTokens":220,"reasoningTokens":84}
+{"time":"2026-11-04T15:34:39.261Z","level":"info","message":"model.call","label":"live:tools:spark:turn2","target":"spark","model":"muse-spark-1.3","latencyMs":2054,"attempts":1,"finishReason":"stop","promptTokens":1301,"completionTokens":160,"reasoningTokens":144}
+{"time":"2026-11-04T15:34:41.930Z","level":"info","message":"model.call","label":"live:fixture","target":"spark","model":"muse-spark-1.3","latencyMs":2663,"attempts":1,"finishReason":"stop","promptTokens":16,"completionTokens":27,"reasoningTokens":16}
+{"time":"2026-11-04T15:34:41.932Z","level":"info","message":"model.replay","label":"live:fixture","target":"spark"}
+PASS  budget escalation [spark]        4484ms  reply="OK" attempts=2 reasoningTokens=112
+PASS  structured output [spark]        3654ms  {"level":"L5","years":7,"skills":["Go","Kubernetes"]} repaired=false
+PASS  tool loop [spark]                4827ms  toolCalls=1 truthN=150 answer="The tool returned 150 twins."
+PASS  fixtures record then replay      2671ms  recorded="PONG" replayed="PONG" fromFixture=true
+
+4/4 checks passed
