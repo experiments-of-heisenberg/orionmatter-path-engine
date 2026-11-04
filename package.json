@@ -31,7 +31,8 @@
     "live:privacy": "tsx scripts/live-privacy-check.ts",
     "record:demo": "tsx scripts/record-demo-fixtures.ts",
     "smoke": "tsx scripts/smoke-e2e.ts",
-    "docs:images": "tsx scripts/render-readme-images.ts"
+    "docs:images": "tsx scripts/render-readme-images.ts",
+    "live:injection": "tsx scripts/live-injection-check.ts"
   },
   "dependencies": {
     "geist": "1.9.0",
