@@ -6,7 +6,8 @@
  * storing `false`, so two equal settings are always `===`-comparable field by field), and describe the
  * settings in words for chips and screen readers. No React here, so all of it is tested directly.
  */
-import { MAX_SKILLS, type Constraints } from "../lib/schemas";
+import { MAX_SKILLS } from "../lib/limits";
+import type { Constraints } from "../lib/schemas";
 import type { Relaxation } from "../lib/whatif";
 import { clip } from "./text";
 

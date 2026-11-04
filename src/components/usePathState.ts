@@ -30,6 +30,7 @@ import { IDLE_PLAN, planFailed, planFinished, planProgress, planStarted, type Pl
 import { applyRelaxation, normalise, sameConstraints } from "../ui/limits";
 import type { Person } from "../ui/sample";
 import { addScenario, removeScenario, renameScenario, type Scenario } from "../ui/scenarios";
+import { usePrivacy, type PrivacyBindings } from "./usePrivacy";
 import type { WhatIfBindings } from "./WhatIfPanel";
 
 /** Wait this long after the last slider movement before asking for new numbers. */
@@ -51,9 +52,11 @@ export interface PathState {
   /** The plan run: idle, running with a live trace, done, or failed. */
   plan: PlanState;
   onBuildPlan: () => void;
+  privacy: PrivacyBindings;
 }
 
 export function usePathState(person: Person): PathState {
+  const privacy = usePrivacy(person);
   const [constraints, setConstraints] = useState<Constraints>(person.constraints);
   const [data, setData] = useState<ExploreResult | undefined>();
   const [baseline, setBaseline] = useState<ExploreResult | undefined>();
@@ -260,5 +263,6 @@ export function usePathState(person: Person): PathState {
     bindings,
     plan,
     onBuildPlan,
+    privacy,
   };
 }

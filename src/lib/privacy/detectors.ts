@@ -17,7 +17,10 @@ const DAY_MONTH_YEAR = new RegExp(`\\b\\d{1,2}(?:st|nd|rd|th)? ${MONTH}\\.?,? (?
 // A currency symbol and an amount ("$180k", "₹45,00,000"), or an amount and a currency or pay unit.
 // An amount ends on a digit, so the full stop that ends a sentence stays outside the match.
 const PAY_SYMBOL = /[$€£₹]\s?\d(?:[\d,.]*\d)?(?:\s?(?:[kKmM]|lakh|lakhs|crore|crores)\b)?/g;
-const PAY_UNIT = /\b\d(?:[\d,.]*\d)?\s?(?:LPA|USD|EUR|GBP|INR)\b/gi;
+// A currency word before the amount ("Rs. 12,00,000", "INR 45000").
+const PAY_PREFIX = /\b(?:Rs\.?|INR|USD|EUR|GBP)\s?\d(?:[\d,.]*\d)?/g;
+const PAY_UNIT =
+  /\b\d(?:[\d,.]*\d)?\s?(?:LPA|USD|EUR|GBP|INR|rupees?|rs\.?|dollars?|euros?|pounds?)(?![A-Za-z])/gi;
 
 /** Find every contact detail, exact date and exact pay figure in the text. */
 export function detectIdentifiers(text: string): PrivacyFinding[] {
@@ -40,7 +43,7 @@ export function detectIdentifiers(text: string): PrivacyFinding[] {
     for (const match of text.matchAll(pattern))
       add(match[0], "exact_date", "An exact date can be matched against public records.");
   }
-  for (const pattern of [PAY_SYMBOL, PAY_UNIT]) {
+  for (const pattern of [PAY_SYMBOL, PAY_PREFIX, PAY_UNIT]) {
     for (const match of text.matchAll(pattern))
       add(
         match[0].trim(),

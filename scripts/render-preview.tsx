@@ -8,6 +8,8 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { renderToStaticMarkup } from "react-dom/server";
 import { PathView, type Tab } from "../src/components/PathApp";
+import { IDLE_INTAKE, type IntakeBindings } from "../src/components/useIntake";
+import { IDLE_PRIVACY, type PrivacyBindings } from "../src/components/usePrivacy";
 import { IDLE_BINDINGS, type WhatIfBindings } from "../src/components/WhatIfPanel";
 import { handleExplore, handlePlan, handleWhatIf } from "../src/lib/api/handlers";
 import { PlanRequest, WhatIfRequest } from "../src/lib/api/schemas";
@@ -30,6 +32,7 @@ function page(
   selected: "climb" | "jump" | "pivot",
   whatIf?: WhatIfBindings,
   plan?: PlanState,
+  extra: { privacy?: PrivacyBindings; intake?: IntakeBindings; isSample?: boolean } = {},
 ): string {
   const data = handleExplore(PlanRequest.parse(person));
   const body = renderToStaticMarkup(
@@ -44,6 +47,9 @@ function page(
       onRetry={() => undefined}
       {...(whatIf ? { whatIf } : {})}
       {...(plan ? { plan } : {})}
+      {...(extra.privacy ? { privacy: extra.privacy } : {})}
+      {...(extra.intake ? { intake: extra.intake } : {})}
+      {...(extra.isSample !== undefined ? { isSample: extra.isSample } : {})}
     />,
   );
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>${css}</style></head><body>${body}</body></html>`;
@@ -145,9 +151,81 @@ async function approvedPlanState(): Promise<PlanState> {
   return planFinished(state, result);
 }
 
+async function privacyBindings(): Promise<PrivacyBindings> {
+  const { handlePrivacy } = await import("../src/lib/api/handlers");
+  const { PrivacyRequest } = await import("../src/lib/api/schemas");
+  const story =
+    "I worked at Acme Robotics on the Orion arm project. Mail me at jo@example.com. I earned 4200000 rupees in 2023.";
+  const asked = (body: object, steps: ReturnType<typeof reply>[]) =>
+    handlePrivacy(
+      { client: createMockClient(steps) } as unknown as Services,
+      PrivacyRequest.parse({ profile: SAMPLE_PERSON.profile, goal: SAMPLE_PERSON.goal, ...body }),
+      () => undefined,
+    );
+  const ladder = await asked({}, []);
+  const withText = await asked({ text: story }, [
+    reply(
+      JSON.stringify({
+        findings: [
+          { quote: "Acme Robotics", category: "employer", reason: "a named company" },
+          { quote: "Orion arm project", category: "project_or_product", reason: "a named project" },
+        ],
+      }),
+    ),
+  ]);
+  return {
+    ...IDLE_PRIVACY,
+    ladder: { phase: "done", result: ladder },
+    draft: story,
+    textCheck: { phase: "done", result: withText, usedModel: true, settings: IDLE_PRIVACY.settings },
+  };
+}
+
+async function intakeBindings(): Promise<IntakeBindings> {
+  const { handleIntake } = await import("../src/lib/api/handlers");
+  const { IntakeRequest } = await import("../src/lib/api/schemas");
+  const { formFromDraft } = await import("../src/ui/intake");
+  const text =
+    "I'm L5 backend engineer, 7 years in IN-south, working with Go and Kubernetes. I want to reach L6 Staff Engineer.";
+  const none = {
+    roleFamily: null,
+    level: null,
+    company: null,
+    title: null,
+    yearsExperience: null,
+    region: null,
+    compBand: null,
+    stack: [],
+    milestones: [],
+    goal: null,
+  };
+  const result = await handleIntake(
+    {
+      client: createMockClient([
+        reply(
+          JSON.stringify({
+            ...none,
+            roleFamily: { value: "backend", quote: "backend engineer" },
+            level: { value: "L5", quote: "L5 backend" },
+            yearsExperience: { value: 7, quote: "7 years" },
+            region: { value: "IN-south", quote: "IN-south" },
+            stack: ["go", "kubernetes"],
+            goal: { targetLevel: "L6", label: "Staff Engineer", quote: "L6 Staff Engineer" },
+          }),
+        ),
+      ]),
+    } as unknown as Services,
+    IntakeRequest.parse({ text }),
+    () => undefined,
+  );
+  return { ...IDLE_INTAKE, text, phase: "done", result, form: formFromDraft(result.draft) };
+}
+
 const limited: Person = { ...SAMPLE_PERSON, constraints: { ...SAMPLE_PERSON.constraints, maxMonths: 24 } };
 const live = await whatIfBindings();
 const planned = await approvedPlanState();
+const privacyState = await privacyBindings();
+const intakeState = await intakeBindings();
 const files: [string, string][] = [
   ["map", page(SAMPLE_PERSON, "map", "climb")],
   ["compare", page(SAMPLE_PERSON, "compare", "climb")],
@@ -156,6 +234,9 @@ const files: [string, string][] = [
   ["whatif", page(live.person, "whatif", "jump", live.bindings)],
   ["plan", page(SAMPLE_PERSON, "plan", "climb", undefined, planned)],
   ["map-plan", page(SAMPLE_PERSON, "map", "climb", undefined, planned)],
+  ["privacy", page(SAMPLE_PERSON, "privacy", "climb", undefined, undefined, { privacy: privacyState })],
+  ["share", page(SAMPLE_PERSON, "share", "climb", undefined, undefined, { privacy: privacyState })],
+  ["you", page(SAMPLE_PERSON, "you", "climb", undefined, undefined, { intake: intakeState, isSample: true })],
 ];
 for (const [name, html] of files) writeFileSync(`${out}/${name}.html`, html);
 // Phone view: a 390px column with the small-screen rules switched on unconditionally, because a static page

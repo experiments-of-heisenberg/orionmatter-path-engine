@@ -12,18 +12,26 @@ import { IDLE_PLAN, stepsForMap, type PlanState } from "../ui/plan";
 import { REGION_LABEL, ROLE_LABEL, SAMPLE_PERSON, type Person } from "../ui/sample";
 import { Constellation } from "./Constellation";
 import { ComparePanel, RouteDetail, WhyPanel } from "./Panels";
+import { IntakePanel } from "./IntakePanel";
 import { PlanPanel } from "./PlanPanel";
+import { PrivacyPanel } from "./PrivacyPanel";
+import { SharePanel } from "./SharePanel";
 import { RouteCard } from "./RouteCard";
 import { usePathState } from "./usePathState";
+import { IDLE_INTAKE, useIntake, type IntakeBindings } from "./useIntake";
+import { IDLE_PRIVACY, type PrivacyBindings } from "./usePrivacy";
 import { IDLE_BINDINGS, WhatIfPanel, type WhatIfBindings } from "./WhatIfPanel";
 
-export type Tab = "map" | "whatif" | "plan" | "compare" | "why";
+export type Tab = "you" | "map" | "whatif" | "plan" | "compare" | "privacy" | "share" | "why";
 /** The tabs, in order. */
 export const TABS: { id: Tab; label: string }[] = [
+  { id: "you", label: "Your story" },
   { id: "map", label: "Map" },
   { id: "whatif", label: "What if" },
   { id: "plan", label: "Plan" },
   { id: "compare", label: "Compare" },
+  { id: "privacy", label: "Privacy" },
+  { id: "share", label: "Share" },
   { id: "why", label: "Why" },
 ];
 
@@ -44,6 +52,12 @@ export interface ViewProps {
   /** The plan run. Omitted for a static render, which shows an idle Plan tab. */
   plan?: PlanState;
   onBuildPlan?: () => void;
+  /** The Privacy tab's state. Omitted for a static render, which shows the tab still loading. */
+  privacy?: PrivacyBindings;
+  /** The "Your story" tab's state. Omitted for a static render. */
+  intake?: IntakeBindings;
+  /** True while the person shown is the built-in sample, not someone who confirmed their own story. */
+  isSample?: boolean;
 }
 
 /** The whole screen as a pure function of its props, so it can be rendered on the server and tested without a browser. */
@@ -64,6 +78,9 @@ export function PathView({
   whatIf = IDLE_BINDINGS,
   plan = IDLE_PLAN,
   onBuildPlan = noop,
+  privacy = IDLE_PRIVACY,
+  intake = IDLE_INTAKE,
+  isSample = false,
 }: ViewProps) {
   const route = data?.routes.find((r) => r.archetype === chosen);
   const axisMax = data ? axisMaxFor(data.routes, person.constraints.maxMonths) : 60;
@@ -91,6 +108,7 @@ export function PathView({
             <li>{person.profile.level}</li>
             <li>{person.profile.yearsExperience} years</li>
             <li>{REGION_LABEL[person.profile.region] ?? person.profile.region}</li>
+            {isSample && <li className="chip--quiet">Sample engineer</li>}
             <li className="chip--quiet">Synthetic cohort of 484 engineers</li>
           </ul>
         </div>
@@ -110,7 +128,7 @@ export function PathView({
               className="tabs__tab"
               onClick={() => onTab(t.id)}
               onKeyDown={(event) => {
-                const index = TABS.findIndex((x) => x.id === tab);
+                const index = TABS.findIndex((x) => x.id === t.id); // the tab the key was pressed on
                 if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
                   const next =
                     TABS[(index + (event.key === "ArrowRight" ? 1 : TABS.length - 1)) % TABS.length];
@@ -126,7 +144,22 @@ export function PathView({
           ))}
         </div>
 
-        {error && (
+        {isSample && tab !== "you" && (
+          <p className="notice notice--sample" role="note">
+            You are looking at a sample engineer.{" "}
+            <button type="button" className="button" onClick={() => onTab("you")}>
+              Enter your own story
+            </button>
+          </p>
+        )}
+
+        {tab === "you" && (
+          <div role="tabpanel" id="panel-you" aria-labelledby="tab-you">
+            <IntakePanel b={intake} />
+          </div>
+        )}
+
+        {tab !== "you" && error && (
           <div className="notice notice--error" role="alert">
             <p>{error}</p>
             <button type="button" className="button" onClick={onRetry}>
@@ -135,7 +168,7 @@ export function PathView({
           </div>
         )}
 
-        {!data && !error && (
+        {tab !== "you" && !data && !error && (
           <div className="skeleton" aria-busy="true" aria-label="Loading your routes">
             <div className="skeleton__map" />
             <div className="skeleton__cards">
@@ -146,7 +179,7 @@ export function PathView({
           </div>
         )}
 
-        {data && route && (
+        {tab !== "you" && data && route && (
           <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`}>
             {data.conflicts.length > 0 && tab === "map" && (
               <div className="notice" role="status">
@@ -206,6 +239,8 @@ export function PathView({
             {tab === "compare" && (
               <ComparePanel sheet={data} selected={chosen} hidden={hidden} onToggle={onToggleRoute} />
             )}
+            {tab === "privacy" && <PrivacyPanel b={privacy} />}
+            {tab === "share" && <SharePanel person={person} data={data} privacy={privacy} />}
             {tab === "why" && <WhyPanel sheet={data} />}
           </div>
         )}
@@ -221,7 +256,16 @@ export function PathView({
   );
 }
 
-export function PathApp({ person = SAMPLE_PERSON }: { person?: Person }) {
+/** One person's session: all the state for that person. It is rebuilt (by key) when a different person is confirmed. */
+function PathSession({
+  person,
+  isSample,
+  intake,
+}: {
+  person: Person;
+  isSample: boolean;
+  intake: IntakeBindings;
+}) {
   const [tab, setTab] = useState<Tab>("map");
   const [hidden, setHidden] = useState<ReadonlySet<Archetype>>(NONE);
   const state = usePathState(person);
@@ -249,6 +293,28 @@ export function PathApp({ person = SAMPLE_PERSON }: { person?: Person }) {
       whatIf={state.bindings}
       plan={state.plan}
       onBuildPlan={state.onBuildPlan}
+      privacy={state.privacy}
+      intake={intake}
+      isSample={isSample}
     />
   );
+}
+
+/**
+ * The app. It opens on a sample engineer so there is something to see at once. When a person confirms their own story the
+ * whole session is rebuilt for them (the key changes), which is the simplest way to be sure nothing from the sample, such
+ * as scenarios, plans or chat, can leak into their screen.
+ */
+export function PathApp({ person = SAMPLE_PERSON }: { person?: Person }) {
+  const [session, setSession] = useState<{ person: Person; key: number; own: boolean }>({
+    person,
+    key: 0,
+    own: false,
+  });
+  const confirm = useCallback(
+    (confirmed: Person) => setSession((s) => ({ person: confirmed, key: s.key + 1, own: true })),
+    [],
+  );
+  const intake = useIntake(confirm);
+  return <PathSession key={session.key} person={session.person} isSample={!session.own} intake={intake} />;
 }

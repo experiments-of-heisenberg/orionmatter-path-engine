@@ -9,7 +9,8 @@
  */
 "use client";
 import { useState } from "react";
-import { MAX_SKILLS, type Constraints } from "../lib/schemas";
+import { MAX_SKILLS } from "../lib/limits";
+import type { Constraints } from "../lib/schemas";
 import {
   BAND_OPTIONS,
   LIMIT_MAX,

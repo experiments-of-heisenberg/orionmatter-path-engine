@@ -58,8 +58,9 @@ export const Profile = z.object({
 /** Inferred `Profile` type; milestones stay unverified (`verified: false`) by construction. */
 export type Profile = z.infer<typeof Profile>;
 
+import { MAX_SKILLS } from "./limits";
 /** Most skills a person can ask about at once. The What-if interpreter enforces the same limit. */
-export const MAX_SKILLS = 5;
+export { MAX_SKILLS };
 
 // What-if knobs (remote, relocation, risk); findTwins reads remote/noRelocation.
 export const Constraints = z.object({
