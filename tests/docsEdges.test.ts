@@ -73,17 +73,17 @@ describe("link placeholders are consistent", () => {
   /** Uppercase <PLACEHOLDER_URL> names in a file. */
   const placeholders = (file: string): Set<string> =>
     new Set([...read(file).matchAll(/<([A-Z][A-Z0-9_]*_URL)>/g)].map((m) => m[1] ?? ""));
-  it("every placeholder in the README appears in the submission draft", () => {
-    const readme = placeholders("README.md");
-    const submission = placeholders("docs/submission.md");
-    expect(readme.size).toBeGreaterThan(0);
-    expect([...readme].filter((name) => !submission.has(name))).toEqual([]);
+  it("only the video link may still be a placeholder, so filling it in never breaks the build", () => {
+    // The live, demo and repository links are filled in. The video link is the last thing to exist (it is recorded after
+    // the code is finished), and it is written in two files; this test accepts it being open in both or filled in both.
+    const left = [...placeholders("README.md"), ...placeholders("docs/submission.md")].filter(
+      (name) => name !== "VIDEO_URL",
+    );
+    expect(left).toEqual([]);
   });
-  it("the only submission-only placeholder is the repo link", () => {
-    const readme = placeholders("README.md");
-    const submission = placeholders("docs/submission.md");
-    // The repository URL is a submission-form field; the README (inside the
-    // repo) needs only the live, demo and video links.
-    expect([...submission].filter((name) => !readme.has(name))).toEqual(["REPO_URL"]);
+  it("the video link is open in both files or filled in both, never one", () => {
+    expect(placeholders("README.md").has("VIDEO_URL")).toBe(
+      placeholders("docs/submission.md").has("VIDEO_URL"),
+    );
   });
 });

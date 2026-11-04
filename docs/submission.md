@@ -18,12 +18,12 @@ Track: **Indie.** Problem statement: **Build for Your World.**
 
 ## Links to fill in
 
-| What                                | URL           |
-| ----------------------------------- | ------------- |
-| Repository                          | `<REPO_URL>`  |
-| Live app                            | `<LIVE_URL>`  |
-| Demo app (no key, recorded answers) | `<DEMO_URL>`  |
-| Video                               | `<VIDEO_URL>` |
+| What                                | URL                                                                    |
+| ----------------------------------- | ---------------------------------------------------------------------- |
+| Repository                          | `https://github.com/experiments-of-heisenberg/orionmatter-path-engine` |
+| Live app                            | `https://orionmatter.vercel.app/`                                      |
+| Demo app (no key, recorded answers) | `https://orionmatter-demo.vercel.app/`                                 |
+| Video                               | `<VIDEO_URL>`                                                          |
 
 ## One line
 
