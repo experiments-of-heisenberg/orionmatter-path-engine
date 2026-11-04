@@ -12,6 +12,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ApiClientError, postJson, streamPost } from "../lib/api/client";
 import type { ExploreResult, WhatIfResult } from "../lib/api/handlers";
 import type { Constraints } from "../lib/schemas";
+import type { ClientPlanRun } from "../lib/api/serialize";
 import type { Relaxation } from "../lib/whatif";
 import {
   checkMessage,
@@ -25,6 +26,7 @@ import {
   type Turn,
 } from "../ui/chat";
 import type { Archetype } from "../ui/format";
+import { IDLE_PLAN, planFailed, planFinished, planProgress, planStarted, type PlanState } from "../ui/plan";
 import { applyRelaxation, normalise, sameConstraints } from "../ui/limits";
 import type { Person } from "../ui/sample";
 import { addScenario, removeScenario, renameScenario, type Scenario } from "../ui/scenarios";
@@ -46,6 +48,9 @@ export interface PathState {
   select: (archetype: Archetype) => void;
   retry: () => void;
   bindings: WhatIfBindings;
+  /** The plan run: idle, running with a live trace, done, or failed. */
+  plan: PlanState;
+  onBuildPlan: () => void;
 }
 
 export function usePathState(person: Person): PathState {
@@ -59,11 +64,14 @@ export function usePathState(person: Person): PathState {
   const [turns, setTurns] = useState<Turn[]>([]);
   const [chatBusy, setChatBusy] = useState(false);
   const [chatDraft, setChatDraft] = useState("");
+  const [plan, setPlan] = useState<PlanState>(IDLE_PLAN);
   const [scenarios, setScenarios] = useState<Scenario[]>([]);
   const [scenarioNotice, setScenarioNotice] = useState<string | undefined>();
 
   // Refs hold the latest values for callbacks that outlive a render (the chat stream).
   const turnsRef = useRef<Turn[]>([]);
+  const planRef = useRef<PlanState>(IDLE_PLAN);
+  const planAbort = useRef<AbortController | undefined>(undefined);
   const constraintsRef = useRef(constraints);
   constraintsRef.current = constraints;
 
@@ -151,6 +159,39 @@ export function usePathState(person: Person): PathState {
     [person.profile, person.goal, setTurnList],
   );
 
+  const setPlanState = useCallback((next: PlanState) => {
+    planRef.current = next;
+    setPlan(next);
+  }, []);
+
+  // Leaving the screen ends a plan run that is still going: nobody is waiting for it.
+  useEffect(() => () => planAbort.current?.abort(), []);
+
+  const onBuildPlan = useCallback((): void => {
+    if (planRef.current.phase === "running") return;
+    const asked = constraintsRef.current;
+    const controller = new AbortController();
+    planAbort.current = controller;
+    setPlanState(planStarted(asked));
+    streamPost<ClientPlanRun>(
+      "/api/plan",
+      { profile: person.profile, goal: person.goal, constraints: asked },
+      {
+        signal: controller.signal,
+        onEvent: (event) => {
+          if (event.kind === "agent") setPlanState(planProgress(planRef.current, event.event));
+        },
+      },
+    )
+      .then((result) => {
+        if (!controller.signal.aborted) setPlanState(planFinished(planRef.current, result));
+      })
+      .catch((e: unknown) => {
+        if (isAbort(e) || controller.signal.aborted) return;
+        setPlanState(planFailed(planRef.current, messageOf(e)));
+      });
+  }, [person.profile, person.goal, setPlanState]);
+
   const bindings = useMemo<WhatIfBindings>(
     () => ({
       baseline,
@@ -217,5 +258,7 @@ export function usePathState(person: Person): PathState {
     select: setSelected,
     retry: () => setAttempt((n) => n + 1),
     bindings,
+    plan,
+    onBuildPlan,
   };
 }

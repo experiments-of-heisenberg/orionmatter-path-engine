@@ -50,6 +50,8 @@ export interface LaneLayout {
   status: RouteStatus;
   /** Cubic Bézier from the person to the end of the line. */
   path: string;
+  /** The four points of the Bézier, so a step can be placed on the line by its month. */
+  curve: { p0: Point; p1: Point; p2: Point; end: Point };
   /** The same curve, restricted to the typical window; undefined when there is no window. */
   window?: string;
   /** Where the star (or the ghost marker) sits. */
@@ -174,6 +176,7 @@ export function layoutMap(
       archetype: route.archetype,
       status,
       path,
+      curve: { p0, p1, p2, end },
       ...(window ? { window } : {}),
       star: end,
       radius: ghost || status === "no_data" ? 5 : round1(5 + 4 * Math.sqrt(route.reachedN / maxMade)),
@@ -204,4 +207,72 @@ export function layoutMap(
     ...(maxMonths !== undefined ? { limit: { months: maxMonths, x: x(maxMonths) } } : {}),
     dust,
   };
+}
+
+/** Least horizontal distance between two step markers on one line, in map units. */
+export const MARKER_GAP = 18;
+
+/** One plan step placed on a route's line. */
+export interface StepMarker {
+  /** Zero-based position in the route's steps. */
+  index: number;
+  /** Where the marker sits on the line (at the middle of the step's months). */
+  at: Point;
+  /** The step's months, as given. */
+  window: [number, number];
+  /** The months the marker stands for (the middle of the window), clamped to the axis. */
+  months: number;
+  /** The same window as x positions, so the marker's reach can be drawn. */
+  fromX: number;
+  toX: number;
+}
+
+/**
+ * Place a route's plan steps on its line. A step sits where the line is at the middle of the step's month
+ * window, found by bisection (the line only ever moves to the right, so x grows with t). Steps whose window
+ * lies past the end of the line stay on the line at its end: the map never draws a step off its route.
+ * Ghost and no-data routes have no line worth marking, so they get no markers.
+ */
+export function stepMarkers(
+  layout: MapLayout,
+  archetype: Archetype,
+  steps: readonly { monthWindow: readonly [number, number] }[],
+): StepMarker[] {
+  const lane = layout.lanes.find((l) => l.archetype === archetype);
+  if (!lane || lane.ghost || lane.status === "no_data") return [];
+  const { p0, p1, p2, end } = lane.curve;
+  const wanted = steps.map((step) => {
+    const [a, b] = step.monthWindow;
+    const months = Math.min(Math.max((a + b) / 2, 0), layout.axisMax);
+    return { months, x: Math.min(layout.x(months), end.x) };
+  });
+  // Steps sit on the line before its star, and keep apart: starting from the last, each marker is pushed left
+  // until it is at least MARKER_GAP clear of the one after it. When a line is too short for that, the first
+  // markers overlap rather than leave the line.
+  const floor = p0.x + MARKER_GAP;
+  const ceiling = Math.max(floor, end.x - MARKER_GAP);
+  const xs = wanted.map((w) => Math.min(Math.max(w.x, floor), ceiling));
+  for (let i = xs.length - 2; i >= 0; i--)
+    xs[i] = Math.max(floor, Math.min(xs[i] ?? floor, (xs[i + 1] ?? ceiling) - MARKER_GAP));
+  return steps.map((step, index) => {
+    const [a, b] = step.monthWindow;
+    const targetX = xs[index] ?? end.x;
+    const months = wanted[index]?.months ?? 0;
+    let lo = 0;
+    let hi = 1;
+    for (let i = 0; i < 30; i++) {
+      const mid = (lo + hi) / 2;
+      if (bezier(p0, p1, p2, end, mid).x < targetX) lo = mid;
+      else hi = mid;
+    }
+    const at = bezier(p0, p1, p2, end, (lo + hi) / 2);
+    return {
+      index,
+      at: { x: round1(at.x), y: round1(at.y) },
+      window: [a, b],
+      months,
+      fromX: layout.x(a),
+      toX: layout.x(b),
+    };
+  });
 }

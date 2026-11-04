@@ -10,7 +10,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { POST as exploreRoute } from "../src/app/api/explore/route";
 import { POST as whatifRoute } from "../src/app/api/whatif/route";
-import { PathApp } from "../src/components/PathApp";
+import { PathApp, TABS } from "../src/components/PathApp";
 import { createMockClient, type MockStep } from "../src/lib/model";
 import { installServices, resetServices } from "./helpers/api";
 import { says } from "./helpers/whatif";
@@ -243,25 +243,29 @@ describe("radar toggles across a tab switch", () => {
 });
 
 describe("tab arrow keys", () => {
-  it("moves through all four tabs and wraps in both directions", async () => {
+  it("moves through every tab in order and wraps in both directions", async () => {
     install();
     render(<PathApp />);
     await screen.findByText(/Climb:/);
+    const names = TABS.map((t) => t.label);
     const tab = (name: string) => screen.getByRole("tab", { name });
-    tab("Map").focus();
-    fireEvent.keyDown(tab("Map"), { key: "ArrowRight" });
-    expect(tab("What if").getAttribute("aria-selected")).toBe("true");
-    expect(document.activeElement).toBe(tab("What if"));
-    fireEvent.keyDown(tab("What if"), { key: "ArrowRight" });
-    expect(tab("Compare").getAttribute("aria-selected")).toBe("true");
-    fireEvent.keyDown(tab("Compare"), { key: "ArrowRight" });
-    expect(tab("Why").getAttribute("aria-selected")).toBe("true");
-    fireEvent.keyDown(tab("Why"), { key: "ArrowRight" });
-    expect(tab("Map").getAttribute("aria-selected")).toBe("true");
-    expect(document.activeElement).toBe(tab("Map"));
-    fireEvent.keyDown(tab("Map"), { key: "ArrowLeft" });
-    expect(tab("Why").getAttribute("aria-selected")).toBe("true");
-    expect(document.activeElement).toBe(tab("Why"));
+    expect(screen.getAllByRole("tab").map((t) => t.textContent)).toEqual(names);
+    tab(names[0] as string).focus();
+    for (let step = 1; step < names.length; step++) {
+      const from = names[step - 1] as string;
+      const to = names[step] as string;
+      fireEvent.keyDown(tab(from), { key: "ArrowRight" });
+      expect(tab(to).getAttribute("aria-selected")).toBe("true");
+      expect(document.activeElement).toBe(tab(to));
+    }
+    const first = names[0] as string;
+    const last = names[names.length - 1] as string;
+    fireEvent.keyDown(tab(last), { key: "ArrowRight" });
+    expect(tab(first).getAttribute("aria-selected")).toBe("true");
+    expect(document.activeElement).toBe(tab(first));
+    fireEvent.keyDown(tab(first), { key: "ArrowLeft" });
+    expect(tab(last).getAttribute("aria-selected")).toBe("true");
+    expect(document.activeElement).toBe(tab(last));
   });
 });
 

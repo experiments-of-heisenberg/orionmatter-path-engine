@@ -9,7 +9,7 @@
  */
 import type { ClientRoute } from "../lib/api/serialize";
 import { ARCHETYPE_LABEL, monthsRange, percentRange, routeAriaLabel, type Archetype } from "../ui/format";
-import { COMPACT, DESKTOP, layoutMap, type LaneLayout, type MapLayout } from "../ui/mapLayout";
+import { COMPACT, DESKTOP, layoutMap, stepMarkers, type LaneLayout, type MapLayout } from "../ui/mapLayout";
 import { GOAL_GOLD, ROUTE_COLORS } from "../ui/palette";
 
 interface Props {
@@ -19,6 +19,11 @@ interface Props {
   onSelect: (archetype: Archetype) => void;
   goalLabel: string;
   youLabel: string;
+  /**
+   * The approved plan's steps for one route, drawn as numbered markers along its line. The text list in the Plan
+   * tab says the same things, so the markers are decoration for sighted users and hidden from screen readers.
+   */
+  planSteps?: { archetype: Archetype; steps: readonly { monthWindow: readonly [number, number] }[] };
 }
 
 /** A concave four-point star centred on (cx, cy). */
@@ -147,6 +152,7 @@ function MapSvg({
   onSelect,
   goalLabel,
   youLabel,
+  planSteps,
   compact,
 }: Props & { layout: MapLayout; compact: boolean }) {
   const { size } = layout;
@@ -252,6 +258,27 @@ function MapSvg({
           />
         );
       })}
+      {planSteps && (
+        <g className="plan-steps" aria-hidden="true">
+          {stepMarkers(layout, planSteps.archetype, planSteps.steps).map((marker) => (
+            <g
+              key={marker.index}
+              className="plan-step"
+              style={{ transform: `translate(${marker.at.x}px, ${marker.at.y}px)` }}
+            >
+              <circle
+                r={compact ? 8 : 9}
+                fill="#0B1020"
+                stroke={ROUTE_COLORS[planSteps.archetype].map}
+                strokeWidth={1.6}
+              />
+              <text className="plan-step__n" y={compact ? 3.5 : 4} textAnchor="middle">
+                {marker.index + 1}
+              </text>
+            </g>
+          ))}
+        </g>
+      )}
     </svg>
   );
 }

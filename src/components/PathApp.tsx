@@ -8,17 +8,21 @@ import { useCallback, useState } from "react";
 import type { ExploreResult } from "../lib/api/handlers";
 import { ARCHETYPE_LABEL, summaryLine, type Archetype } from "../ui/format";
 import { axisMaxFor } from "../ui/mapLayout";
+import { IDLE_PLAN, stepsForMap, type PlanState } from "../ui/plan";
 import { REGION_LABEL, ROLE_LABEL, SAMPLE_PERSON, type Person } from "../ui/sample";
 import { Constellation } from "./Constellation";
 import { ComparePanel, RouteDetail, WhyPanel } from "./Panels";
+import { PlanPanel } from "./PlanPanel";
 import { RouteCard } from "./RouteCard";
 import { usePathState } from "./usePathState";
 import { IDLE_BINDINGS, WhatIfPanel, type WhatIfBindings } from "./WhatIfPanel";
 
-export type Tab = "map" | "whatif" | "compare" | "why";
-const TABS: { id: Tab; label: string }[] = [
+export type Tab = "map" | "whatif" | "plan" | "compare" | "why";
+/** The tabs, in order. */
+export const TABS: { id: Tab; label: string }[] = [
   { id: "map", label: "Map" },
   { id: "whatif", label: "What if" },
+  { id: "plan", label: "Plan" },
   { id: "compare", label: "Compare" },
   { id: "why", label: "Why" },
 ];
@@ -37,6 +41,9 @@ export interface ViewProps {
   onToggleRoute?: (archetype: Archetype) => void;
   /** Everything the What if tab needs. Omitted for a static render, which shows the idle tab. */
   whatIf?: WhatIfBindings;
+  /** The plan run. Omitted for a static render, which shows an idle Plan tab. */
+  plan?: PlanState;
+  onBuildPlan?: () => void;
 }
 
 /** The whole screen as a pure function of its props, so it can be rendered on the server and tested without a browser. */
@@ -55,10 +62,13 @@ export function PathView({
   hidden = NONE,
   onToggleRoute = noop,
   whatIf = IDLE_BINDINGS,
+  plan = IDLE_PLAN,
+  onBuildPlan = noop,
 }: ViewProps) {
   const route = data?.routes.find((r) => r.archetype === chosen);
   const axisMax = data ? axisMaxFor(data.routes, person.constraints.maxMonths) : 60;
   const maxMonths = person.constraints.maxMonths;
+  const mapSteps = stepsForMap(plan, person.constraints, chosen);
   const youLabel = `${ROLE_LABEL[person.profile.roleFamily]} · ${person.profile.level}`;
   return (
     <div className="app">
@@ -154,6 +164,7 @@ export function PathView({
                   onSelect={onSelect}
                   goalLabel={person.goal.label}
                   youLabel={youLabel}
+                  {...(mapSteps ? { planSteps: mapSteps } : {})}
                 />
                 <p className="caption" aria-live="polite">
                   <strong>{ARCHETYPE_LABEL[chosen]}:</strong> {summaryLine(route)}
@@ -180,6 +191,16 @@ export function PathView({
                 selected={chosen}
                 onSelect={onSelect}
                 bindings={whatIf}
+                {...(mapSteps ? { planSteps: mapSteps } : {})}
+              />
+            )}
+            {tab === "plan" && (
+              <PlanPanel
+                plan={plan}
+                current={person.constraints}
+                selected={chosen}
+                onSelect={onSelect}
+                onBuild={onBuildPlan}
               />
             )}
             {tab === "compare" && (
@@ -226,6 +247,8 @@ export function PathApp({ person = SAMPLE_PERSON }: { person?: Person }) {
       hidden={hidden}
       onToggleRoute={toggleRoute}
       whatIf={state.bindings}
+      plan={state.plan}
+      onBuildPlan={state.onBuildPlan}
     />
   );
 }

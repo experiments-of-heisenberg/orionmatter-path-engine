@@ -9,10 +9,13 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { renderToStaticMarkup } from "react-dom/server";
 import { PathView, type Tab } from "../src/components/PathApp";
 import { IDLE_BINDINGS, type WhatIfBindings } from "../src/components/WhatIfPanel";
-import { handleExplore, handleWhatIf } from "../src/lib/api/handlers";
+import { handleExplore, handlePlan, handleWhatIf } from "../src/lib/api/handlers";
 import { PlanRequest, WhatIfRequest } from "../src/lib/api/schemas";
 import type { Services } from "../src/lib/api/services";
-import { createMockClient, reply } from "../src/lib/model";
+import type { AgentEvent } from "../src/lib/agents";
+import { createMockClient, reply, type ChatRequest } from "../src/lib/model";
+import { draftFromRequest } from "../tests/helpers/fixturesData";
+import { planFinished, planProgress, planStarted, type PlanState } from "../src/ui/plan";
 import { finishTurn, startTurn, type Turn } from "../src/ui/chat";
 import { SAMPLE_PERSON, type Person } from "../src/ui/sample";
 import { addScenario, type Scenario } from "../src/ui/scenarios";
@@ -26,6 +29,7 @@ function page(
   tab: Tab,
   selected: "climb" | "jump" | "pivot",
   whatIf?: WhatIfBindings,
+  plan?: PlanState,
 ): string {
   const data = handleExplore(PlanRequest.parse(person));
   const body = renderToStaticMarkup(
@@ -39,6 +43,7 @@ function page(
       onSelect={() => undefined}
       onRetry={() => undefined}
       {...(whatIf ? { whatIf } : {})}
+      {...(plan ? { plan } : {})}
     />,
   );
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>${css}</style></head><body>${body}</body></html>`;
@@ -112,14 +117,45 @@ async function whatIfBindings(): Promise<{ person: Person; bindings: WhatIfBindi
   };
 }
 
+/** A plan run as the screen would show it: the real handler, a scripted model, every event folded into the trace. */
+async function approvedPlanState(): Promise<PlanState> {
+  const events: AgentEvent[] = [];
+  const request = PlanRequest.parse(SAMPLE_PERSON);
+  // The scripted Planner skips its tool calls (code fills them in) and writes a draft whose claims cite the evidence.
+  const WHAT = [
+    "Take on a cross-team technical project",
+    "Lead the design of a system others rely on",
+    "Mentor engineers and write the proposal for Staff",
+  ];
+  const compose = (chat: ChatRequest) => {
+    const draft = JSON.parse(draftFromRequest(chat)) as {
+      routes: { steps: { what: string; monthWindow: number[] }[] }[];
+    };
+    for (const route of draft.routes) {
+      route.steps.forEach((step, i) => {
+        step.what = WHAT[i] ?? step.what;
+      });
+    }
+    return reply(JSON.stringify(draft));
+  };
+  const client = createMockClient([reply("EVIDENCE COMPLETE"), compose, reply('{"issues":[],"notes":[]}')]);
+  const result = await handlePlan({ client } as unknown as Services, request, (e) => events.push(e));
+  let state = planStarted(SAMPLE_PERSON.constraints);
+  for (const e of events) state = planProgress(state, e);
+  return planFinished(state, result);
+}
+
 const limited: Person = { ...SAMPLE_PERSON, constraints: { ...SAMPLE_PERSON.constraints, maxMonths: 24 } };
 const live = await whatIfBindings();
+const planned = await approvedPlanState();
 const files: [string, string][] = [
   ["map", page(SAMPLE_PERSON, "map", "climb")],
   ["compare", page(SAMPLE_PERSON, "compare", "climb")],
   ["why", page(SAMPLE_PERSON, "why", "climb")],
   ["limited", page(limited, "map", "jump")],
   ["whatif", page(live.person, "whatif", "jump", live.bindings)],
+  ["plan", page(SAMPLE_PERSON, "plan", "climb", undefined, planned)],
+  ["map-plan", page(SAMPLE_PERSON, "map", "climb", undefined, planned)],
 ];
 for (const [name, html] of files) writeFileSync(`${out}/${name}.html`, html);
 // Phone view: a 390px column with the small-screen rules switched on unconditionally, because a static page
@@ -132,4 +168,5 @@ const phoneOf = (html: string): string =>
   );
 writeFileSync(`${out}/phone.html`, phoneOf(files[0]?.[1] ?? ""));
 writeFileSync(`${out}/whatif-phone.html`, phoneOf(files[4]?.[1] ?? ""));
+writeFileSync(`${out}/map-plan-phone.html`, phoneOf(files[6]?.[1] ?? ""));
 console.log(`wrote ${files.length + 2} files to ${out}`);

@@ -4,7 +4,7 @@
  */
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeAll, describe, expect, it } from "vitest";
-import { PathView } from "../src/components/PathApp";
+import { PathView, TABS } from "../src/components/PathApp";
 import { IDLE_BINDINGS, type WhatIfBindings } from "../src/components/WhatIfPanel";
 import type { WhatIfResult } from "../src/lib/api/handlers";
 import { finishTurn, startTurn, type Turn } from "../src/ui/chat";
@@ -46,9 +46,9 @@ function conversation(): Turn[] {
 }
 
 describe("the tab", () => {
-  it("is the second of four tabs, selected, with its panel tied to it", () => {
+  it("is the second tab, selected, with its panel tied to it", () => {
     const html = view();
-    expect(count(html, 'role="tab"')).toBe(4);
+    expect(count(html, 'role="tab"')).toBe(TABS.length);
     expect(html).toMatch(/id="tab-whatif"[^>]*aria-selected="true"/);
     expect(html).toMatch(/role="tabpanel" id="panel-whatif" aria-labelledby="tab-whatif"/);
     expect(html.indexOf('id="tab-map"')).toBeLessThan(html.indexOf('id="tab-whatif"'));

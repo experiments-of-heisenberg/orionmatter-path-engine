@@ -6,6 +6,7 @@
  * scenarios. The panel is a function of its props: all state and every network call live in PathApp.
  */
 "use client";
+import type { ComponentProps } from "react";
 import type { ExploreResult } from "../lib/api/handlers";
 import type { Constraints } from "../lib/schemas";
 import type { Relaxation } from "../lib/whatif";
@@ -77,9 +78,11 @@ export interface WhatIfPanelProps {
   selected: Archetype;
   onSelect: (archetype: Archetype) => void;
   bindings: WhatIfBindings;
+  /** Steps of an approved plan to number on the map. */
+  planSteps?: ComponentProps<typeof Constellation>["planSteps"];
 }
 
-export function WhatIfPanel({ person, data, selected, onSelect, bindings: b }: WhatIfPanelProps) {
+export function WhatIfPanel({ person, data, selected, onSelect, bindings: b, planSteps }: WhatIfPanelProps) {
   const maxMonths = person.constraints.maxMonths;
   const route = data.routes.find((r) => r.archetype === selected) ?? data.routes[0];
   const chips = b.baseline ? deltaChips(b.baseline, data) : [];
@@ -96,6 +99,7 @@ export function WhatIfPanel({ person, data, selected, onSelect, bindings: b }: W
         onSelect={onSelect}
         goalLabel={person.goal.label}
         youLabel={`${ROLE_LABEL[person.profile.roleFamily]} \u00b7 ${person.profile.level}`}
+        {...(planSteps ? { planSteps } : {})}
       />
       {route && (
         <p className="caption" aria-live="polite">
