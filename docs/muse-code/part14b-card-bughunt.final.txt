@@ -1,0 +1,35 @@
+Done. `npm run check` passes (123 files, 1737 passed, 1 skipped, secrets clean).
+
+## Files
+
+No new file created: `tests/uiTrailCardEdges.test.ts` already existed in the workspace (untracked, from the previous run) covering most of Step 1, so I extended it instead — added the missing withheld-words leak test and the title-overflow comment. No file under `src/`, `evals/`, `scripts/` or `next.config.ts` touched, nothing committed.
+
+## Test count
+
+`tests/uiTrailCardEdges.test.ts`: **17 tests, all pass** (16 pre-existing + 1 new `nothing withheld appears anywhere` test). It covers every Step 1 bullet: non-prefix ladder stops at first failure; empty ladder; comma-in-name company type shows only last part (stated); k=1 real + k=10000 simulated (the API caps k at 1000, so a real k=10000 request would throw); 1-route and 0-route sheets render; title font sizes 24→60, 25→48, 36→48, 37→38, 60→38 asserted in the real SVG; emoji/RTL/200-char/punctuation file names; pill x+128 ≤ 1200 for climb/jump/pivot; cardText with nothing shown and no limit; withheld goal+region words absent from SVG markup, aria-label, cardText and file names.
+
+Title width (length × 0.55 × fontSize vs 1056 px column): 24ch → 792 fits; 25ch → 660 fits; 36ch → 950.4 fits; **37ch → 773.3 fits; 60ch → 1254 OVERFLOWS by ~198 px**. Only the 60-character title overflows. Recorded in a comment in the test and printed as REPORT, never failed.
+
+## Bug list
+
+1. **Intake hand-edits wiped on re-read** — [useIntake.ts](/agent/workspace/orionmatter-path-engine/src/components/useIntake.ts:139), [useIntake.ts](/agent/workspace/orionmatter-path-engine/src/components/useIntake.ts:162). `run().then` unconditionally does `setForm(formFromDraft(next.draft))`, and `onRead` sends no `previous`. Input: read a story → hand-correct Region to US-east → add more text → press Read it → correction reverts. Fix: in `onRead`, pass `previousFrom(resultRef.current, formRef.current)` when a prior result exists, and merge the new draft over locally edited fields instead of replacing the form.
+2. **Card title overflows for long goal labels** — [trailCard.ts](/agent/workspace/orionmatter-path-engine/src/ui/trailCard.ts:144), [TrailCard.tsx](/agent/workspace/orionmatter-path-engine/src/components/TrailCard.tsx:46). `titleFontSize` bottoms at 38; a 60-char title is ~1254 px in a 1056 px column. Input: 48-char goal label → title runs past the card edge. Fix: clip the title with ellipsis or shrink further / wrap to two lines.
+3. **Card "shown" line unclipped, overflows card** — [TrailCard.tsx](/agent/workspace/orionmatter-path-engine/src/components/TrailCard.tsx:49). `shown.join("  ·  ")` with a 60-char goal + 20-char region is ~110 chars (~1500 px) at fontSize 26. Input: all rungs pass with a long goal label → details line runs off the card. Fix: clip each detail or wrap to two lines.
+4. **Company-type detail misparsed when the name contains ", "** — [trailCard.ts](/agent/workspace/orionmatter-path-engine/src/ui/trailCard.ts:63). `rung.shared.split(", ").at(-1)` parses a display string. Input: companyType `Acme, Inc` → card shows `Inc`. Fix: carry the added label structurally instead of parsing `shared`.
+5. **"Remove picture" destroys keyboard focus** — [IntakePanel.tsx](/agent/workspace/orionmatter-path-engine/src/components/IntakePanel.tsx:84). The button unmounts with the `<p>` on click, dropping focus to `<body>`. Input: keyboard user activates Remove picture → must tab from the top. Fix: `fileInput.current?.focus()` after clearing.
+6. **Confirming rebuilds the session with no focus management** — [PathApp.tsx](/agent/workspace/orionmatter-path-engine/src/components/PathApp.tsx:308). The Confirm button unmounts with the old keyed session; tab resets to map. Input: confirm from Your story → focus is lost to body. Fix: focus the Map tab or main heading on `session.key` change.
+7. **Privacy draft and settings lost on session rebuild** — [PathApp.tsx](/agent/workspace/orionmatter-path-engine/src/components/PathApp.tsx:319). `usePrivacy` lives inside the keyed `PathSession`. Input: type a story draft on Privacy tab → confirm a new person → draft and k/companyType reset. The ladder must reset, but the typed draft is the user's own input, not sample data. Fix: lift the draft (and k) above `PathSession`.
+8. **Dead `confirmed` state** — [useIntake.ts](/agent/workspace/orionmatter-path-engine/src/components/useIntake.ts:106). Set true/false on confirm/edit/read but never read by any component (verified by grep). Fix: render it (e.g. "Using this for your routes") or remove it.
+9. **Skeleton `aria-label` ignored: no role** — [PathApp.tsx](/agent/workspace/orionmatter-path-engine/src/components/PathApp.tsx:172). `<div aria-busy aria-label>` without a role: screen readers ignore the label. Fix: add `role="status"`.
+10. **Card-as-text `<pre>` overflows at 390 px** — [SharePanel.tsx](/agent/workspace/orionmatter-path-engine/src/components/SharePanel.tsx:124). `cardText` lines reach ~110 chars; `<pre>` doesn't wrap. Input: open Share → "The card as text" on a 390 px viewport → horizontal overflow. Fix: `white-space: pre-wrap; overflow-wrap: anywhere` on `.share__text pre`.
+11. **Tabs miss Home/End keys** — [PathApp.tsx](/agent/workspace/orionmatter-path-engine/src/components/PathApp.tsx:130). Only ArrowLeft/Right handled; APG tabs pattern expects Home/End too. Fix: add both keys jumping to first/last tab with focus.
+
+Checked and clean (no bug): stale-ladder races (ladder resets to loading on person/settings change, card withheld until done); explore cancellation and chat hold/apply logic; plan overlap guard + stale marking; object URLs (`svgToPng` revokes in `finally`, `saveBlob` after 1 s); escaping (all user text via React; file names sanitized).
+
+## Doubts
+
+- "484" is hardcoded in the card footer and hero chip; it matches the data today (484 records) but silently breaks if the cohort is regenerated with a different N. Guarded only indirectly by tests expecting the string.
+- `baseline` in `usePathState` latches the first explore answer ever; if the first load errors and the user moves sliders before retrying, the baseline may be for non-starting limits (depends on WhatIfPanel, out of scope — didn't verify).
+- Whether a draft level outside `LEVEL_OPTIONS` can reach the form select (would render blank while holding a value); likely server-constrained, didn't verify.
+- Hero title/chips wrapping at 390 px needs CSS reading; didn't verify.
+- Step 2 fully covered all twelve listed files; no failing tests were written for bugs, per instructions.
