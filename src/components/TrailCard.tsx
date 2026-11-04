@@ -8,7 +8,15 @@
  */
 import { forwardRef } from "react";
 import { ROUTE_COLORS } from "../ui/palette";
-import { CARD_HEIGHT, CARD_WIDTH, titleFontSize, type TrailCardModel } from "../ui/trailCard";
+import {
+  CARD_HEIGHT,
+  CARD_TEXT_WIDTH,
+  CARD_WIDTH,
+  ROUTE_TEXT_WIDTH,
+  textFit,
+  titleFontSize,
+  type TrailCardModel,
+} from "../ui/trailCard";
 
 const FONT = "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
 
@@ -17,6 +25,9 @@ export const TrailCard = forwardRef<SVGSVGElement, { model: TrailCardModel }>(fu
   ref,
 ) {
   const left = 72;
+  const details = model.shown.length > 0 ? model.shown.join("  \u00b7  ") : "Details withheld to protect you";
+  const line = (r: TrailCardModel["routes"][number]): string =>
+    `${r.time}${r.evidence ? `  \u00b7  ${r.evidence}` : ""}`;
   const barX = 640;
   const barW = 480;
   const x = (months: number): number =>
@@ -43,11 +54,18 @@ export const TrailCard = forwardRef<SVGSVGElement, { model: TrailCardModel }>(fu
       <text x={left} y="76" fill="#9aa5d6" fontSize="22" fontWeight="600" letterSpacing="2">
         ORIONMATTER
       </text>
-      <text x={left} y="150" fill="#ffffff" fontSize={titleFontSize(model.title)} fontWeight="700">
+      <text
+        x={left}
+        y="150"
+        fill="#ffffff"
+        fontSize={titleFontSize(model.title)}
+        fontWeight="700"
+        {...textFit(model.title, titleFontSize(model.title), CARD_TEXT_WIDTH)}
+      >
         {model.title}
       </text>
-      <text x={left} y="196" fill="#c9d1f2" fontSize="26">
-        {model.shown.length > 0 ? model.shown.join("  \u00b7  ") : "Details withheld to protect you"}
+      <text x={left} y="196" fill="#c9d1f2" fontSize="26" {...textFit(details, 26, CARD_TEXT_WIDTH)}>
+        {details}
       </text>
       {model.limit && (
         <text x={left} y="234" fill="#F2C76E" fontSize="22" fontWeight="600">
@@ -85,9 +103,14 @@ export const TrailCard = forwardRef<SVGSVGElement, { model: TrailCardModel }>(fu
                 </text>
               </g>
             )}
-            <text x={left + 36} y={y + 48} fill="#c9d1f2" fontSize="22">
-              {route.time}
-              {route.evidence ? `  \u00b7  ${route.evidence}` : ""}
+            <text
+              x={left + 36}
+              y={y + 48}
+              fill="#c9d1f2"
+              fontSize="22"
+              {...textFit(line(route), 22, ROUTE_TEXT_WIDTH)}
+            >
+              {line(route)}
             </text>
             <line
               x1={barX}

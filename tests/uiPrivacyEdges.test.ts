@@ -15,6 +15,7 @@ import {
 
 const rung = (added: string, size: number, passes: boolean): LadderRung => ({
   added,
+  label: added,
   shared: added,
   size,
   passes,

@@ -77,7 +77,7 @@ export function disclosureLadder(input: LadderInput): LadderResult {
     attrs = step.apply(attrs);
     labels.push(step.label);
     const { groupSize, passes } = kAnonymity(attrs, COHORT, k);
-    rungs.push({ added: step.added, shared: labels.join(", "), size: groupSize, passes });
+    rungs.push({ added: step.added, label: step.label, shared: labels.join(", "), size: groupSize, passes });
   }
 
   const last = rungs[rungs.length - 1];

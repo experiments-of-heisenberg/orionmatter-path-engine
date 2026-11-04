@@ -27,9 +27,9 @@ describe("odd ladders", () => {
       sheet,
       ladderOf(
         [
-          { added: "role", shared: "backend", size: 197, passes: true },
-          { added: "level", shared: "backend, L5", size: 5, passes: false },
-          { added: "goal", shared: "backend, L5, goal L6", size: 68, passes: true },
+          { added: "role", label: "backend", shared: "backend", size: 197, passes: true },
+          { added: "level", label: "L5", shared: "backend, L5", size: 5, passes: false },
+          { added: "goal", label: "goal L6", shared: "backend, L5, goal L6", size: 68, passes: true },
         ],
         10,
       ),
@@ -52,19 +52,25 @@ describe("odd ladders", () => {
     expect(() => renderToStaticMarkup(createElement(TrailCard, { model }))).not.toThrow();
   });
 
-  it("states: a company-type rung whose shared string has commas shows only the last part", () => {
+  it("a company type whose own name contains a comma is shown whole (review fix: it used to show only the part after the comma)", () => {
     const model = trailCardModel(
       SAMPLE_PERSON,
       sheet,
       ladderOf(
         [
-          { added: "role", shared: "backend", size: 197, passes: true },
-          { added: "company type", shared: "backend, L5, big, tech co", size: 50, passes: true },
+          { added: "role", label: "backend", shared: "backend", size: 197, passes: true },
+          {
+            added: "company type",
+            label: "big, tech co",
+            shared: "backend, L5, big, tech co",
+            size: 50,
+            passes: true,
+          },
         ],
         10,
       ),
     );
-    expect(model.shown).toEqual(["Backend", "tech co"]);
+    expect(model.shown).toEqual(["Backend", "big, tech co"]);
   });
 
   it("k 1 shows every detail; a k beyond the server's range withholds everything", async () => {
@@ -185,10 +191,16 @@ describe("nothing withheld appears anywhere", () => {
       sheet,
       ladderOf(
         [
-          { added: "role", shared: "sre", size: 120, passes: true },
-          { added: "level", shared: "sre, ZEBRA-9", size: 40, passes: true },
-          { added: "goal", shared: "sre, ZEBRA-9, goal L6", size: 8, passes: false },
-          { added: "region", shared: "sre, ZEBRA-9, goal L6, ZZ-QuasarReg", size: 3, passes: false },
+          { added: "role", label: "sre", shared: "sre", size: 120, passes: true },
+          { added: "level", label: "ZEBRA-9", shared: "sre, ZEBRA-9", size: 40, passes: true },
+          { added: "goal", label: "goal L6", shared: "sre, ZEBRA-9, goal L6", size: 8, passes: false },
+          {
+            added: "region",
+            label: "ZZ-QuasarReg",
+            shared: "sre, ZEBRA-9, goal L6, ZZ-QuasarReg",
+            size: 3,
+            passes: false,
+          },
         ],
         10,
       ),

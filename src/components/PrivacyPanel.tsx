@@ -25,7 +25,13 @@ export function LadderChart({ rows, k }: { rows: ReturnType<typeof ladderRows>; 
   const kx =
     rows.length > 0
       ? kPosition(
-          rows.map((r) => ({ added: r.added, shared: r.shared, size: r.size, passes: r.passes })),
+          rows.map((r) => ({
+            added: r.added,
+            label: r.label,
+            shared: r.shared,
+            size: r.size,
+            passes: r.passes,
+          })),
           k,
         )
       : 0;

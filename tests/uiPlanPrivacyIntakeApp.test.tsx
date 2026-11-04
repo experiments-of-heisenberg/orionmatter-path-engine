@@ -153,7 +153,7 @@ describe("state kept across tabs", () => {
 });
 
 describe("confirming a person rebuilds the session", () => {
-  it("resets plan, privacy, scenarios, chat, selection and toggles; the intake form keeps what was typed", async () => {
+  it("resets plan, scenarios, chat, selection, toggles and privacy settings; the privacy draft and the intake form keep what was typed", async () => {
     install([
       says({ changes: [{ field: "noRelocation", value: true, phrase: "won't relocate" }] }),
       skipGather,
@@ -192,7 +192,8 @@ describe("confirming a person rebuilds the session", () => {
     expect(screen.queryByText(/Skeptic approved/)).toBeNull();
     await userEvent.click(tab("Privacy"));
     await screen.findByLabelText("How the crowd shrinks as you share more");
-    expect(screen.getByLabelText<HTMLTextAreaElement>("Your text").value).toBe("");
+    // The text the person typed to check is theirs, not the sample's, so it outlives the rebuild (review fix); the crowd size resets.
+    expect(screen.getByLabelText<HTMLTextAreaElement>("Your text").value).toBe("half a bio");
     expect(screen.getByLabelText<HTMLSelectElement>("Stay in a crowd of at least").value).toBe("10");
     expect(screen.getByLabelText<HTMLSelectElement>("A company type you might mention").value).toBe("");
     await userEvent.click(tab("What if"));

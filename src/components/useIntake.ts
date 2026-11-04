@@ -17,7 +17,9 @@ import {
   editedKeys,
   formFromDraft,
   intakeBody,
+  keepEdits,
   personFromForm,
+  previousForRead,
   previousFrom,
   type FormValues,
 } from "../ui/intake";
@@ -42,8 +44,6 @@ export interface IntakeBindings {
   answer: string;
   /** What is wrong with the form when Confirm was pressed, in words. */
   confirmProblems: string[];
-  /** True once a person has been confirmed from this form. */
-  confirmed: boolean;
   onText: (text: string) => void;
   onFile: (file: File | undefined) => void;
   onClearImage: () => void;
@@ -66,7 +66,6 @@ export const IDLE_INTAKE: IntakeBindings = {
   edited: new Set(),
   answer: "",
   confirmProblems: [],
-  confirmed: false,
   onText: () => undefined,
   onFile: () => undefined,
   onClearImage: () => undefined,
@@ -103,7 +102,6 @@ export function useIntake(onConfirm: (person: Person) => void): IntakeBindings {
   const [form, setForm] = useState<FormValues>(EMPTY_FORM);
   const [answer, setAnswer] = useState("");
   const [confirmProblems, setConfirmProblems] = useState<string[]>([]);
-  const [confirmed, setConfirmed] = useState(false);
   const abort = useRef<AbortController | undefined>(undefined);
   const busy = useRef(false);
   const formRef = useRef(form);
@@ -113,43 +111,47 @@ export function useIntake(onConfirm: (person: Person) => void): IntakeBindings {
 
   useEffect(() => () => abort.current?.abort(), []);
 
-  const run = useCallback((body: ReturnType<typeof intakeBody>): void => {
-    if (busy.current) return;
-    busy.current = true;
-    const controller = new AbortController();
-    abort.current = controller;
-    setPhase("reading");
-    setStage("Reading\u2026");
-    setError(undefined);
-    streamPost<IntakeResult>("/api/intake", body, {
-      signal: controller.signal,
-      onEvent: (event) => {
-        if (event.kind === "agent" && event.event.type === "stage") {
-          const words: Record<string, string> = {
-            reading: "Reading what you wrote\u2026",
-            protecting: "Removing contact details\u2026",
-          };
-          setStage(words[event.event.stage] ?? "Reading\u2026");
-        }
-      },
-    })
-      .then((next) => {
-        if (controller.signal.aborted) return;
-        setResult(next);
-        setForm(formFromDraft(next.draft));
-        setAnswer("");
-        setConfirmProblems([]);
-        setPhase("done");
+  const run = useCallback(
+    (body: ReturnType<typeof intakeBody>, laidOver: { before: FormValues; original: FormValues }): void => {
+      if (busy.current) return;
+      busy.current = true;
+      const controller = new AbortController();
+      abort.current = controller;
+      setPhase("reading");
+      setStage("Reading\u2026");
+      setError(undefined);
+      streamPost<IntakeResult>("/api/intake", body, {
+        signal: controller.signal,
+        onEvent: (event) => {
+          if (event.kind === "agent" && event.event.type === "stage") {
+            const words: Record<string, string> = {
+              reading: "Reading what you wrote\u2026",
+              protecting: "Removing contact details\u2026",
+            };
+            setStage(words[event.event.stage] ?? "Reading\u2026");
+          }
+        },
       })
-      .catch((e: unknown) => {
-        if (isAbort(e) || controller.signal.aborted) return;
-        setError(messageOf(e));
-        setPhase("error");
-      })
-      .finally(() => {
-        busy.current = false;
-      });
-  }, []);
+        .then((next) => {
+          if (controller.signal.aborted) return;
+          setResult(next);
+          // The person's own corrections stay on top of whatever the new reading found.
+          setForm(keepEdits(formFromDraft(next.draft), laidOver.before, laidOver.original));
+          setAnswer("");
+          setConfirmProblems([]);
+          setPhase("done");
+        })
+        .catch((e: unknown) => {
+          if (isAbort(e) || controller.signal.aborted) return;
+          setError(messageOf(e));
+          setPhase("error");
+        })
+        .finally(() => {
+          busy.current = false;
+        });
+    },
+    [],
+  );
 
   const onRead = useCallback((): void => {
     const checked = checkIntakeInput({ text, image });
@@ -158,8 +160,12 @@ export function useIntake(onConfirm: (person: Person) => void): IntakeBindings {
       return;
     }
     setProblem(undefined);
-    setConfirmed(false);
-    run(intakeBody({ text: checked.text, image }, undefined));
+    const prior = resultRef.current;
+    const before = formRef.current;
+    run(intakeBody({ text: checked.text, image }, previousForRead(prior, before)), {
+      before,
+      original: prior ? formFromDraft(prior.draft) : EMPTY_FORM,
+    });
   }, [text, image, run]);
 
   const onSendAnswer = useCallback((): void => {
@@ -170,7 +176,11 @@ export function useIntake(onConfirm: (person: Person) => void): IntakeBindings {
       return;
     }
     setProblem(undefined);
-    run(intakeBody({ text: checked.text, image: undefined }, previousFrom(prior, formRef.current)));
+    const before = formRef.current;
+    run(intakeBody({ text: checked.text, image: undefined }, previousFrom(prior, before)), {
+      before,
+      original: formFromDraft(prior.draft),
+    });
   }, [answer, run]);
 
   const onFile = useCallback((file: File | undefined): void => {
@@ -195,7 +205,6 @@ export function useIntake(onConfirm: (person: Person) => void): IntakeBindings {
       return;
     }
     setConfirmProblems([]);
-    setConfirmed(true);
     onConfirm(confirmedPerson.person);
   }, [onConfirm]);
 
@@ -217,7 +226,6 @@ export function useIntake(onConfirm: (person: Person) => void): IntakeBindings {
       edited,
       answer,
       confirmProblems,
-      confirmed,
       onText: (t) => {
         setText(t);
         setProblem(undefined);
@@ -230,10 +238,7 @@ export function useIntake(onConfirm: (person: Person) => void): IntakeBindings {
         setProblem(undefined);
       },
       onSendAnswer,
-      onForm: (update) => {
-        setForm(update);
-        setConfirmed(false);
-      },
+      onForm: (update) => setForm(update),
       onConfirm: onConfirmPressed,
     }),
     [
@@ -248,7 +253,6 @@ export function useIntake(onConfirm: (person: Person) => void): IntakeBindings {
       edited,
       answer,
       confirmProblems,
-      confirmed,
       onFile,
       onRead,
       onSendAnswer,

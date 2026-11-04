@@ -4,7 +4,7 @@
  * are tabs on the same state (see usePathState.ts). Part 14 adds the agent trace and the privacy panel.
  */
 "use client";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ExploreResult } from "../lib/api/handlers";
 import { ARCHETYPE_LABEL, summaryLine, type Archetype } from "../ui/format";
 import { axisMaxFor } from "../ui/mapLayout";
@@ -102,7 +102,9 @@ export function PathView({
             </span>
             Orionmatter
           </p>
-          <h1 className="hero__title">Your route to {person.goal.label}</h1>
+          <h1 className="hero__title" id="page-title" tabIndex={-1}>
+            Your route to {person.goal.label}
+          </h1>
           <ul className="hero__chips" aria-label="About you">
             <li>{ROLE_LABEL[person.profile.roleFamily]}</li>
             <li>{person.profile.level}</li>
@@ -129,13 +131,20 @@ export function PathView({
               onClick={() => onTab(t.id)}
               onKeyDown={(event) => {
                 const index = TABS.findIndex((x) => x.id === t.id); // the tab the key was pressed on
-                if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
-                  const next =
-                    TABS[(index + (event.key === "ArrowRight" ? 1 : TABS.length - 1)) % TABS.length];
-                  if (next) {
-                    onTab(next.id);
-                    document.getElementById(`tab-${next.id}`)?.focus();
-                  }
+                const next =
+                  event.key === "ArrowRight"
+                    ? TABS[(index + 1) % TABS.length]
+                    : event.key === "ArrowLeft"
+                      ? TABS[(index + TABS.length - 1) % TABS.length]
+                      : event.key === "Home"
+                        ? TABS[0]
+                        : event.key === "End"
+                          ? TABS[TABS.length - 1]
+                          : undefined;
+                if (next) {
+                  event.preventDefault();
+                  onTab(next.id);
+                  document.getElementById(`tab-${next.id}`)?.focus();
                 }
               }}
             >
@@ -169,7 +178,7 @@ export function PathView({
         )}
 
         {tab !== "you" && !data && !error && (
-          <div className="skeleton" aria-busy="true" aria-label="Loading your routes">
+          <div className="skeleton" role="status" aria-busy="true" aria-label="Loading your routes">
             <div className="skeleton__map" />
             <div className="skeleton__cards">
               <div />
@@ -261,14 +270,24 @@ function PathSession({
   person,
   isSample,
   intake,
+  privacyDraft,
+  focusTitle,
 }: {
   person: Person;
   isSample: boolean;
   intake: IntakeBindings;
+  /** The privacy tab's draft text, held above the session so it survives a rebuild. */
+  privacyDraft: { value: string; set: (text: string) => void };
+  /** True when the session was just rebuilt for a confirmed person: the page title takes focus. */
+  focusTitle: boolean;
 }) {
+  // The old screen (and the Confirm button that was pressed) is gone, so focus would fall to the page. Put it on the title.
+  useEffect(() => {
+    if (focusTitle) document.getElementById("page-title")?.focus();
+  }, [focusTitle]);
   const [tab, setTab] = useState<Tab>("map");
   const [hidden, setHidden] = useState<ReadonlySet<Archetype>>(NONE);
-  const state = usePathState(person);
+  const state = usePathState(person, privacyDraft);
   const toggleRoute = useCallback((a: Archetype) => {
     setHidden((prev) => {
       const next = new Set(prev);
@@ -316,5 +335,17 @@ export function PathApp({ person = SAMPLE_PERSON }: { person?: Person }) {
     [],
   );
   const intake = useIntake(confirm);
-  return <PathSession key={session.key} person={session.person} isSample={!session.own} intake={intake} />;
+  // What the person typed to check before sharing is theirs, not the sample's, so it outlives the session.
+  const [draft, setDraft] = useState("");
+  const privacyDraft = useMemo(() => ({ value: draft, set: setDraft }), [draft]);
+  return (
+    <PathSession
+      key={session.key}
+      person={session.person}
+      isSample={!session.own}
+      intake={intake}
+      privacyDraft={privacyDraft}
+      focusTitle={session.key > 0}
+    />
+  );
 }

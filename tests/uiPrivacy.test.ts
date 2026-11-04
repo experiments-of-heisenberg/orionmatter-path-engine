@@ -22,6 +22,7 @@ import { STORY, assessed, modelFindings } from "./helpers/privacy";
 
 const rung = (size: number, over: Partial<LadderRung> = {}): LadderRung => ({
   added: "role",
+  label: "backend",
   shared: "backend",
   size,
   passes: size >= 10,

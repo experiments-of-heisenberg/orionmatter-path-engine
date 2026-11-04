@@ -57,6 +57,8 @@ export interface PrivacyFinding {
 export interface LadderRung {
   /** What was added at this step, e.g. "region". */
   added: string;
+  /** Just this step's detail, e.g. "IN-south" or "goal L6", so nothing has to parse `shared`. */
+  label: string;
   /** Everything shared so far, e.g. "backend, L5, goal L6". */
   shared: string;
   /** Comparable engineers in the cohort who match everything shared so far. */

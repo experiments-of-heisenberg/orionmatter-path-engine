@@ -54,11 +54,17 @@ const isAbort = (error: unknown): boolean => error instanceof Error && error.nam
 const messageOf = (error: unknown): string =>
   error instanceof ApiClientError ? error.message : "Something went wrong. Please try again.";
 
-export function usePrivacy(person: Person): PrivacyBindings {
+export function usePrivacy(
+  person: Person,
+  /** Keep the draft text here instead of inside the hook (the app holds it above the session). */
+  external?: { value: string; set: (text: string) => void },
+): PrivacyBindings {
   const [settings, setSettings] = useState<PrivacySettings>({ k: DEFAULT_K_UI, companyType: undefined });
   const [ladder, setLadder] = useState<LadderState>({ phase: "loading" });
   const [textCheck, setTextCheck] = useState<TextCheckState>({ phase: "idle" });
-  const [draft, setDraft] = useState("");
+  const [ownDraft, setOwnDraft] = useState("");
+  const draft = external?.value ?? ownDraft;
+  const setDraft = external?.set ?? setOwnDraft;
   const [draftProblem, setDraftProblem] = useState<string | undefined>();
   const [attempt, setAttempt] = useState(0);
   const checkAbort = useRef<AbortController | undefined>(undefined);
@@ -140,6 +146,6 @@ export function usePrivacy(person: Person): PrivacyBindings {
       onCheck,
       onRetryLadder: () => setAttempt((n) => n + 1),
     }),
-    [settings, ladder, textCheck, draft, draftProblem, onCheck],
+    [settings, ladder, textCheck, draft, draftProblem, onCheck, setDraft],
   );
 }

@@ -49,7 +49,7 @@ export interface TrailCardModel {
 }
 
 /** The words for one ladder step's detail. */
-function detailFor(rung: { added: string; shared: string }, person: Person): string {
+function detailFor(rung: { added: string; label: string }, person: Person): string {
   switch (rung.added) {
     case "role":
       return ROLE_LABEL[person.profile.roleFamily];
@@ -60,7 +60,7 @@ function detailFor(rung: { added: string; shared: string }, person: Person): str
     case "region":
       return REGION_LABEL[person.profile.region] ?? person.profile.region;
     case "company type":
-      return rung.shared.split(", ").at(-1) ?? "A company type";
+      return rung.label || "A company type";
     default:
       return rung.added;
   }
@@ -139,6 +139,32 @@ export function cardText(model: TrailCardModel): string {
   lines.push("", model.footer);
   return lines.join("\n");
 }
+
+/**
+ * An estimate of how wide a line of text is, in the card's units: the average character of a sans-serif face is about
+ * 0.55 of the font size. It errs wide, so a line is squeezed a little more often than strictly needed, never overflowed.
+ */
+export function estimateWidth(text: string, fontSize: number): number {
+  return text.length * fontSize * 0.55;
+}
+
+/**
+ * The SVG attributes that keep one line of text inside `maxWidth`: when it would run past, `textLength` squeezes the glyphs
+ * to fit (the browser does the squeezing, so every word stays); when it already fits, nothing is added.
+ */
+export function textFit(
+  text: string,
+  fontSize: number,
+  maxWidth: number,
+): { textLength?: number; lengthAdjust?: "spacingAndGlyphs" } {
+  return estimateWidth(text, fontSize) > maxWidth
+    ? { textLength: maxWidth, lengthAdjust: "spacingAndGlyphs" }
+    : {};
+}
+
+/** Where the card's text may run: from the left margin to the right edge, and the width left of the bars for each route's line. */
+export const CARD_TEXT_WIDTH = 1056;
+export const ROUTE_TEXT_WIDTH = 520;
 
 /** A font size that keeps the title inside the card. */
 export function titleFontSize(title: string): number {

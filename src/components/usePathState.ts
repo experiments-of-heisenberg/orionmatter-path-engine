@@ -55,8 +55,12 @@ export interface PathState {
   privacy: PrivacyBindings;
 }
 
-export function usePathState(person: Person): PathState {
-  const privacy = usePrivacy(person);
+export function usePathState(
+  person: Person,
+  /** Where the privacy tab keeps its draft text. Omit to keep it inside this hook. */
+  privacyDraft?: { value: string; set: (text: string) => void },
+): PathState {
+  const privacy = usePrivacy(person, privacyDraft);
   const [constraints, setConstraints] = useState<Constraints>(person.constraints);
   const [data, setData] = useState<ExploreResult | undefined>();
   const [baseline, setBaseline] = useState<ExploreResult | undefined>();

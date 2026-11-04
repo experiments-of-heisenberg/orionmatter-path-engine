@@ -237,6 +237,39 @@ export function intakeBody(
   };
 }
 
+/**
+ * What to send as the earlier draft when the person presses Read it (or Send answer): their own corrections, if they have
+ * made any since the last reading, otherwise nothing, so a plain re-read starts fresh. Hand-filled fields before any
+ * reading count as corrections too.
+ */
+export function previousForRead(
+  prior: Pick<IntakeResult, "draft" | "provenance"> | undefined,
+  form: FormValues,
+): { draft: Draft; provenance: Record<string, Provenance> } | undefined {
+  const base = prior ?? { draft: { stack: [], milestones: [] }, provenance: {} };
+  return editedKeys(formFromDraft(base.draft), form).size > 0 ? previousFrom(base, form) : undefined;
+}
+
+/**
+ * The form after a new reading, with the person's own corrections laid back over it: a field they changed since
+ * `original` keeps their value, because a newer reading must never silently undo what a person typed.
+ */
+export function keepEdits(next: FormValues, before: FormValues, original: FormValues): FormValues {
+  const changed = (field: keyof FormValues): boolean =>
+    JSON.stringify(before[field]) !== JSON.stringify(original[field]);
+  return {
+    roleFamily: changed("roleFamily") ? before.roleFamily : next.roleFamily,
+    level: changed("level") ? before.level : next.level,
+    years: changed("years") ? before.years : next.years,
+    region: changed("region") ? before.region : next.region,
+    stack: changed("stack") ? before.stack : next.stack,
+    goalLevel: changed("goalLevel") ? before.goalLevel : next.goalLevel,
+    goalLabel: changed("goalLabel") ? before.goalLabel : next.goalLabel,
+    compBand: changed("compBand") ? before.compBand : next.compBand,
+    milestones: changed("milestones") ? before.milestones : next.milestones,
+  };
+}
+
 /** The provenance key each form field belongs to. */
 const KEY_OF: Readonly<Record<keyof FormValues, string>> = {
   roleFamily: "roleFamily",

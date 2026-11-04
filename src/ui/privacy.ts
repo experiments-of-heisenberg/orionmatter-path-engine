@@ -29,6 +29,8 @@ export const COMPANY_TYPES = [
 export interface LadderRow {
   /** What was added at this step: "role", "level", "goal", "region", "company type". */
   added: string;
+  /** This step's own detail ("IN-south"), as the server gave it. */
+  label: string;
   /** Everything shared up to here. */
   shared: string;
   size: number;
@@ -44,6 +46,7 @@ export function ladderRows(ladder: readonly LadderRung[]): LadderRow[] {
   const max = Math.max(1, ...ladder.map((r) => r.size));
   return ladder.map((rung) => ({
     added: rung.added,
+    label: rung.label,
     shared: rung.shared,
     size: rung.size,
     passes: rung.passes,

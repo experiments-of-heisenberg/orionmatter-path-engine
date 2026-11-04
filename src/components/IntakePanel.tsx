@@ -90,7 +90,11 @@ export function IntakePanel({ b }: { b: IntakeBindings }) {
                 onClick={() => {
                   b.onClearImage();
                   // Empty the picker too: choosing the same file again fires no change event if it still holds it.
-                  if (fileInput.current) fileInput.current.value = "";
+                  // The Remove button is about to disappear, so keep keyboard focus by moving it to the picker.
+                  if (fileInput.current) {
+                    fileInput.current.value = "";
+                    fileInput.current.focus();
+                  }
                 }}
               >
                 Remove picture
