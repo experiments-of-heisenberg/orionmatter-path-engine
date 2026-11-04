@@ -26,7 +26,11 @@ const routes: Record<string, (request: Request) => Response | Promise<Response>>
   "/api/whatif": whatifRoute,
 };
 
+/** Extra time the explore route takes to answer, to make a slow network happen on purpose. */
+let exploreDelayMs = 0;
+
 beforeEach(() => {
+  exploreDelayMs = 0;
   const env = parseEnv({ USE_FIXTURES: "true" });
   installServices(
     createModelClient(env, { fixtureMode: "replay", fixtures: new FileFixtureStore("src/fixtures") }),
@@ -41,15 +45,18 @@ beforeEach(() => {
     if (path === "/api/health") return Promise.resolve(healthRoute());
     const handler = routes[path];
     if (!handler) return Promise.resolve(new Response("not found", { status: 404 }));
-    return Promise.resolve(
-      handler(
+    const answer = async (): Promise<Response> => {
+      if (path === "/api/explore" && exploreDelayMs > 0)
+        await new Promise((r) => setTimeout(r, exploreDelayMs));
+      return handler(
         new Request(`http://localhost${path}`, {
           method: "POST",
           headers: { "content-type": "application/json" },
           body: init?.body as string,
         }),
-      ),
-    );
+      );
+    };
+    return answer();
   });
 });
 afterEach(() => {
@@ -112,6 +119,27 @@ describe("the demo build", () => {
     await userEvent.click(screen.getAllByRole("button", { name: /^Jump route\./ })[0] as HTMLElement);
     expect(view.container.querySelectorAll(".plan-step").length).toBeGreaterThan(0);
   });
+
+  it("Plan: steps wait for a map that is slow to redraw, instead of appearing on the old numbers and vanishing", async () => {
+    // A plan can come back before the map has the numbers for new limits. This once failed on a slow CI runner: for a
+    // moment the climb route (nobody finished it within 24 months) showed the steps of a plan made for those limits.
+    const view = await open();
+    exploreDelayMs = 2000;
+    await userEvent.click(screen.getByRole("tab", { name: "What if" }));
+    await userEvent.click(await screen.findByRole("button", { name: WHATIF_EXAMPLES[2] }));
+    await screen.findByLabelText("Changes applied");
+    await userEvent.click(screen.getByRole("tab", { name: "Plan" }));
+    await userEvent.click(screen.getByRole("button", { name: "Build my plan" }));
+    await screen.findByText(/The Skeptic approved this plan/, undefined, { timeout: 5000 });
+    await userEvent.click(screen.getByRole("tab", { name: "Map" }));
+    expect(view.container.querySelectorAll(".plan-step")).toHaveLength(0);
+    await userEvent.click(screen.getAllByRole("button", { name: /^Jump route\./ })[0] as HTMLElement);
+    expect(view.container.querySelectorAll(".plan-step")).toHaveLength(0);
+    // When the map has caught up, the steps appear on the route that has people who finished.
+    await waitFor(() => expect(view.container.querySelectorAll(".plan-step").length).toBeGreaterThan(0), {
+      timeout: 6000,
+    });
+  }, 15_000);
 
   it("Plan: the starting limits build from the recording too", async () => {
     await open();

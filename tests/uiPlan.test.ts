@@ -122,6 +122,15 @@ describe("steps on the map", () => {
     expect(stepsForMap(planFailed(planStarted(base), "x"), base, "climb")).toBeUndefined();
     expect(stepsForMap(IDLE_PLAN, base, "climb")).toBeUndefined();
   });
+  it("wait until the map's own numbers are for the same limits as the plan", async () => {
+    const { result } = await approvedPlan();
+    const done = planFinished(planStarted(base), result);
+    // The plan is for the current limits, but the map still shows the numbers for the old ones: nothing is drawn yet.
+    expect(stepsForMap(done, base, "jump", withLimit(base, 24))).toBeUndefined();
+    // Once the map has caught up, the steps appear; with no map to compare with they are not held back.
+    expect(stepsForMap(done, base, "jump", base)?.steps).toEqual(routeOf(result, "jump")?.steps);
+    expect(stepsForMap(done, base, "jump")?.steps).toEqual(routeOf(result, "jump")?.steps);
+  });
   it("a route missing from the plan gives nothing, not a crash", async () => {
     const { result } = await approvedPlan();
     const broken = {

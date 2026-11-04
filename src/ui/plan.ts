@@ -91,14 +91,20 @@ export function routeOf(result: ClientPlanRun, archetype: Archetype): Route | un
 /**
  * The steps to draw on the map, or undefined. Only an approved plan whose limits are still the current ones puts
  * its steps on the map: an unresolved plan has claims the Skeptic did not clear, and a stale one sits among numbers that moved.
+ *
+ * `shown` is the limits the map's own numbers were computed for. The plan can come back before the map has redrawn
+ * for new limits (the map refreshes on a short delay and keeps the old numbers until the new ones arrive), and steps
+ * drawn along a route of the old numbers would jump or vanish a moment later. Leave it out when there is no map to compare with.
  */
 export function stepsForMap(
   state: PlanState,
   current: Constraints,
   archetype: Archetype,
+  shown?: Constraints,
 ): { archetype: Archetype; steps: Route["steps"] } | undefined {
   if (state.phase !== "done" || !state.result || state.result.status !== "approved") return undefined;
   if (planIsStale(state, current)) return undefined;
+  if (shown !== undefined && !sameConstraints(shown, current)) return undefined;
   const route = routeOf(state.result, archetype);
   return route ? { archetype, steps: route.steps } : undefined;
 }

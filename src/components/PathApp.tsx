@@ -88,7 +88,7 @@ export function PathView({
   const route = data?.routes.find((r) => r.archetype === chosen);
   const axisMax = data ? axisMaxFor(data.routes, person.constraints.maxMonths) : 60;
   const maxMonths = person.constraints.maxMonths;
-  const mapSteps = stepsForMap(plan, person.constraints, chosen);
+  const mapSteps = stepsForMap(plan, person.constraints, chosen, data?.constraints);
   const youLabel = `${ROLE_LABEL[person.profile.roleFamily]} · ${person.profile.level}`;
   return (
     <div className="app">
