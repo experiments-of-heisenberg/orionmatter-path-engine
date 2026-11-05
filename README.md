@@ -16,7 +16,7 @@ through the **Meta Model API** to **Muse Spark** (`muse-spark-1.3`). Development
 | ---------------------------------------------- | -------------------------------------- |
 | Live app                                       | `https://orionmatter.vercel.app/`      |
 | Demo app (no key, recorded Muse Spark answers) | `https://orionmatter-demo.vercel.app/` |
-| Video                                          | `<VIDEO_URL>`                          |
+| Video                                          | https://youtu.be/J1vx0-ercSA           |
 
 ![The constellation map for the sample engineer, with the steps of the approved plan numbered on the climb route](docs/images/map.svg)
 

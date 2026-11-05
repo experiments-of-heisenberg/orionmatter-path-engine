@@ -23,7 +23,7 @@ Track: **Indie.** Problem statement: **Build for Your World.**
 | Repository                          | `https://github.com/experiments-of-heisenberg/orionmatter-path-engine` |
 | Live app                            | `https://orionmatter.vercel.app/`                                      |
 | Demo app (no key, recorded answers) | `https://orionmatter-demo.vercel.app/`                                 |
-| Video                               | `<VIDEO_URL>`                                                          |
+| Video                               | https://youtu.be/J1vx0-ercSA                                           |
 
 ## One line
 
